@@ -1,0 +1,1 @@
+const buffValues = {"Construction|Lv.1": "+5%", "Construction|Lv.2": "+8%", "Tech|Lv.1": "+5%", "Tech|Lv.2": "+8%", "Gathering|Lv.1": "+5%", "Production|Lv.1": "+5%", "Training|Lv.1": "+5%", "Training|Lv.2": "+8%", "Weapons|Lv.1": "+5%", "Weapons|Lv.2": "+8%", "Weapons|Lv.4": "+10%", "Defense|Lv.1": "+5%", "Defense|Lv.2": "+8%", "Expedition|Lv.3": "+15%"};

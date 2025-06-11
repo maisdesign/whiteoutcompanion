@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#1e3c72">
+  <meta name="description" content="Professional alliance management tool for Whiteout Survival">
+  
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/icons/icon-180x180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <title>Whiteout Survival Companion</title>
+  
+  <!-- Preload critical fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Styles in order of importance -->
+  <link rel="stylesheet" href="styles/base.css"/>
+  <link rel="stylesheet" href="styles/modern-ui.css"/>
+  
+  <!-- Critical CSS inline per performance -->
+  <style>
+    /* Critical above-the-fold styles */
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0; 
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255,255,255,0.1);
+      border-left: 4px solid #4facfe;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="light-theme">
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="loading-screen">
+    <div>
+      <div class="spinner"></div>
+      <p style="margin-top: 20px; opacity: 0.8;">Caricamento...</p>
+    </div>
+  </div>
+
+  <!-- Main App Container -->
+  <div id="app-container" style="opacity: 0; transition: opacity 0.5s ease;">
+    
+    <!-- Sidebar Moderna -->
+    <aside id="alliance-panel" class="sidebar">
+      <div class="sidebar-header">
+        <h2 data-i18n="alliances">🏰 Alleanze</h2>
+        <div class="premium-badge" id="premium-status" style="display: none;">
+          ⭐ Premium
+        </div>
+      </div>
+      
+      <!-- Form Alleanze -->
+      <div class="alliance-form glass-card">
+        <form id="alliance-form">
+          <input type="text" id="alliance-name" class="modern-input" 
+                 data-i18n-placeholder="allianceName" maxlength="30" required/>
+          <input type="file" id="alliance-icon" class="modern-file-input" 
+                 accept="image/*" aria-label="Alliance icon upload"/>
+          <button type="submit" class="btn-primary" data-i18n="addAlliance">
+            ✨ Add Alliance
+          </button>
+          <!-- Cancel button will be added here dynamically -->
+        </form>
+      </div>
+      
+      <!-- Lista Alleanze -->
+      <div class="alliance-list-container">
+        <ul id="alliance-list" class="alliance-list"></ul>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="main-panel" class="main-content">
+      
+      <!-- Header -->
+      <header class="header">
+        <h1 class="title-gradient" data-i18n="title">Whiteout Survival Companion</h1>
+        <p class="subtitle">Gestisci le tue alleanze con stile moderno</p>
+      </header>
+
+      <!-- Controls -->
+      <div id="controls" class="controls">
+        <button onclick="exportCSV()" class="btn-secondary" data-i18n="exportCsv">
+          📊 Export CSV
+        </button>
+        <button onclick="exportPNG()" class="btn-secondary" data-i18n="exportPng">
+          🖼️ Export PNG
+        </button>
+        <input type="file" id="import-file" class="modern-file-input" 
+               accept=".csv" aria-label="Import CSV file"/>
+        <button id="donation-btn" class="btn-premium" style="display: none;">
+          ❤️ Remove Ads - €2.99
+        </button>
+        <div class="language-selector-container">
+          <label for="language-selector" data-i18n="language">Language</label>
+          <select id="language-selector" class="modern-select" 
+                  aria-label="Select interface language"></select>
+        </div>
+      </div>
+
+      <!-- Interactive Map -->
+      <div id="map-container" class="map-container glass-card">
+        <div class="map-header">
+          <h3>🗺️ Interactive Map</h3>
+          <div class="map-controls">
+            <button class="btn-icon" onclick="toggleMapView()" title="Toggle view">
+              🔄
+            </button>
+            <button class="btn-icon" onclick="resetMapZoom()" title="Reset zoom">
+              🔍
+            </button>
+          </div>
+        </div>
+        <div class="map-wrapper">
+          <img src="assets/map.png" id="map" alt="Facility Map"/>
+          <!-- Markers will be added here dynamically -->
+        </div>
+      </div>
+
+      <!-- Statistics Dashboard -->
+      <div class="stats-section glass-card">
+        <div class="section-header">
+          <h3 class="section-title">📈 Quick Stats</h3>
+          <button class="btn-icon section-toggle" onclick="toggleSection('stats')" id="stats-toggle">
+            ▼
+          </button>
+        </div>
+        <div id="stats-content" class="stats-content">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-number" id="total-alliances">0</div>
+              <div class="stat-label" data-i18n="totalAlliances">Active Alliances</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="assigned-facilities">0</div>
+              <div class="stat-label" data-i18n="assignedFacilities">Assigned Facilities</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="total-buffs">+0%</div>
+              <div class="stat-label" data-i18n="totalBuffs">Total Buffs</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number" id="completion-rate">0%</div>
+              <div class="stat-label" data-i18n="completionRate">Completion</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Facility Summary -->
+      <div id="summary" class="summary-section glass-card">
+        <!-- Content will be populated by renderFacilitySummary() -->
+      </div>
+
+      <!-- Buff Summary -->
+      <div id="buff-summary" class="summary-section glass-card">
+        <!-- Content will be populated by renderBuffSummary() -->
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Floating Action Button -->
+  <button id="fab" class="fab" title="Quick actions">
+    ⚡
+  </button>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Ad Containers (hidden by default) -->
+  <div id="banner-top" class="ad-container banner-top" style="display: none;"></div>
+  <div id="banner-bottom" class="ad-container banner-bottom" style="display: none;"></div>
+
+  <!-- Scripts in order of dependency -->
+  <script src="data/facilitiesData.js"></script>
+  <script src="data/buffData.js"></script>
+  <script src="data/translations.js"></script>
+  <script src="scripts/monetization.js"></script>
+  <script src="scripts/pwa.js"></script>
+  <script src="scripts/main.js"></script>
+
+  <!-- PWA Installation -->
+  <script>
+    // Hide loading screen when everything is loaded
+    window.addEventListener('load', () => {
+      const loadingScreen = document.getElementById('loading-screen');
+      const appContainer = document.getElementById('app-container');
+      
+      setTimeout(() => {
+        loadingScreen.style.opacity = '0';
+        appContainer.style.opacity = '1';
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 500);
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
