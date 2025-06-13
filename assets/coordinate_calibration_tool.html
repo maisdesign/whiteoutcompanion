@@ -1,4 +1,7 @@
-<!DOCTYPE html>
+<div class="control-group">
+                <button class="btn btn-warning" onclick="undoLast()">↶ Undo Last</button>
+                <button class="btn btn-danger" onclick="clearAll()">🗑️ Clear All</button>
+            </div><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -156,6 +159,7 @@
             z-index: 20;
         }
 
+        .marker.castle { background: #ffd700; border: 3px solid #ff6b35; }
         .marker.construction { background: #3498db; }
         .marker.production { background: #e74c3c; }
         .marker.defense { background: #9b59b6; }
@@ -341,6 +345,7 @@
                 <div class="facility-selector">
                     <label for="facility-type">Facility Type:</label>
                     <select id="facility-type">
+                        <option value="Castle">🏰 CASTLE</option>
                         <option value="Construction">🏗️ Construction</option>
                         <option value="Production">⚙️ Production</option>
                         <option value="Defense">🛡️ Defense</option>
@@ -364,13 +369,23 @@
                         <option value="Lv.3">Lv.3</option>
                         <option value="Lv.4">Lv.4</option>
                         <option value="Lv.5">Lv.5</option>
+                        <option value="Lv.6">Lv.6</option>
+                        <option value="Lv.7">Lv.7</option>
+                        <option value="Lv.8">Lv.8</option>
+                        <option value="Lv.9">Lv.9</option>
+                        <option value="Lv.10">Lv.10</option>
+                        <option value="Lv.11">Lv.11</option>
+                        <option value="Lv.12">Lv.12</option>
                     </select>
                 </div>
             </div>
 
             <div class="control-group">
-                <button class="btn btn-warning" onclick="undoLast()">↶ Undo Last</button>
-                <button class="btn btn-danger" onclick="clearAll()">🗑️ Clear All</button>
+                <div class="facility-selector">
+                    <label for="ingame-coords">In-Game Coordinates (Optional):</label>
+                    <input type="text" id="ingame-coords" placeholder="e.g. X:123 Y:456 or A1" 
+                           style="padding: 8px 12px; border: none; border-radius: 6px; background: rgba(255, 255, 255, 0.9); color: #333; font-size: 14px; min-width: 150px;">
+                </div>
             </div>
         </div>
 
@@ -378,7 +393,7 @@
             <div class="map-section">
                 <h3>🎯 Click on the map to place facilities</h3>
                 <div class="status info" id="current-status">
-                    Ready to place: <span id="current-facility">Construction Lv.1</span>
+                    Ready to place: <span id="current-facility">Castle Lv.1</span>
                 </div>
                 <div class="map-container">
                     <img src="map.png" 
@@ -446,12 +461,14 @@
         function placeFacility(x, y) {
             const type = document.getElementById('facility-type').value;
             const level = document.getElementById('facility-level').value;
+            const ingameCoords = document.getElementById('ingame-coords').value.trim();
             
             const facility = {
                 Type: type,
                 Level: level,
                 x: Math.round(x * 100) / 100,
-                y: Math.round(y * 100) / 100
+                y: Math.round(y * 100) / 100,
+                ingameCoords: ingameCoords || null
             };
             
             facilities.push(facility);
@@ -463,6 +480,9 @@
             updateProgress();
             updateFacilityList();
             updateCurrentStatus();
+            
+            // Clear ingame coords input for next facility
+            document.getElementById('ingame-coords').value = '';
             
             // Auto-increment level or change type
             autoAdvanceFacility();
@@ -477,7 +497,7 @@
             
             const label = document.createElement('div');
             label.className = 'marker-label';
-            label.textContent = `${facility.Type} ${facility.Level}`;
+            label.textContent = `${facility.Type} ${facility.Level}${facility.ingameCoords ? ' (' + facility.ingameCoords + ')' : ''}`;
             marker.appendChild(label);
             
             // Double-click to remove
@@ -539,6 +559,7 @@
             
             // Suggest next placement based on typical patterns
             const suggestions = {
+                'Castle': { 'Lv.1': 1 },
                 'Construction': { 'Lv.1': 16, 'Lv.3': 8 },
                 'Production': { 'Lv.1': 12 },
                 'Defense': { 'Lv.2': 12, 'Lv.4': 8 },
@@ -548,7 +569,7 @@
                 'Training': { 'Lv.2': 12 },
                 'Expedition': { 'Lv.3': 4 },
                 'Stronghold': { 'Lv.1': 1, 'Lv.2': 1, 'Lv.3': 1, 'Lv.4': 1 },
-                'Fortress': { 'Lv.1': 1, 'Lv.2': 1, 'Lv.3': 1, 'Lv.4': 1, 'Lv.5': 1 }
+                'Fortress': { 'Lv.1': 1, 'Lv.2': 1, 'Lv.3': 1, 'Lv.4': 1, 'Lv.5': 1, 'Lv.6': 1, 'Lv.7': 1, 'Lv.8': 1, 'Lv.9': 1, 'Lv.10': 1, 'Lv.11': 1, 'Lv.12': 1 }
             };
             
             const typesSuggestions = suggestions[currentType];
@@ -594,10 +615,11 @@
             
             let html = '';
             Object.entries(grouped).forEach(([key, facilities]) => {
+                const hasIngameCoords = facilities.some(f => f.ingameCoords);
                 html += `
                     <div class="facility-item">
                         <span class="facility-type">${key}</span>
-                        <span class="coordinates">${facilities.length}x</span>
+                        <span class="coordinates">${facilities.length}x ${hasIngameCoords ? '🎮' : ''}</span>
                     </div>
                 `;
             });
@@ -624,7 +646,13 @@ const facilityData = [
 `;
             
             facilities.forEach((facility, index) => {
-                code += `  { "Type": "${facility.Type}", "Level": "${facility.Level}", "x": ${facility.x}, "y": ${facility.y} }`;
+                code += `  { 
+    "Type": "${facility.Type}", 
+    "Level": "${facility.Level}", 
+    "x": ${facility.x}, 
+    "y": ${facility.y}${facility.ingameCoords ? `,
+    "ingameCoords": "${facility.ingameCoords}"` : ''} 
+  }`;
                 if (index < facilities.length - 1) code += ',';
                 code += '\n';
             });
