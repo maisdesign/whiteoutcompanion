@@ -459,16 +459,16 @@
                 <textarea id="paste-facilities" placeholder="Incolla qui il contenuto di facilitiesData.js..." 
                          style="width: 100%; height: 120px; padding: 8px; border: 2px solid rgba(255,255,255,0.3); border-radius: 6px; background: rgba(255,255,255,0.1); color: white; font-family: monospace; font-size: 12px; resize: vertical; margin-bottom: 10px;"></textarea>
                 <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-success" onclick="importFromPaste()" style="flex: 1;">📋 Importa da Clipboard</button>
-                    <button class="btn btn-info" onclick="testAlignment()" style="flex: 1;">🎯 Test Allineamento</button>
+                    <button class="btn btn-success" id="import-btn" style="flex: 1;">📋 Importa da Clipboard</button>
+                    <button class="btn btn-info" id="test-alignment-btn" style="flex: 1;">🎯 Test Allineamento</button>
                 </div>
             </div>
 
             <div class="control-group">
                 <label style="margin-bottom: 10px; display: block;">Controlli:</label>
-                <button class="btn btn-warning" onclick="undoLast()">↶ Annulla Ultimo</button>
-                <button class="btn btn-danger" onclick="clearAll()">🗑️ Cancella Tutto</button>
-                <button class="btn btn-success" onclick="toggleSelectionMode()">🎯 <span id="selection-mode-text">Modalità Selezione</span></button>
+                <button class="btn btn-warning" id="undo-btn">↶ Annulla Ultimo</button>
+                <button class="btn btn-danger" id="clear-btn">🗑️ Cancella Tutto</button>
+                <button class="btn btn-success" id="selection-mode-btn">🎯 <span id="selection-mode-text">Modalità Selezione</span></button>
             </div>
         </div>
 
@@ -483,25 +483,25 @@
                     <div class="offset-controls">
                         <div class="offset-input">
                             <label>Offset X:</label>
-                            <input type="number" id="offset-x" value="0" step="0.1" onchange="applyOffset()">
+                            <input type="number" id="offset-x" value="0" step="0.1">
                         </div>
                         <div class="offset-input">
                             <label>Offset Y:</label>
-                            <input type="number" id="offset-y" value="0" step="0.1" onchange="applyOffset()">
+                            <input type="number" id="offset-y" value="0" step="0.1">
                         </div>
                         <div class="offset-input">
                             <label>Scala X:</label>
-                            <input type="number" id="scale-x" value="1" step="0.01" min="0.5" max="2" onchange="applyOffset()">
+                            <input type="number" id="scale-x" value="1" step="0.01" min="0.5" max="2">
                         </div>
                         <div class="offset-input">
                             <label>Scala Y:</label>
-                            <input type="number" id="scale-y" value="1" step="0.01" min="0.5" max="2" onchange="applyOffset()">
+                            <input type="number" id="scale-y" value="1" step="0.01" min="0.5" max="2">
                         </div>
                     </div>
                     
                     <div style="text-align: center;">
-                        <button class="btn btn-info" onclick="resetCalibration()">🔄 Reset Calibrazione</button>
-                        <button class="btn btn-warning" onclick="saveCalibration()">💾 Salva Calibrazione</button>
+                        <button class="btn btn-info" id="reset-calibration-btn">🔄 Reset Calibrazione</button>
+                        <button class="btn btn-warning" id="save-calibration-btn">💾 Salva Calibrazione</button>
                     </div>
                 </div>
 
@@ -510,9 +510,9 @@
                     <p style="font-size: 13px; margin-bottom: 15px;">Seleziona i marker da spostare:</p>
                     
                     <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                        <button class="btn btn-info" onclick="selectAll()" style="font-size: 12px; padding: 6px 12px;">✅ Seleziona Tutto</button>
-                        <button class="btn btn-warning" onclick="selectNone()" style="font-size: 12px; padding: 6px 12px;">❌ Deseleziona Tutto</button>
-                        <button class="btn btn-success" onclick="selectByType()" style="font-size: 12px; padding: 6px 12px;">🏗️ Per Tipo</button>
+                        <button class="btn btn-info" id="select-all-btn" style="font-size: 12px; padding: 6px 12px;">✅ Seleziona Tutto</button>
+                        <button class="btn btn-warning" id="select-none-btn" style="font-size: 12px; padding: 6px 12px;">❌ Deseleziona Tutto</button>
+                        <button class="btn btn-success" id="select-by-type-btn" style="font-size: 12px; padding: 6px 12px;">🏗️ Per Tipo</button>
                     </div>
                     
                     <div class="offset-controls">
@@ -527,8 +527,8 @@
                     </div>
                     
                     <div style="text-align: center; margin-top: 15px;">
-                        <button class="btn btn-primary" onclick="moveSelectedFacilities()">↗️ Sposta Selezionati</button>
-                        <button class="btn btn-danger" onclick="deleteSelectedFacilities()">🗑️ Elimina Selezionati</button>
+                        <button class="btn btn-primary" id="move-selected-btn">↗️ Sposta Selezionati</button>
+                        <button class="btn btn-danger" id="delete-selected-btn">🗑️ Elimina Selezionati</button>
                     </div>
                 </div>
 
@@ -575,13 +575,13 @@
 
                 <div class="export-section">
                     <h4>💾 Esportazione</h4>
-                    <button class="btn btn-success" onclick="generateCode()" style="width: 100%; margin-bottom: 10px;">
+                    <button class="btn btn-success" id="generate-code-btn" style="width: 100%; margin-bottom: 10px;">
                         📄 Genera facilitiesData.js
                     </button>
-                    <button class="btn btn-primary" onclick="copyToClipboard()" style="width: 100%; margin-bottom: 10px;">
+                    <button class="btn btn-primary" id="copy-clipboard-btn" style="width: 100%; margin-bottom: 10px;">
                         📋 Copia negli Appunti
                     </button>
-                    <button class="btn btn-warning" onclick="downloadFile()" style="width: 100%;">
+                    <button class="btn btn-warning" id="download-file-btn" style="width: 100%;">
                         💾 Scarica File
                     </button>
                 </div>
@@ -611,6 +611,55 @@
 
         // Load saved calibration
         loadCalibration();
+
+        // Setup all event listeners
+        setupEventListeners();
+
+        function setupEventListeners() {
+            // Import and test buttons
+            document.getElementById('import-btn').addEventListener('click', importFromPaste);
+            document.getElementById('test-alignment-btn').addEventListener('click', testAlignment);
+            
+            // Control buttons
+            document.getElementById('undo-btn').addEventListener('click', undoLast);
+            document.getElementById('clear-btn').addEventListener('click', clearAll);
+            document.getElementById('selection-mode-btn').addEventListener('click', toggleSelectionMode);
+            
+            // Calibration controls
+            document.getElementById('offset-x').addEventListener('change', applyOffset);
+            document.getElementById('offset-y').addEventListener('change', applyOffset);
+            document.getElementById('scale-x').addEventListener('change', applyOffset);
+            document.getElementById('scale-y').addEventListener('change', applyOffset);
+            document.getElementById('reset-calibration-btn').addEventListener('click', resetCalibration);
+            document.getElementById('save-calibration-btn').addEventListener('click', saveCalibration);
+            
+            // Selection controls
+            document.getElementById('select-all-btn').addEventListener('click', selectAll);
+            document.getElementById('select-none-btn').addEventListener('click', selectNone);
+            document.getElementById('select-by-type-btn').addEventListener('click', selectByType);
+            document.getElementById('move-selected-btn').addEventListener('click', moveSelectedFacilities);
+            document.getElementById('delete-selected-btn').addEventListener('click', deleteSelectedFacilities);
+            
+            // Export buttons
+            document.getElementById('generate-code-btn').addEventListener('click', generateCode);
+            document.getElementById('copy-clipboard-btn').addEventListener('click', copyToClipboard);
+            document.getElementById('download-file-btn').addEventListener('click', downloadFile);
+            
+            // Facility type/level change handlers
+            document.getElementById('facility-type').addEventListener('change', updateCurrentStatus);
+            document.getElementById('facility-level').addEventListener('change', updateCurrentStatus);
+            
+            // Image error handler
+            document.getElementById('map').addEventListener('error', handleImageError);
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'z' && e.ctrlKey) {
+                    e.preventDefault();
+                    undoLast();
+                }
+            });
+        }
 
         function handleImageError() {
             alert('❌ Errore nel caricamento della mappa!\n\nAssicurati che il file della mappa sia nel percorso corretto: map.png');
