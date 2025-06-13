@@ -187,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const marker = document.createElement("div");
     marker.className = "marker";
     
-    // RIMUOVI calc() e usa posizionamento diretto
+    // CORREZIONE: Posizionamento diretto senza calc()
     marker.style.left = facility.x + '%';
     marker.style.top = facility.y + '%';
     

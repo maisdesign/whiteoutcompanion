@@ -413,12 +413,11 @@
     z-index: 10;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     
-    /* CORREZIONE FONDAMENTALE */
+    /* CORREZIONE PRINCIPALE */
     transform: translate(-50%, -50%);
 }
 
 .marker:hover {
-    /* Mantieni la centratura anche durante l'hover */
     transform: translate(-50%, -50%) scale(1.3);
     z-index: 100;
 }
