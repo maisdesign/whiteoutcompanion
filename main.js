@@ -62,9 +62,31 @@ function testCalibration(offsetX = 0, offsetY = 0, scaleX = 1.0, scaleY = 1.0) {
   // Rimuovi tutti i marker esistenti
   document.querySelectorAll('.marker').forEach(marker => marker.remove());
   
-  // Ricrea i marker con i nuovi valori
+  // Ricrea i marker con i nuovi valori usando la funzione interna
   facilityData.forEach((facility, index) => {
-    createMarker(facility, index);
+    // Funzione createMarker inline per testCalibration
+    const mapContainer = document.getElementById("map-container");
+    if (!mapContainer) return;
+    
+    const marker = document.createElement("div");
+    marker.className = "marker";
+    
+    // Applica calibrazione di test
+    const adjustedX = (facility.x * scaleX) + offsetX;
+    const adjustedY = (facility.y * scaleY) + offsetY;
+    
+    marker.style.left = `calc(${adjustedX}% - 6px)`;
+    marker.style.top = `calc(${adjustedY}% - 6px)`;
+    
+    marker.title = getMarkerTooltip(facility);
+    marker.onclick = () => showDropdown(facility, marker, index);
+    mapContainer.appendChild(marker);
+    facility.marker = marker;
+    
+    // Render alliance icon immediately if facility has alliance assigned
+    if (facility.Alliance) {
+      renderAllianceIcon(facility);
+    }
   });
   
   // Evidenzia il castello per vedere se è allineato
@@ -98,16 +120,40 @@ function applyFinalCalibration(finalOffsetX, finalOffsetY, finalScaleX = 1.0, fi
     scaleY: finalScaleY
   };
   
-  // Ricrea tutti i marker
+  // Ricrea tutti i marker usando la stessa logica di testCalibration
   document.querySelectorAll('.marker').forEach(marker => marker.remove());
-  facilityData.forEach((f, i) => {
-    createMarker(f, i);
+  
+  facilityData.forEach((facility, index) => {
+    const mapContainer = document.getElementById("map-container");
+    if (!mapContainer) return;
+    
+    const marker = document.createElement("div");
+    marker.className = "marker";
+    
+    // Applica calibrazione finale
+    const adjustedX = (facility.x * finalScaleX) + finalOffsetX;
+    const adjustedY = (facility.y * finalScaleY) + finalOffsetY;
+    
+    marker.style.left = `calc(${adjustedX}% - 6px)`;
+    marker.style.top = `calc(${adjustedY}% - 6px)`;
+    
+    marker.title = getMarkerTooltip(facility);
+    marker.onclick = () => showDropdown(facility, marker, index);
+    mapContainer.appendChild(marker);
+    facility.marker = marker;
+    
+    if (facility.Alliance) {
+      renderAllianceIcon(facility);
+    }
   });
   
   // Salva le impostazioni nel localStorage per la prossima volta
   localStorage.setItem('whiteout-calibration', JSON.stringify(calibrationSettings));
   
   console.log("🎉 Calibrazione applicata e salvata!");
+  
+  // Aggiorna anche il riferimento alla funzione createMarker locale
+  window.currentCalibration = calibrationSettings;
 }
 
 // Carica calibrazione salvata
@@ -760,6 +806,8 @@ document.addEventListener("DOMContentLoaded", () => {
   window.testCalibration = testCalibration;
   window.autoCalibrate = autoCalibrate;
   window.applyFinalCalibration = applyFinalCalibration;
+  window.showDropdown = showDropdown;
+  window.closeAllDropdowns = closeAllDropdowns;
 
   // Create markers for all facilities
   facilityData.forEach((f, i) => {
