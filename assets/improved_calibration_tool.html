@@ -1,53 +1,4 @@
-function importFacilitiesData() {
-            const fileInput = document.getElementById('import-facilities');
-            const file = fileInput.files[0];
-            
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const content = e.target.result;
-                    console.log('File content preview:', content.substring(0, 500));
-                    
-                    // Try to extract facilityData from the JS file
-                    let facilityData;
-                    
-                    // Method 1: Try to find facilityData array with multiple regex patterns
-                    const patterns = [
-                        /const facilityData = (\[[\s\S]*?\]);/,
-                        /let facilityData = (\[[\s\S]*?\]);/,
-                        /var facilityData = (\[[\s\S]*?\]);/,
-                        /facilityData = (\[[\s\S]*?\]);/,
-                        /"facilityData":\s*(\[[\s\S]*?\])/
-                    ];
-                    
-                    let foundMatch = false;
-                    for (const pattern of patterns) {
-                        const match = content.match(pattern);
-                        if (match) {
-                            try {
-                                facilityData = JSON.parse(match[1]);
-                                foundMatch = true;
-                                console.log('Found facilityData with pattern:', pattern);
-                                break;
-                            } catch (parseError) {
-                                console.log('Parse error with pattern:', pattern, parseError);
-                                continue;
-                            }
-                        }
-                    }
-                    
-                    // Method 2: Try to execute the script in a sandbox if regex failed
-                    if (!foundMatch) {
-                        try {
-                            console.log('Trying to execute script...');
-                            const scriptFunc = new Function(`
-                                let facilityData;
-                                let module = {};
-                                let exports = {};
-                                let window = {};
-                                <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -586,8 +537,7 @@ function importFacilitiesData() {
                 </div>
                 
                 <div class="map-container">
-                    <!-- IMPORTANTE: Sostituisci questo src con il path corretto della tua mappa -->
-                    <img src="assets/map.png" 
+                    <img src="map.png" 
                          id="map" 
                          alt="Whiteout Survival Map"
                          crossorigin="anonymous"
@@ -646,7 +596,7 @@ function importFacilitiesData() {
 
     <script>
         let facilities = [];
-        let totalExpectedFacilities = 91; // Aggiornato secondo i dati forniti
+        let totalExpectedFacilities = 91;
         let calibrationData = {
             offsetX: 0,
             offsetY: 0,
@@ -655,255 +605,29 @@ function importFacilitiesData() {
         };
         let isSelectionMode = false;
         let selectedFacilities = new Set();
-        let isDragging = false;
-        let dragStartPos = null;
 
-        // Get map element and set up click handler
         const map = document.getElementById('map');
         const mapContainer = map.parentElement;
 
         // Load saved calibration
         loadCalibration();
 
+        function handleImageError() {
+            alert('❌ Errore nel caricamento della mappa!\n\nAssicurati che il file della mappa sia nel percorso corretto: map.png');
+        }
+
         map.addEventListener('click', function(e) {
-            if (isSelectionMode) return; // Don't place new facilities in selection mode
+            if (isSelectionMode) return;
             
             const rect = this.getBoundingClientRect();
             let x = ((e.clientX - rect.left) / rect.width) * 100;
             let y = ((e.clientY - rect.top) / rect.height) * 100;
             
-            // Apply calibration
             x = (x + calibrationData.offsetX) * calibrationData.scaleX;
             y = (y + calibrationData.offsetY) * calibrationData.scaleY;
             
             placeFacility(x, y);
         });
-
-        function handleImageError() {
-            alert('❌ Errore nel caricamento della mappa!\n\nAssicurati che il file della mappa sia nel percorso corretto:\n- assets/map.png\n\nOppure modifica il percorso nel codice HTML.');
-        }
-
-        function importFromPaste() {
-            const textarea = document.getElementById('paste-facilities');
-            const content = textarea.value.trim();
-            
-            if (!content) {
-                alert('❌ Incolla prima il contenuto di facilitiesData.js nell\'area di testo!');
-                return;
-            }
-            
-            try {
-                console.log('Parsing pasted content...');
-                
-                // Try to extract facilityData from the pasted content
-                let facilityData;
-                
-                // Method 1: Try multiple regex patterns to find the array
-                const patterns = [
-                    /const facilityData\s*=\s*(\[[\s\S]*?\]);/,
-                    /let facilityData\s*=\s*(\[[\s\S]*?\]);/,
-                    /var facilityData\s*=\s*(\[[\s\S]*?\]);/,
-                    /facilityData\s*=\s*(\[[\s\S]*?\]);/,
-                    /\[[\s\S]*?\]/  // Just look for any array
-                ];
-                
-                let foundMatch = false;
-                for (const pattern of patterns) {
-                    const match = content.match(pattern);
-                    if (match) {
-                        try {
-                            const arrayContent = match[1] || match[0];
-                            facilityData = JSON.parse(arrayContent);
-                            foundMatch = true;
-                            console.log('Successfully parsed with pattern:', pattern);
-                            break;
-                        } catch (parseError) {
-                            console.log('Parse error with pattern:', pattern, parseError);
-                            continue;
-                        }
-                    }
-                }
-                
-                // Method 2: If regex failed, try to execute the code safely
-                if (!foundMatch) {
-                    try {
-                        console.log('Trying to execute pasted code...');
-                        
-                        // Create a safe environment
-                        const safeEval = new Function(`
-                            let facilityData;
-                            let module = { exports: {} };
-                            let exports = module.exports;
-                            let window = {};
-                            
-                            ${content}
-                            
-                            return facilityData || (typeof module !== 'undefined' && module.exports);
-                        `);
-                        
-                        facilityData = safeEval();
-                        
-                        if (facilityData) {
-                            foundMatch = true;
-                            console.log('Successfully executed pasted code');
-                        }
-                    } catch (execError) {
-                        console.log('Execution error:', execError);
-                    }
-                }
-                
-                // Validate and import the data
-                if (foundMatch && facilityData && Array.isArray(facilityData)) {
-                    // Clear existing facilities
-                    facilities = [];
-                    selectedFacilities.clear();
-                    
-                    // Import the facilities
-                    let importedCount = 0;
-                    facilityData.forEach(facility => {
-                        if (facility.Type && facility.Level && 
-                            typeof facility.x === 'number' && typeof facility.y === 'number') {
-                            facilities.push({
-                                Type: facility.Type,
-                                Level: facility.Level,
-                                x: facility.x,
-                                y: facility.y,
-                                ingameCoords: facility.ingameCoords || null
-                            });
-                            importedCount++;
-                        }
-                    });
-                    
-                    // Update UI
-                    updateMarkers();
-                    updateProgress();
-                    updateFacilityList();
-                    
-                    // Clear the textarea
-                    textarea.value = '';
-                    
-                    alert(`✅ Importate ${importedCount} strutture!\n\nOra puoi:\n• Usare "Test Allineamento" per verificare la posizione\n• Attivare "Modalità Selezione" per spostare le strutture\n• Usare i controlli di calibrazione se non sono allineate`);
-                    
-                } else {
-                    throw new Error('Formato dati non valido');
-                }
-                
-            } catch (error) {
-                console.error('Import error:', error);
-                alert(`❌ Errore nell'importazione!\n\nAssicurati di aver incollato il contenuto completo del file facilitiesData.js\n\nErrore: ${error.message}`);
-            }
-        }
-
-        function importFacilitiesData() {
-            // Keep the old file import method as backup
-            const fileInput = document.getElementById('import-facilities');
-            const file = fileInput.files[0];
-            
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const content = e.target.result;
-                document.getElementById('paste-facilities').value = content;
-                importFromPaste();
-            };
-            
-            reader.readAsText(file);
-            fileInput.value = ''; // Reset input
-        }
-
-        function toggleSelectionMode() {
-            isSelectionMode = !isSelectionMode;
-            const container = mapContainer;
-            const selectionControls = document.getElementById('selection-controls');
-            const selectionModeText = document.getElementById('selection-mode-text');
-            
-            if (isSelectionMode) {
-                container.classList.add('selection-mode');
-                selectionControls.style.display = 'block';
-                selectionModeText.textContent = 'Modalità Normale';
-                map.style.cursor = 'default';
-            } else {
-                container.classList.remove('selection-mode');
-                selectionControls.style.display = 'none';
-                selectionModeText.textContent = 'Modalità Selezione';
-                map.style.cursor = 'crosshair';
-                selectedFacilities.clear();
-                updateMarkers();
-            }
-        }
-
-        function selectAll() {
-            selectedFacilities.clear();
-            facilities.forEach((_, index) => selectedFacilities.add(index));
-            updateMarkers();
-        }
-
-        function selectNone() {
-            selectedFacilities.clear();
-            updateMarkers();
-        }
-
-        function selectByType() {
-            const currentType = document.getElementById('facility-type').value;
-            selectedFacilities.clear();
-            facilities.forEach((facility, index) => {
-                if (facility.Type === currentType) {
-                    selectedFacilities.add(index);
-                }
-            });
-            updateMarkers();
-        }
-
-        function moveSelectedFacilities() {
-            const moveX = parseFloat(document.getElementById('move-x').value) || 0;
-            const moveY = parseFloat(document.getElementById('move-y').value) || 0;
-            
-            if (selectedFacilities.size === 0) {
-                alert('Seleziona almeno una struttura da spostare!');
-                return;
-            }
-            
-            selectedFacilities.forEach(index => {
-                if (facilities[index]) {
-                    facilities[index].x += moveX;
-                    facilities[index].y += moveY;
-                }
-            });
-            
-            updateMarkers();
-            
-            // Reset move inputs
-            document.getElementById('move-x').value = 0;
-            document.getElementById('move-y').value = 0;
-            
-            alert(`✅ Spostate ${selectedFacilities.size} strutture!`);
-        }
-
-        function deleteSelectedFacilities() {
-            if (selectedFacilities.size === 0) {
-                alert('Seleziona almeno una struttura da eliminare!');
-                return;
-            }
-            
-            if (!confirm(`Sei sicuro di voler eliminare ${selectedFacilities.size} strutture selezionate?`)) {
-                return;
-            }
-            
-            // Convert to array and sort in descending order to avoid index issues
-            const indicesToDelete = Array.from(selectedFacilities).sort((a, b) => b - a);
-            
-            indicesToDelete.forEach(index => {
-                facilities.splice(index, 1);
-            });
-            
-            selectedFacilities.clear();
-            updateMarkers();
-            updateProgress();
-            updateFacilityList();
-            
-            alert(`✅ Eliminate ${indicesToDelete.length} strutture!`);
-        }
 
         function placeFacility(x, y) {
             const type = document.getElementById('facility-type').value;
@@ -919,19 +643,12 @@ function importFacilitiesData() {
             };
             
             facilities.push(facility);
-            
-            // Create visual marker
             createMarker(facility, facilities.length - 1);
-            
-            // Update UI
             updateProgress();
             updateFacilityList();
             updateCurrentStatus();
             
-            // Clear ingame coords input for next facility
             document.getElementById('ingame-coords').value = '';
-            
-            // Auto-increment level or change type
             autoAdvanceFacility();
         }
 
@@ -940,19 +657,16 @@ function importFacilitiesData() {
             marker.className = `marker ${facility.Type.toLowerCase()}`;
             marker.dataset.index = index;
             
-            // Apply reverse calibration for visual positioning
             let visualX = facility.x / calibrationData.scaleX - calibrationData.offsetX;
             let visualY = facility.y / calibrationData.scaleY - calibrationData.offsetY;
             
             marker.style.left = `calc(${visualX}% - 6px)`;
             marker.style.top = `calc(${visualY}% - 6px)`;
             
-            // Add selection indicator
             if (selectedFacilities.has(index)) {
                 marker.classList.add('selected');
             }
             
-            // Create checkbox for selection mode
             const checkbox = document.createElement('div');
             checkbox.className = 'marker-checkbox';
             if (selectedFacilities.has(index)) {
@@ -964,13 +678,11 @@ function importFacilitiesData() {
             };
             marker.appendChild(checkbox);
             
-            // Create label
             const label = document.createElement('div');
             label.className = 'marker-label';
             label.textContent = `${facility.Type} ${facility.Level}${facility.ingameCoords ? ' (' + facility.ingameCoords + ')' : ''}`;
             marker.appendChild(label);
             
-            // Event handlers
             marker.addEventListener('click', function(e) {
                 e.stopPropagation();
                 if (isSelectionMode) {
@@ -978,59 +690,10 @@ function importFacilitiesData() {
                 }
             });
             
-            // Double-click to remove (only in normal mode)
             marker.addEventListener('dblclick', function(e) {
                 e.stopPropagation();
                 if (!isSelectionMode) {
                     removeFacility(index);
-                }
-            });
-            
-            // Drag functionality for individual markers
-            let isDraggingMarker = false;
-            let dragOffset = { x: 0, y: 0 };
-            
-            marker.addEventListener('mousedown', function(e) {
-                if (isSelectionMode && selectedFacilities.has(index)) {
-                    isDraggingMarker = true;
-                    marker.classList.add('dragging');
-                    
-                    const rect = map.getBoundingClientRect();
-                    dragOffset.x = e.clientX - rect.left;
-                    dragOffset.y = e.clientY - rect.top;
-                    
-                    e.preventDefault();
-                }
-            });
-            
-            document.addEventListener('mousemove', function(e) {
-                if (isDraggingMarker) {
-                    const rect = map.getBoundingClientRect();
-                    let x = ((e.clientX - rect.left) / rect.width) * 100;
-                    let y = ((e.clientY - rect.top) / rect.height) * 100;
-                    
-                    // Apply calibration
-                    x = (x + calibrationData.offsetX) * calibrationData.scaleX;
-                    y = (y + calibrationData.offsetY) * calibrationData.scaleY;
-                    
-                    // Update facility position
-                    facilities[index].x = Math.round(x * 100) / 100;
-                    facilities[index].y = Math.round(y * 100) / 100;
-                    
-                    // Update visual position
-                    let visualX = facilities[index].x / calibrationData.scaleX - calibrationData.offsetX;
-                    let visualY = facilities[index].y / calibrationData.scaleY - calibrationData.offsetY;
-                    
-                    marker.style.left = `calc(${visualX}% - 6px)`;
-                    marker.style.top = `calc(${visualY}% - 6px)`;
-                }
-            });
-            
-            document.addEventListener('mouseup', function() {
-                if (isDraggingMarker) {
-                    isDraggingMarker = false;
-                    marker.classList.remove('dragging');
-                    updateFacilityList();
                 }
             });
             
@@ -1054,128 +717,56 @@ function importFacilitiesData() {
         }
 
         function updateMarkers() {
-            // Remove all markers
             document.querySelectorAll('.marker').forEach(marker => marker.remove());
-            
-            // Recreate all markers
             facilities.forEach((facility, index) => {
                 createMarker(facility, index);
             });
         }
 
-        function applyOffset() {
-            calibrationData.offsetX = parseFloat(document.getElementById('offset-x').value) || 0;
-            calibrationData.offsetY = parseFloat(document.getElementById('offset-y').value) || 0;
-            calibrationData.scaleX = parseFloat(document.getElementById('scale-x').value) || 1;
-            calibrationData.scaleY = parseFloat(document.getElementById('scale-y').value) || 1;
+        function importFromPaste() {
+            const textarea = document.getElementById('paste-facilities');
+            const content = textarea.value.trim();
             
-            updateMarkers();
-        }
-
-        function resetCalibration() {
-            calibrationData = { offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1 };
-            document.getElementById('offset-x').value = 0;
-            document.getElementById('offset-y').value = 0;
-            document.getElementById('scale-x').value = 1;
-            document.getElementById('scale-y').value = 1;
-            updateMarkers();
-        }
-
-        function saveCalibration() {
-            localStorage.setItem('whiteout-calibration', JSON.stringify(calibrationData));
-            alert('✅ Calibrazione salvata!');
-        }
-
-        function loadCalibration() {
-            const saved = localStorage.getItem('whiteout-calibration');
-            if (saved) {
-                calibrationData = JSON.parse(saved);
-                document.getElementById('offset-x').value = calibrationData.offsetX;
-                document.getElementById('offset-y').value = calibrationData.offsetY;
-                document.getElementById('scale-x').value = calibrationData.scaleX;
-                document.getElementById('scale-y').value = calibrationData.scaleY;
+            if (!content) {
+                alert('❌ Incolla prima il contenuto di facilitiesData.js!');
+                return;
             }
-        }
-
-        function testAlignment() {
-            // Place test markers at known positions to check alignment
-            const testFacilities = [
-                { Type: "Castle", Level: "Lv.1", x: 50.06, y: 48.79 },
-                { Type: "Construction", Level: "Lv.1", x: 50.19, y: 12.48 },
-                { Type: "Defense", Level: "Lv.2", x: 71.19, y: 65.54 },
-                { Type: "Fortress", Level: "Lv.1", x: 26.63, y: 54.97 }
-            ];
             
-            testFacilities.forEach((facility, index) => {
-                facilities.push(facility);
-                createMarker(facility, facilities.length - 1);
-            });
-            
-            updateProgress();
-            updateFacilityList();
-            
-            alert('🎯 Test markers posizionati! Verifica se sono allineati con le strutture sulla mappa. Se non lo sono, regola i controlli di calibrazione.');
-        }
-
-        function undoLast() {
-            if (facilities.length > 0) {
-                facilities.pop();
-                updateMarkers();
-                updateProgress();
-                updateFacilityList();
-                updateCurrentStatus();
-            }
-        }
-
-        function clearAll() {
-            if (confirm('Sei sicuro di voler cancellare tutte le strutture posizionate?')) {
-                facilities = [];
-                updateMarkers();
-                updateProgress();
-                updateFacilityList();
-                updateCurrentStatus();
-            }
-        }
-
-        function autoAdvanceFacility() {
-            const typeSelect = document.getElementById('facility-type');
-            const levelSelect = document.getElementById('facility-level');
-            
-            // Count how many of current type/level we have
-            const currentType = typeSelect.value;
-            const currentLevel = levelSelect.value;
-            const count = facilities.filter(f => 
-                f.Type === currentType && f.Level === currentLevel
-            ).length;
-            
-            // Suggest next placement based on data structure
-            const suggestions = {
-                'Castle': { 'Lv.1': 1 },
-                'Construction': { 'Lv.1': 8, 'Lv.3': 4 },
-                'Production': { 'Lv.1': 8 },
-                'Defense': { 'Lv.2': 8, 'Lv.4': 3 },
-                'Gathering': { 'Lv.1': 8 },
-                'Tech': { 'Lv.1': 8, 'Lv.3': 4 },
-                'Weapons': { 'Lv.2': 8, 'Lv.4': 3 },
-                'Training': { 'Lv.2': 8 },
-                'Expedition': { 'Lv.3': 4 },
-                'Stronghold': { 'Lv.1': 1, 'Lv.2': 1, 'Lv.3': 1, 'Lv.4': 1 },
-                'Fortress': { 'Lv.1': 1, 'Lv.2': 1, 'Lv.3': 1, 'Lv.4': 1, 'Lv.5': 1, 'Lv.6': 1, 'Lv.7': 1, 'Lv.8': 1, 'Lv.9': 1, 'Lv.10': 1, 'Lv.11': 1, 'Lv.12': 1 }
-            };
-            
-            const typesSuggestions = suggestions[currentType];
-            if (typesSuggestions && typesSuggestions[currentLevel] && count >= typesSuggestions[currentLevel]) {
-                // Move to next level or type
-                const currentLevelNum = parseInt(currentLevel.replace('Lv.', ''));
-                if (currentLevelNum < 12 && typesSuggestions[`Lv.${currentLevelNum + 1}`]) {
-                    levelSelect.value = `Lv.${currentLevelNum + 1}`;
-                } else {
-                    // Move to next type
-                    const types = Array.from(typeSelect.options).map(opt => opt.value);
-                    const currentIndex = types.indexOf(currentType);
-                    if (currentIndex < types.length - 1) {
-                        typeSelect.selectedIndex = currentIndex + 1;
-                        levelSelect.value = 'Lv.1';
+            try {
+                let facilityData;
+                
+                const patterns = [
+                    /const facilityData\s*=\s*(\[[\s\S]*?\]);/,
+                    /let facilityData\s*=\s*(\[[\s\S]*?\]);/,
+                    /var facilityData\s*=\s*(\[[\s\S]*?\]);/,
+                    /facilityData\s*=\s*(\[[\s\S]*?\]);/,
+                    /\[[\s\S]*?\]/
+                ];
+                
+                let foundMatch = false;
+                for (const pattern of patterns) {
+                    const match = content.match(pattern);
+                    if (match) {
+                        try {
+                            const arrayContent = match[1] || match[0];
+                            facilityData = JSON.parse(arrayContent);
+                            foundMatch = true;
+                            break;
+                        } catch (parseError) {
+                            continue;
+                        }
                     }
                 }
-            }
+                
+                if (!foundMatch) {
+                    try {
+                        const safeEval = new Function(`
+                            let facilityData;
+                            let module = { exports: {} };
+                            let exports = module.exports;
+                            let window = {};
+                            
+                            ${content}
+                            
+                            return facilityData || (typeof module !== 'undefined' && module.exports);
+                        `);
