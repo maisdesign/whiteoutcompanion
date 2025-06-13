@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whiteout Survival - Coordinate Calibration Tool IMPROVED</title>
+    <title>Whiteout Survival - Calibrazione Coordinati</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -33,52 +33,46 @@
             margin-bottom: 10px;
         }
 
-        .alert {
-            background: rgba(255, 193, 7, 0.2);
-            border: 1px solid rgba(255, 193, 7, 0.5);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
         .controls {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
         .control-group {
             background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
+            padding: 20px;
+            border-radius: 15px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .facility-selector {
+        .checkbox-container {
+            background: rgba(67, 233, 123, 0.1);
+            border: 2px solid rgba(67, 233, 123, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-label {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .facility-selector label {
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 16px;
             font-weight: bold;
-            font-size: 14px;
         }
 
-        .facility-selector select, .facility-selector input {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-            font-size: 14px;
-            min-width: 150px;
+        .checkbox-label input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #43e97b;
         }
 
         .btn {
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
@@ -88,20 +82,20 @@
             margin: 5px;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
         .btn-success { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; }
         .btn-warning { background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%); color: white; }
         .btn-danger { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white; }
         .btn-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
 
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
         .main-content {
             display: grid;
-            grid-template-columns: 1fr 400px;
+            grid-template-columns: 1fr 350px;
             gap: 30px;
             align-items: start;
         }
@@ -118,7 +112,7 @@
             position: relative;
             width: 100%;
             max-width: 800px;
-            margin: 0 auto;
+            margin: 20px auto;
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
@@ -148,52 +142,6 @@
             z-index: 20;
         }
 
-        .marker.selected {
-            border: 3px solid #ffd700;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
-            transform: scale(1.2);
-        }
-
-        .marker.dragging {
-            z-index: 30;
-            transform: scale(1.3);
-            box-shadow: 0 0 20px rgba(79, 172, 254, 0.9);
-        }
-
-        .marker-checkbox {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 16px;
-            height: 16px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid white;
-            border-radius: 3px;
-            display: none;
-            cursor: pointer;
-            z-index: 25;
-        }
-
-        .selection-mode .marker-checkbox {
-            display: block;
-        }
-
-        .marker-checkbox.checked {
-            background: #43e97b;
-        }
-
-        .marker-checkbox.checked::after {
-            content: '✓';
-            color: white;
-            font-size: 10px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-weight: bold;
-        }
-
-        /* Facility type colors */
         .marker.castle { background: #ffd700; border: 3px solid #ff6b35; }
         .marker.construction { background: #3498db; }
         .marker.production { background: #e74c3c; }
@@ -234,47 +182,6 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             height: fit-content;
-            position: sticky;
-            top: 20px;
-        }
-
-        .calibration-section {
-            background: rgba(255, 193, 7, 0.1);
-            border: 1px solid rgba(255, 193, 7, 0.3);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        .offset-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .offset-input {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .offset-input label {
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .offset-input input {
-            padding: 5px 8px;
-            border: none;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-            font-size: 12px;
-        }
-
-        .progress-section {
-            margin-bottom: 25px;
         }
 
         .progress-bar {
@@ -299,7 +206,7 @@
             background: rgba(0, 0, 0, 0.2);
             border-radius: 8px;
             padding: 15px;
-            margin-bottom: 20px;
+            margin: 20px 0;
         }
 
         .facility-item {
@@ -327,10 +234,48 @@
             font-size: 12px;
         }
 
-        .export-section {
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: bold;
+            background: rgba(79, 172, 254, 0.2);
+            border: 1px solid rgba(79, 172, 254, 0.5);
+        }
+
+        .calibration-controls {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .offset-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .offset-input {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .offset-input label {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .offset-input input {
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 14px;
         }
 
         .code-output {
@@ -344,49 +289,13 @@
             overflow-y: auto;
             white-space: pre-wrap;
             word-wrap: break-word;
-            margin-top: 10px;
-        }
-
-        .status {
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin: 10px 0;
-            font-weight: bold;
-        }
-
-        .status.info {
-            background: rgba(79, 172, 254, 0.2);
-            border: 1px solid rgba(79, 172, 254, 0.5);
-        }
-
-        .status.success {
-            background: rgba(67, 233, 123, 0.2);
-            border: 1px solid rgba(67, 233, 123, 0.5);
-        }
-
-        .status.warning {
-            background: rgba(255, 193, 7, 0.2);
-            border: 1px solid rgba(255, 193, 7, 0.5);
+            margin-top: 15px;
         }
 
         @media (max-width: 1200px) {
             .main-content {
                 grid-template-columns: 1fr;
                 gap: 20px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .header h1 {
-                font-size: 1.8rem;
-            }
-            
-            .sidebar {
-                position: static;
             }
             
             .controls {
@@ -398,285 +307,104 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🗺️ Whiteout Survival - Calibrazione Coordinati Migliorata</h1>
-            <p>Strumento avanzato per calibrare precisamente le coordinate delle strutture</p>
-        </div>
-
-        <div class="alert">
-            <strong>⚠️ IMPORTANTE:</strong> Assicurati di utilizzare la stessa immagine della mappa che usi nell'app principale. 
-            Se vedi disallineamenti, usa i controlli di calibrazione qui sotto per regolare i punti.
+            <h1>🗺️ Whiteout Survival - Calibrazione Coordinati</h1>
+            <p>Strumento per calibrare le coordinate delle strutture sulla mappa</p>
         </div>
 
         <div class="controls">
             <div class="control-group">
-                <div class="facility-selector">
-                    <label for="facility-type">Tipo Struttura:</label>
-                    <select id="facility-type">
-                        <option value="Castle">🏰 CASTLE</option>
-                        <option value="Construction">🏗️ Construction</option>
-                        <option value="Production">⚙️ Production</option>
-                        <option value="Defense">🛡️ Defense</option>
-                        <option value="Gathering">🌾 Gathering</option>
-                        <option value="Tech">🔬 Tech</option>
-                        <option value="Weapons">⚔️ Weapons</option>
-                        <option value="Training">🎯 Training</option>
-                        <option value="Expedition">🚀 Expedition</option>
-                        <option value="Stronghold">🏰 Stronghold</option>
-                        <option value="Fortress">🏯 Fortress</option>
-                    </select>
+                <h3>📋 Carica Dati Strutture</h3>
+                <div class="checkbox-container">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="loadDataCheckbox">
+                        <span>Carica le 91 strutture predefinite</span>
+                    </label>
+                    <div style="font-size: 12px; opacity: 0.8; margin-top: 8px;">
+                        ✨ Spunta per caricare automaticamente tutti i punti delle strutture
+                    </div>
                 </div>
+                <button class="btn btn-info" id="testAlignmentBtn">🎯 Test Allineamento (4 punti)</button>
+                <button class="btn btn-danger" id="clearAllBtn">🗑️ Cancella Tutto</button>
             </div>
 
             <div class="control-group">
-                <div class="facility-selector">
-                    <label for="facility-level">Livello:</label>
-                    <select id="facility-level">
-                        <option value="Lv.1">Lv.1</option>
-                        <option value="Lv.2">Lv.2</option>
-                        <option value="Lv.3">Lv.3</option>
-                        <option value="Lv.4">Lv.4</option>
-                        <option value="Lv.5">Lv.5</option>
-                        <option value="Lv.6">Lv.6</option>
-                        <option value="Lv.7">Lv.7</option>
-                        <option value="Lv.8">Lv.8</option>
-                        <option value="Lv.9">Lv.9</option>
-                        <option value="Lv.10">Lv.10</option>
-                        <option value="Lv.11">Lv.11</option>
-                        <option value="Lv.12">Lv.12</option>
-                    </select>
+                <h3>⚙️ Controlli Calibrazione</h3>
+                <div class="offset-controls">
+                    <div class="offset-input">
+                        <label>Offset X:</label>
+                        <input type="number" id="offsetX" value="0" step="0.1">
+                    </div>
+                    <div class="offset-input">
+                        <label>Offset Y:</label>
+                        <input type="number" id="offsetY" value="0" step="0.1">
+                    </div>
+                    <div class="offset-input">
+                        <label>Scala X:</label>
+                        <input type="number" id="scaleX" value="1" step="0.01" min="0.5" max="2">
+                    </div>
+                    <div class="offset-input">
+                        <label>Scala Y:</label>
+                        <input type="number" id="scaleY" value="1" step="0.01" min="0.5" max="2">
+                    </div>
                 </div>
-            </div>
-
-            <div class="control-group">
-                <div class="facility-selector">
-                    <label for="ingame-coords">Coordinate In-Game (Opzionale):</label>
-                    <input type="text" id="ingame-coords" placeholder="es. X:123 Y:456">
-                </div>
-            </div>
-
-            <div class="control-group">
-                <label style="margin-bottom: 10px; display: block;">Carica Dati Predefiniti:</label>
-                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                    <input type="checkbox" id="load-predefined-data" style="width: 18px; height: 18px;">
-                    <span>📋 Carica i dati di facilitiesData.js esistenti (91 strutture)</span>
-                </label>
-                <div style="font-size: 12px; opacity: 0.8; margin-bottom: 10px;">
-                    ✨ Attiva questa opzione per caricare automaticamente tutti i punti delle strutture
-                </div>
-            </div>
-
-            <div class="control-group">
-                <label style="margin-bottom: 10px; display: block;">Importa Dati Personalizzati (Opzionale):</label>
-                <textarea id="paste-facilities" placeholder="Oppure incolla qui altri dati di facilitiesData.js..." 
-                         style="width: 100%; height: 80px; padding: 8px; border: 2px solid rgba(255,255,255,0.3); border-radius: 6px; background: rgba(255,255,255,0.1); color: white; font-family: monospace; font-size: 12px; resize: vertical; margin-bottom: 10px;"></textarea>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-success" id="import-btn" style="flex: 1;">📋 Importa da Clipboard</button>
-                    <button class="btn btn-info" id="test-alignment-btn" style="flex: 1;">🎯 Test Allineamento</button>
-                </div>
-            </div>
-
-            <div class="control-group">
-                <label style="margin-bottom: 10px; display: block;">Controlli:</label>
-                <button class="btn btn-warning" id="undo-btn">↶ Annulla Ultimo</button>
-                <button class="btn btn-danger" id="clear-btn">🗑️ Cancella Tutto</button>
-                <button class="btn btn-success" id="selection-mode-btn">🎯 <span id="selection-mode-text">Modalità Selezione</span></button>
+                <button class="btn btn-warning" id="resetCalibrationBtn">🔄 Reset Calibrazione</button>
             </div>
         </div>
 
         <div class="main-content">
             <div class="map-section">
-                <h3>🎯 Calibrazione Mappa</h3>
-                
-                <div class="calibration-section">
-                    <h4>⚙️ Controlli di Calibrazione</h4>
-                    <p style="font-size: 13px; margin-bottom: 15px;">Usa questi controlli per correggere il disallineamento dei punti:</p>
-                    
-                    <div class="offset-controls">
-                        <div class="offset-input">
-                            <label>Offset X:</label>
-                            <input type="number" id="offset-x" value="0" step="0.1">
-                        </div>
-                        <div class="offset-input">
-                            <label>Offset Y:</label>
-                            <input type="number" id="offset-y" value="0" step="0.1">
-                        </div>
-                        <div class="offset-input">
-                            <label>Scala X:</label>
-                            <input type="number" id="scale-x" value="1" step="0.01" min="0.5" max="2">
-                        </div>
-                        <div class="offset-input">
-                            <label>Scala Y:</label>
-                            <input type="number" id="scale-y" value="1" step="0.01" min="0.5" max="2">
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: center;">
-                        <button class="btn btn-info" id="reset-calibration-btn">🔄 Reset Calibrazione</button>
-                        <button class="btn btn-warning" id="save-calibration-btn">💾 Salva Calibrazione</button>
-                    </div>
-                </div>
-
-                <div class="calibration-section" id="selection-controls" style="display: none;">
-                    <h4>🎯 Controlli Selezione</h4>
-                    <p style="font-size: 13px; margin-bottom: 15px;">Seleziona i marker da spostare:</p>
-                    
-                    <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                        <button class="btn btn-info" id="select-all-btn" style="font-size: 12px; padding: 6px 12px;">✅ Seleziona Tutto</button>
-                        <button class="btn btn-warning" id="select-none-btn" style="font-size: 12px; padding: 6px 12px;">❌ Deseleziona Tutto</button>
-                        <button class="btn btn-success" id="select-by-type-btn" style="font-size: 12px; padding: 6px 12px;">🏗️ Per Tipo</button>
-                    </div>
-                    
-                    <div class="offset-controls">
-                        <div class="offset-input">
-                            <label>Sposta X:</label>
-                            <input type="number" id="move-x" value="0" step="0.1">
-                        </div>
-                        <div class="offset-input">
-                            <label>Sposta Y:</label>
-                            <input type="number" id="move-y" value="0" step="0.1">
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 15px;">
-                        <button class="btn btn-primary" id="move-selected-btn">↗️ Sposta Selezionati</button>
-                        <button class="btn btn-danger" id="delete-selected-btn">🗑️ Elimina Selezionati</button>
-                    </div>
-                </div>
-
-                <div class="status info" id="current-status">
-                    Pronto per posizionare: <span id="current-facility">Castle Lv.1</span>
+                <h3>🎯 Mappa Interattiva</h3>
+                <div class="status" id="statusMessage">
+                    Spunta la checkbox per caricare le strutture predefinite
                 </div>
                 
                 <div class="map-container">
-                    <img src="map.png" 
-                         id="map" 
-                         alt="Whiteout Survival Map"
-                         crossorigin="anonymous"
-                         onerror="handleImageError()">
-                </div>
-                
-                <div style="margin-top: 10px; text-align: center;">
-                    <small style="color: rgba(255,255,255,0.7);">
-                        💡 Clicca sulla mappa per posizionare le strutture. Doppio-click su un marker per rimuoverlo.
-                    </small>
+                    <img src="map.png" id="map" alt="Whiteout Survival Map">
                 </div>
             </div>
 
             <div class="sidebar">
-                <div class="progress-section">
+                <div>
                     <h3>📊 Progresso</h3>
                     <div>
-                        <span id="placed-count">0</span> strutture posizionate
+                        <span id="facilitiesCount">0</span> strutture caricate
                     </div>
                     <div class="progress-bar">
-                        <div class="progress-fill" id="progress-bar" style="width: 0%"></div>
+                        <div class="progress-fill" id="progressBar" style="width: 0%"></div>
                     </div>
                 </div>
 
                 <div class="facility-list">
-                    <h4>📋 Strutture Posizionate</h4>
-                    <div style="margin-bottom: 10px; font-size: 12px;">
-                        <span style="color: #43e97b;">● Selezionate: <span id="selected-count">0</span></span> |
-                        <span style="color: #4facfe;">● Totali: <span id="total-count">0</span></span>
-                    </div>
-                    <div id="facility-list-content">
-                        <p style="opacity: 0.6; font-style: italic;">Nessuna struttura posizionata. Clicca sulla mappa per iniziare!</p>
+                    <h4>📋 Strutture per Tipo</h4>
+                    <div id="facilityListContent">
+                        <p style="opacity: 0.6; font-style: italic;">Nessuna struttura caricata</p>
                     </div>
                 </div>
 
-                <div class="export-section">
+                <div>
                     <h4>💾 Esportazione</h4>
-                    <button class="btn btn-success" id="generate-code-btn" style="width: 100%; margin-bottom: 10px;">
+                    <button class="btn btn-success" id="generateCodeBtn" style="width: 100%; margin-bottom: 10px;">
                         📄 Genera facilitiesData.js
                     </button>
-                    <button class="btn btn-primary" id="copy-clipboard-btn" style="width: 100%; margin-bottom: 10px;">
+                    <button class="btn btn-primary" id="copyCodeBtn" style="width: 100%; margin-bottom: 10px;">
                         📋 Copia negli Appunti
                     </button>
-                    <button class="btn btn-warning" id="download-file-btn" style="width: 100%;">
+                    <button class="btn btn-warning" id="downloadBtn" style="width: 100%;">
                         💾 Scarica File
                     </button>
                 </div>
             </div>
         </div>
 
-        <div id="output-section" style="margin-top: 30px; display: none;">
-            <h3>📄 facilitiesData.js Generato</h3>
-            <div class="code-output" id="code-output"></div>
+        <div id="outputSection" style="margin-top: 30px; display: none;">
+            <h3>📄 Codice Generato</h3>
+            <div class="code-output" id="codeOutput"></div>
         </div>
     </div>
 
     <script>
-        let facilities = [];
-        let totalExpectedFacilities = 91;
-        let calibrationData = {
-            offsetX: 0,
-            offsetY: 0,
-            scaleX: 1,
-            scaleY: 1
-        };
-        let isSelectionMode = false;
-        let selectedFacilities = new Set();
-
-        const map = document.getElementById('map');
-        const mapContainer = map.parentElement;
-
-        // Load saved calibration
-        loadCalibration();
-
-        // Setup all event listeners
-        setupEventListeners();
-
-        function setupEventListeners() {
-            // Predefined data checkbox
-            document.getElementById('load-predefined-data').addEventListener('change', togglePredefinedData);
-            
-            // Import and test buttons
-            document.getElementById('import-btn').addEventListener('click', importFromPaste);
-            document.getElementById('test-alignment-btn').addEventListener('click', testAlignment);
-            
-            // Control buttons
-            document.getElementById('undo-btn').addEventListener('click', undoLast);
-            document.getElementById('clear-btn').addEventListener('click', clearAll);
-            document.getElementById('selection-mode-btn').addEventListener('click', toggleSelectionMode);
-            
-            // Calibration controls
-            document.getElementById('offset-x').addEventListener('change', applyOffset);
-            document.getElementById('offset-y').addEventListener('change', applyOffset);
-            document.getElementById('scale-x').addEventListener('change', applyOffset);
-            document.getElementById('scale-y').addEventListener('change', applyOffset);
-            document.getElementById('reset-calibration-btn').addEventListener('click', resetCalibration);
-            document.getElementById('save-calibration-btn').addEventListener('click', saveCalibration);
-            
-            // Selection controls
-            document.getElementById('select-all-btn').addEventListener('click', selectAll);
-            document.getElementById('select-none-btn').addEventListener('click', selectNone);
-            document.getElementById('select-by-type-btn').addEventListener('click', selectByType);
-            document.getElementById('move-selected-btn').addEventListener('click', moveSelectedFacilities);
-            document.getElementById('delete-selected-btn').addEventListener('click', deleteSelectedFacilities);
-            
-            // Export buttons
-            document.getElementById('generate-code-btn').addEventListener('click', generateCode);
-            document.getElementById('copy-clipboard-btn').addEventListener('click', copyToClipboard);
-            document.getElementById('download-file-btn').addEventListener('click', downloadFile);
-            
-            // Facility type/level change handlers
-            document.getElementById('facility-type').addEventListener('change', updateCurrentStatus);
-            document.getElementById('facility-level').addEventListener('change', updateCurrentStatus);
-            
-            // Image error handler
-            document.getElementById('map').addEventListener('error', handleImageError);
-            
-            // Keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'z' && e.ctrlKey) {
-                    e.preventDefault();
-                    undoLast();
-                }
-            });
-        }
-
-        // Predefined facility data (from your documents)
-        const predefinedFacilityData = [
+        // Dati delle strutture predefinite
+        const predefinedData = [
           { "Type": "Castle", "Level": "Lv.1", "x": 50.06, "y": 48.79, "ingameCoords": "X:597 Y:597" },
           { "Type": "Construction", "Level": "Lv.1", "x": 50.19, "y": 12.48, "ingameCoords": "X:168 Y:168" },
           { "Type": "Construction", "Level": "Lv.1", "x": 66.19, "y": 70.48, "ingameCoords": "X:537 Y:138" },
@@ -770,192 +498,272 @@
           { "Type": "Fortress", "Level": "Lv.12", "x": 26.38, "y": 44.21 }
         ];
 
-        function togglePredefinedData() {
-            const checkbox = document.getElementById('load-predefined-data');
-            
-            if (checkbox.checked) {
-                // Load predefined data
-                facilities = [];
-                selectedFacilities.clear();
-                
-                predefinedFacilityData.forEach(facility => {
-                    facilities.push({
-                        Type: facility.Type,
-                        Level: facility.Level,
-                        x: facility.x,
-                        y: facility.y,
-                        ingameCoords: facility.ingameCoords || null
-                    });
-                });
-                
-                updateMarkers();
-                updateProgress();
-                updateFacilityList();
-                
-                alert(`✅ Caricati ${facilities.length} strutture predefinite!\n\n🎯 Usa "Test Allineamento" per verificare il posizionamento\n⚙️ Usa i controlli di calibrazione se non sono allineati\n🎯 Attiva "Modalità Selezione" per spostare le strutture`);
-            } else {
-                // Clear all data
-                if (confirm('Vuoi rimuovere tutte le strutture caricate?')) {
-                    facilities = [];
-                    selectedFacilities.clear();
-                    updateMarkers();
-                    updateProgress();
-                    updateFacilityList();
-                }
-            }
-        }
+        // Variabili globali
+        let facilities = [];
+        let calibrationData = { offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1 };
 
-        map.addEventListener('click', function(e) {
-            if (isSelectionMode) return;
+        // Elementi DOM
+        const loadDataCheckbox = document.getElementById('loadDataCheckbox');
+        const testAlignmentBtn = document.getElementById('testAlignmentBtn');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const offsetXInput = document.getElementById('offsetX');
+        const offsetYInput = document.getElementById('offsetY');
+        const scaleXInput = document.getElementById('scaleX');
+        const scaleYInput = document.getElementById('scaleY');
+        const resetCalibrationBtn = document.getElementById('resetCalibrationBtn');
+        const generateCodeBtn = document.getElementById('generateCodeBtn');
+        const copyCodeBtn = document.getElementById('copyCodeBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const facilitiesCount = document.getElementById('facilitiesCount');
+        const progressBar = document.getElementById('progressBar');
+        const facilityListContent = document.getElementById('facilityListContent');
+        const mapContainer = document.querySelector('.map-container');
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up event listeners...');
             
-            const rect = this.getBoundingClientRect();
-            let x = ((e.clientX - rect.left) / rect.width) * 100;
-            let y = ((e.clientY - rect.top) / rect.height) * 100;
-            
-            x = (x + calibrationData.offsetX) * calibrationData.scaleX;
-            y = (y + calibrationData.offsetY) * calibrationData.scaleY;
-            
-            placeFacility(x, y);
+            loadDataCheckbox.addEventListener('change', function() {
+                console.log('Checkbox changed:', this.checked);
+                if (this.checked) {
+                    loadPredefinedData();
+                } else {
+                    clearAllData();
+                }
+            });
+
+            testAlignmentBtn.addEventListener('click', function() {
+                console.log('Test alignment clicked');
+                addTestMarkers();
+            });
+
+            clearAllBtn.addEventListener('click', function() {
+                console.log('Clear all clicked');
+                clearAllData();
+                loadDataCheckbox.checked = false;
+            });
+
+            // Calibration controls
+            [offsetXInput, offsetYInput, scaleXInput, scaleYInput].forEach(input => {
+                input.addEventListener('change', applyCalibration);
+            });
+
+            resetCalibrationBtn.addEventListener('click', resetCalibration);
+            generateCodeBtn.addEventListener('click', generateCode);
+            copyCodeBtn.addEventListener('click', copyToClipboard);
+            downloadBtn.addEventListener('click', downloadFile);
+
+            console.log('Event listeners set up successfully');
         });
 
-        function placeFacility(x, y) {
-            const type = document.getElementById('facility-type').value;
-            const level = document.getElementById('facility-level').value;
-            const ingameCoords = document.getElementById('ingame-coords').value.trim();
+        // Funzioni principali
+        function loadPredefinedData() {
+            console.log('Loading predefined data...');
+            facilities = [...predefinedData];
+            updateUI();
+            statusMessage.textContent = `✅ Caricate ${facilities.length} strutture! Verifica l'allineamento sulla mappa.`;
+            statusMessage.style.background = 'rgba(67, 233, 123, 0.2)';
+            statusMessage.style.borderColor = 'rgba(67, 233, 123, 0.5)';
             
-            const facility = {
-                Type: type,
-                Level: level,
-                x: Math.round(x * 100) / 100,
-                y: Math.round(y * 100) / 100,
-                ingameCoords: ingameCoords || null
-            };
-            
-            facilities.push(facility);
-            createMarker(facility, facilities.length - 1);
-            updateProgress();
-            updateFacilityList();
-            updateCurrentStatus();
-            
-            document.getElementById('ingame-coords').value = '';
-            autoAdvanceFacility();
+            // Crea tutti i marker
+            createAllMarkers();
         }
 
-        function createMarker(facility, index) {
-            const marker = document.createElement('div');
-            marker.className = `marker ${facility.Type.toLowerCase()}`;
-            marker.dataset.index = index;
+        function addTestMarkers() {
+            console.log('Adding test markers...');
+            const testData = [
+                { "Type": "Castle", "Level": "Lv.1", "x": 50.06, "y": 48.79 },
+                { "Type": "Construction", "Level": "Lv.1", "x": 50.19, "y": 12.48 },
+                { "Type": "Defense", "Level": "Lv.2", "x": 71.19, "y": 65.54 },
+                { "Type": "Fortress", "Level": "Lv.1", "x": 26.63, "y": 54.97 }
+            ];
             
-            let visualX = facility.x / calibrationData.scaleX - calibrationData.offsetX;
-            let visualY = facility.y / calibrationData.scaleY - calibrationData.offsetY;
-            
-            marker.style.left = `calc(${visualX}% - 6px)`;
-            marker.style.top = `calc(${visualY}% - 6px)`;
-            
-            if (selectedFacilities.has(index)) {
-                marker.classList.add('selected');
-            }
-            
-            const checkbox = document.createElement('div');
-            checkbox.className = 'marker-checkbox';
-            if (selectedFacilities.has(index)) {
-                checkbox.classList.add('checked');
-            }
-            checkbox.onclick = (e) => {
-                e.stopPropagation();
-                toggleFacilitySelection(index);
-            };
-            marker.appendChild(checkbox);
-            
-            const label = document.createElement('div');
-            label.className = 'marker-label';
-            label.textContent = `${facility.Type} ${facility.Level}${facility.ingameCoords ? ' (' + facility.ingameCoords + ')' : ''}`;
-            marker.appendChild(label);
-            
-            marker.addEventListener('click', function(e) {
-                e.stopPropagation();
-                if (isSelectionMode) {
-                    toggleFacilitySelection(index);
-                }
-            });
-            
-            marker.addEventListener('dblclick', function(e) {
-                e.stopPropagation();
-                if (!isSelectionMode) {
-                    removeFacility(index);
-                }
-            });
-            
-            mapContainer.appendChild(marker);
+            facilities = [...testData];
+            updateUI();
+            createAllMarkers();
+            statusMessage.textContent = '🎯 4 marker di test aggiunti. Verifica se sono allineati con le strutture sulla mappa.';
+            statusMessage.style.background = 'rgba(79, 172, 254, 0.2)';
         }
 
-        function toggleFacilitySelection(index) {
-            if (selectedFacilities.has(index)) {
-                selectedFacilities.delete(index);
-            } else {
-                selectedFacilities.add(index);
-            }
-            updateMarkers();
-        }
-
-        function removeFacility(index) {
-            facilities.splice(index, 1);
-            updateMarkers();
-            updateProgress();
-            updateFacilityList();
-        }
-
-        function updateMarkers() {
+        function clearAllData() {
+            console.log('Clearing all data...');
+            facilities = [];
             document.querySelectorAll('.marker').forEach(marker => marker.remove());
+            updateUI();
+            statusMessage.textContent = 'Tutti i dati sono stati cancellati.';
+            statusMessage.style.background = 'rgba(255, 193, 7, 0.2)';
+        }
+
+        function createAllMarkers() {
+            console.log('Creating markers for', facilities.length, 'facilities');
+            // Rimuovi marker esistenti
+            document.querySelectorAll('.marker').forEach(marker => marker.remove());
+            
+            // Crea nuovi marker
             facilities.forEach((facility, index) => {
                 createMarker(facility, index);
             });
         }
 
-        function importFromPaste() {
-            const textarea = document.getElementById('paste-facilities');
-            const content = textarea.value.trim();
+        function createMarker(facility, index) {
+            const marker = document.createElement('div');
+            marker.className = `marker ${facility.Type.toLowerCase()}`;
             
-            if (!content) {
-                alert('❌ Incolla prima il contenuto di facilitiesData.js!');
+            // Applica calibrazione
+            let visualX = (facility.x + calibrationData.offsetX) * calibrationData.scaleX;
+            let visualY = (facility.y + calibrationData.offsetY) * calibrationData.scaleY;
+            
+            marker.style.left = `calc(${visualX}% - 6px)`;
+            marker.style.top = `calc(${visualY}% - 6px)`;
+            
+            // Aggiungi label
+            const label = document.createElement('div');
+            label.className = 'marker-label';
+            label.textContent = `${facility.Type} ${facility.Level}${facility.ingameCoords ? ' (' + facility.ingameCoords + ')' : ''}`;
+            marker.appendChild(label);
+            
+            mapContainer.appendChild(marker);
+        }
+
+        function applyCalibration() {
+            console.log('Applying calibration...');
+            calibrationData.offsetX = parseFloat(offsetXInput.value) || 0;
+            calibrationData.offsetY = parseFloat(offsetYInput.value) || 0;
+            calibrationData.scaleX = parseFloat(scaleXInput.value) || 1;
+            calibrationData.scaleY = parseFloat(scaleYInput.value) || 1;
+            
+            createAllMarkers();
+        }
+
+        function resetCalibration() {
+            console.log('Resetting calibration...');
+            calibrationData = { offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1 };
+            offsetXInput.value = 0;
+            offsetYInput.value = 0;
+            scaleXInput.value = 1;
+            scaleYInput.value = 1;
+            createAllMarkers();
+        }
+
+        function updateUI() {
+            // Aggiorna contatore
+            facilitiesCount.textContent = facilities.length;
+            
+            // Aggiorna barra progresso
+            const percentage = Math.min((facilities.length / 91) * 100, 100);
+            progressBar.style.width = percentage + '%';
+            
+            // Aggiorna lista strutture
+            updateFacilityList();
+        }
+
+        function updateFacilityList() {
+            if (facilities.length === 0) {
+                facilityListContent.innerHTML = '<p style="opacity: 0.6; font-style: italic;">Nessuna struttura caricata</p>';
                 return;
             }
             
-            try {
-                let facilityData;
+            // Raggruppa per tipo
+            const grouped = {};
+            facilities.forEach(facility => {
+                const key = `${facility.Type} ${facility.Level}`;
+                if (!grouped[key]) grouped[key] = 0;
+                grouped[key]++;
+            });
+            
+            let html = '';
+            Object.entries(grouped).forEach(([key, count]) => {
+                html += `
+                    <div class="facility-item">
+                        <span class="facility-type">${key}</span>
+                        <span class="coordinates">${count}x</span>
+                    </div>
+                `;
+            });
+            
+            facilityListContent.innerHTML = html;
+        }
+
+        function generateCode() {
+            if (facilities.length === 0) {
+                alert('Carica prima alcune strutture!');
+                return;
+            }
+            
+            let code = `// ===== WHITEOUT SURVIVAL FACILITY DATA - CALIBRATED COORDINATES =====
+// Generated on ${new Date().toLocaleDateString()} with ${facilities.length} facilities
+
+const facilityData = [
+`;
+            
+            facilities.forEach((facility, index) => {
+                // Applica calibrazione ai dati di output
+                const calibratedX = Math.round(((facility.x + calibrationData.offsetX) * calibrationData.scaleX) * 100) / 100;
+                const calibratedY = Math.round(((facility.y + calibrationData.offsetY) * calibrationData.scaleY) * 100) / 100;
                 
-                const patterns = [
-                    /const facilityData\s*=\s*(\[[\s\S]*?\]);/,
-                    /let facilityData\s*=\s*(\[[\s\S]*?\]);/,
-                    /var facilityData\s*=\s*(\[[\s\S]*?\]);/,
-                    /facilityData\s*=\s*(\[[\s\S]*?\]);/,
-                    /\[[\s\S]*?\]/
-                ];
-                
-                let foundMatch = false;
-                for (const pattern of patterns) {
-                    const match = content.match(pattern);
-                    if (match) {
-                        try {
-                            const arrayContent = match[1] || match[0];
-                            facilityData = JSON.parse(arrayContent);
-                            foundMatch = true;
-                            break;
-                        } catch (parseError) {
-                            continue;
-                        }
-                    }
-                }
-                
-                if (!foundMatch) {
-                    try {
-                        const safeEval = new Function(`
-                            let facilityData;
-                            let module = { exports: {} };
-                            let exports = module.exports;
-                            let window = {};
-                            
-                            ${content}
-                            
-                            return facilityData || (typeof module !== 'undefined' && module.exports);
-                        `);
+                code += `  { 
+    "Type": "${facility.Type}", 
+    "Level": "${facility.Level}", 
+    "x": ${calibratedX}, 
+    "y": ${calibratedY}${facility.ingameCoords ? `,
+    "ingameCoords": "${facility.ingameCoords}"` : ''} 
+  }`;
+                if (index < facilities.length - 1) code += ',';
+                code += '\n';
+            });
+            
+            code += `];
+
+// Export for use in your app
+if (typeof window !== 'undefined') {
+  window.facilityData = facilityData;
+}
+
+// CommonJS support
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = facilityData;
+}`;
+            
+            document.getElementById('codeOutput').textContent = code;
+            document.getElementById('outputSection').style.display = 'block';
+            document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function copyToClipboard() {
+            generateCode();
+            const code = document.getElementById('codeOutput').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('✅ Codice copiato negli appunti!');
+            }).catch(() => {
+                alert('❌ Errore nella copia. Seleziona e copia manualmente.');
+            });
+        }
+
+        function downloadFile() {
+            generateCode();
+            const code = document.getElementById('codeOutput').textContent;
+            const blob = new Blob([code], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'facilitiesData_calibrated.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Gestione errori immagine
+        document.getElementById('map').addEventListener('error', function() {
+            console.error('Errore caricamento mappa');
+            statusMessage.textContent = '❌ Errore: Impossibile caricare map.png. Assicurati che il file sia presente.';
+            statusMessage.style.background = 'rgba(220, 53, 69, 0.2)';
+        });
+
+        // Log per debug
+        console.log('Script loaded successfully');
+    </script>
+</body>
+</html>
