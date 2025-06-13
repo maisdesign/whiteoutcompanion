@@ -6,7 +6,7 @@ let editingAllianceIndex = -1;
 // ===== CALIBRAZIONE COORDINATE =====
 let calibrationSettings = {
   offsetX: 0,    // Aggiusta questi valori per allineare i marker
-  offsetY: -2,   // Valore iniziale suggerito dalla screenshot
+  offsetY: 0.7,   // Valore iniziale suggerito dalla screenshot
   scaleX: 1.0,
   scaleY: 1.0
 };
