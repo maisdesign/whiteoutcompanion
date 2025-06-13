@@ -3,6 +3,14 @@ let showOnlyAssigned = false;
 let isEditingAlliance = false;
 let editingAllianceIndex = -1;
 
+// ===== CALIBRAZIONE COORDINATE =====
+let calibrationSettings = {
+  offsetX: 0,    // Aggiusta questi valori per allineare i marker
+  offsetY: -2,   // Valore iniziale suggerito dalla screenshot
+  scaleX: 1.0,
+  scaleY: 1.0
+};
+
 // Global utility functions
 function getReadableRandomColor() {
   const colors = ['#d7263d', '#0074d9', '#2ecc71', '#ff851b', '#7fdbff', '#b10dc9', '#f39c12', '#9b59b6', '#e74c3c', '#1abc9c'];
@@ -29,6 +37,92 @@ function getMarkerTooltip(facility) {
   return tooltip;
 }
 
+// ===== FUNZIONI DI CALIBRAZIONE =====
+function highlightCastle() {
+  const castle = facilityData.find(f => f.Type === "Castle");
+  if (castle && castle.marker) {
+    castle.marker.style.backgroundColor = 'red';
+    castle.marker.style.width = '20px';
+    castle.marker.style.height = '20px';
+    castle.marker.style.zIndex = '1000';
+    castle.marker.style.border = '3px solid yellow';
+    console.log('🏰 Castle position:', castle.x, castle.y);
+    console.log('🎯 Check if the red marker is exactly on the castle in the map');
+  } else {
+    console.log('❌ Castle not found or marker not created yet');
+  }
+}
+
+function testCalibration(offsetX = 0, offsetY = 0, scaleX = 1.0, scaleY = 1.0) {
+  console.log(`🔧 Testing calibration: offsetX=${offsetX}, offsetY=${offsetY}, scaleX=${scaleX}, scaleY=${scaleY}`);
+  
+  // Aggiorna le impostazioni di calibrazione
+  calibrationSettings = { offsetX, offsetY, scaleX, scaleY };
+  
+  // Rimuovi tutti i marker esistenti
+  document.querySelectorAll('.marker').forEach(marker => marker.remove());
+  
+  // Ricrea i marker con i nuovi valori
+  facilityData.forEach((facility, index) => {
+    createMarker(facility, index);
+  });
+  
+  // Evidenzia il castello per vedere se è allineato
+  setTimeout(() => {
+    highlightCastle();
+  }, 100);
+}
+
+function autoCalibrate() {
+  console.log("=== 🎯 CALIBRAZIONE AUTOMATICA ===");
+  console.log("Prova questi valori uno alla volta:");
+  console.log("testCalibration(0, -3);    // ⬆️ Sposta tutto in alto");
+  console.log("testCalibration(0, 2);     // ⬇️ Sposta tutto in basso");
+  console.log("testCalibration(-2, 0);    // ⬅️ Sposta tutto a sinistra");
+  console.log("testCalibration(2, 0);     // ➡️ Sposta tutto a destra");
+  console.log("testCalibration(-1, -2);   // ↖️ Alto-sinistra");
+  console.log("testCalibration(1, 1);     // ↘️ Basso-destra");
+  console.log("");
+  console.log("🏰 Quando il castello rosso è perfettamente allineato:");
+  console.log("applyFinalCalibration(offsetX, offsetY);");
+}
+
+function applyFinalCalibration(finalOffsetX, finalOffsetY, finalScaleX = 1.0, finalScaleY = 1.0) {
+  console.log(`✅ Applying final calibration: ${finalOffsetX}, ${finalOffsetY}, ${finalScaleX}, ${finalScaleY}`);
+  
+  // Aggiorna le impostazioni permanenti
+  calibrationSettings = {
+    offsetX: finalOffsetX,
+    offsetY: finalOffsetY,
+    scaleX: finalScaleX,
+    scaleY: finalScaleY
+  };
+  
+  // Ricrea tutti i marker
+  document.querySelectorAll('.marker').forEach(marker => marker.remove());
+  facilityData.forEach((f, i) => {
+    createMarker(f, i);
+  });
+  
+  // Salva le impostazioni nel localStorage per la prossima volta
+  localStorage.setItem('whiteout-calibration', JSON.stringify(calibrationSettings));
+  
+  console.log("🎉 Calibrazione applicata e salvata!");
+}
+
+// Carica calibrazione salvata
+function loadCalibration() {
+  const saved = localStorage.getItem('whiteout-calibration');
+  if (saved) {
+    try {
+      calibrationSettings = JSON.parse(saved);
+      console.log('📋 Calibrazione caricata:', calibrationSettings);
+    } catch (error) {
+      console.error('❌ Errore caricamento calibrazione:', error);
+    }
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const map = document.getElementById("map");
   const mapContainer = document.getElementById("map-container");
@@ -38,6 +132,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize language system
   initLanguage();
+  
+  // Load calibration settings
+  loadCalibration();
   
   // Load data from localStorage
   loadFromLocalStorage();
@@ -183,11 +280,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // ===== FUNZIONE CREATEMARKER CALIBRATA =====
   function createMarker(facility, index) {
     const marker = document.createElement("div");
     marker.className = "marker";
-    marker.style.left = `calc(${facility.x}% - 6px)`;
-    marker.style.top = `calc(${facility.y}% - 6px)`;
+    
+    // Applica calibrazione
+    const adjustedX = (facility.x * calibrationSettings.scaleX) + calibrationSettings.offsetX;
+    const adjustedY = (facility.y * calibrationSettings.scaleY) + calibrationSettings.offsetY;
+    
+    marker.style.left = `calc(${adjustedX}% - 6px)`;
+    marker.style.top = `calc(${adjustedY}% - 6px)`;
+    
     marker.title = getMarkerTooltip(facility);
     marker.onclick = () => showDropdown(facility, marker, index);
     mapContainer.appendChild(marker);
@@ -525,7 +629,8 @@ document.addEventListener("DOMContentLoaded", () => {
           Alliance: f.Alliance
         })),
         showOnlyAssigned: showOnlyAssigned,
-        language: currentLanguage
+        language: currentLanguage,
+        calibration: calibrationSettings
       };
       localStorage.setItem('whiteout-companion-data', JSON.stringify(data));
     } catch (error) {
@@ -567,6 +672,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // Restore language
         if (data.language && translations[data.language]) {
           setLanguage(data.language);
+        }
+        
+        // Restore calibration
+        if (data.calibration) {
+          calibrationSettings = data.calibration;
         }
         
       } catch (error) {
@@ -644,6 +754,12 @@ document.addEventListener("DOMContentLoaded", () => {
   window.refreshUI = refreshUI;
   window.safeRender = safeRender;
   window.loadFromLocalStorage = loadFromLocalStorage;
+  
+  // Esponi le funzioni di calibrazione globalmente
+  window.highlightCastle = highlightCastle;
+  window.testCalibration = testCalibration;
+  window.autoCalibrate = autoCalibrate;
+  window.applyFinalCalibration = applyFinalCalibration;
 
   // Create markers for all facilities
   facilityData.forEach((f, i) => {
@@ -664,6 +780,17 @@ document.addEventListener("DOMContentLoaded", () => {
       closeAllDropdowns();
     }
   });
+  
+  // ===== CALIBRAZIONE LOG =====
+  console.log("🎯 ===== WHITEOUT COMPANION - CALIBRAZIONE COORDINATE =====");
+  console.log("📋 Comandi disponibili:");
+  console.log("   highlightCastle() - Evidenzia il castello per test");
+  console.log("   autoCalibrate() - Mostra comandi di calibrazione");
+  console.log("   testCalibration(x, y) - Testa offset specifici");
+  console.log("   applyFinalCalibration(x, y) - Applica calibrazione finale");
+  console.log("");
+  console.log("🏰 INIZIA CON: highlightCastle()");
+  console.log("📝 Calibrazione corrente:", calibrationSettings);
 });
 
 // Fixed and improved renderBuffSummary function
@@ -870,9 +997,12 @@ function exportPNG() {
   // Add alliance markers and labels
   facilityData.forEach(facility => {
     if (facility.Alliance && facility.marker) {
-      // Calculate relative position
-      const x = (facility.x / 100) * canvas.width;
-      const y = (facility.y / 100) * canvas.height;
+      // Calculate relative position with calibration
+      const adjustedX = (facility.x * calibrationSettings.scaleX) + calibrationSettings.offsetX;
+      const adjustedY = (facility.y * calibrationSettings.scaleY) + calibrationSettings.offsetY;
+      
+      const x = (adjustedX / 100) * canvas.width;
+      const y = (adjustedY / 100) * canvas.height;
       
       // Draw facility marker
       ctx.fillStyle = '#0074d9';
