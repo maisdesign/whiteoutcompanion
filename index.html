@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,57 +5,363 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="theme-color" content="#1e3c72">
   <meta name="description" content="Professional alliance management tool for Whiteout Survival">
-
+  
   <!-- PWA Meta Tags -->
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="assets/icons/android/android-launchericon-180-180.png">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/assets/icons/icon-192-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
+  
   <title>Whiteout Survival Companion</title>
-
-  <!-- Fonts -->
+  
+  <!-- Preload critical fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <!-- Styles -->
+  
+  <!-- Mantieni gli stili esistenti per compatibilità -->
+  <link rel="stylesheet" href="styles/legacy.css"/>
   <link rel="stylesheet" href="styles/base.css"/>
+  <link rel="stylesheet" href="styles/enhanced_styles.css"/>
   <link rel="stylesheet" href="styles/modern-ui.css"/>
+
+  <!-- Aggiungi stili moderni inline per ora -->
+  <style>
+    /* Modern enhancements overlay */
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --glass-bg: rgba(255, 255, 255, 0.1);
+      --glass-border: rgba(255, 255, 255, 0.2);
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.8);
+      --spacing-md: 16px;
+      --radius-md: 12px;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* Loading screen */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255,255,255,0.1);
+      border-left: 4px solid #4facfe;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Enhanced glass cards */
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    }
+
+    /* Modern alliance panel */
+    #alliance-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--glass-border);
+    }
+
+    /* Enhanced buttons */
+    .btn-modern {
+      background: var(--primary-gradient);
+      border: none;
+      border-radius: var(--radius-md);
+      color: white;
+      padding: 12px 24px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-modern:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    /* Enhanced markers */
+    .marker {
+      background-color: #4facfe;
+      border: 2px solid white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .marker:hover {
+      transform: scale(1.3);
+      box-shadow: 0 0 15px rgba(79, 172, 254, 0.7);
+    }
+
+    .marker.assigned {
+      background-color: #43e97b;
+    }
+
+    .marker.assigned:hover {
+      box-shadow: 0 0 15px rgba(67, 233, 123, 0.7);
+    }
+
+    /* Enhanced alliance cards */
+    .alliance-item {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .alliance-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--primary-gradient);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .alliance-item:hover::before {
+      transform: scaleX(1);
+    }
+
+    .alliance-item:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Stats section */
+    .stats-section {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-md);
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      text-align: center;
+      border: 1px solid var(--glass-border);
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #4facfe;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+      #app-container {
+        flex-direction: column;
+      }
+      
+      #alliance-panel {
+        width: 100%;
+        order: 2;
+      }
+      
+      #main-panel {
+        order: 1;
+      }
+    }
+
+    /* Title gradient */
+    h1 {
+      background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: var(--spacing-md);
+    }
+
+    /* Animation utilities */
+    .fade-in {
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
 </head>
 <body class="light-theme">
-  <div id="app-container">
-    <aside id="alliance-panel">
-      <h2 data-i18n="alliances">Alliances</h2>
-      <form id="alliance-form">
-        <input type="text" id="alliance-name" data-i18n-placeholder="allianceName" maxlength="30" required/>
-        <input type="file" id="alliance-icon" accept="image/*" aria-label="Alliance icon upload"/>
-        <button type="submit" data-i18n="addAlliance">Add Alliance</button>
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="loading-screen">
+    <div>
+      <div class="spinner"></div>
+      <p style="margin-top: 20px; opacity: 0.8;">Loading Whiteout Companion...</p>
+    </div>
+  </div>
+
+  <!-- Main App Container -->
+  <div id="app-container" style="opacity: 0; transition: opacity 0.5s ease;">
+    
+    <!-- Sidebar -->
+    <aside id="alliance-panel" class="glass-card">
+      <h2 data-i18n="alliances">🏰 Alliances</h2>
+      
+      <!-- Stats Quick View -->
+      <div class="stats-section">
+        <h4>📊 Quick Stats</h4>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number" id="total-alliances">0</div>
+            <div class="stat-label">Alliances</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="assigned-facilities">0</div>
+            <div class="stat-label">Assigned</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Alliance Form -->
+      <form id="alliance-form" class="glass-card" style="padding: 16px; margin-bottom: 16px;">
+        <input type="text" id="alliance-name" data-i18n-placeholder="allianceName" 
+               placeholder="Alliance name..." maxlength="30" required
+               style="width: 100%; padding: 12px; border: 2px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.1); color: white; margin-bottom: 12px;"/>
+        <input type="file" id="alliance-icon" accept="image/*" 
+               style="width: 100%; padding: 8px; margin-bottom: 12px; background: rgba(255,255,255,0.1); border: 2px dashed rgba(255,255,255,0.2); border-radius: 8px; color: white;"/>
+        <button type="submit" class="btn-modern" data-i18n="addAlliance" style="width: 100%;">
+          ✨ Add Alliance
+        </button>
       </form>
+      
+      <!-- Alliance List -->
       <ul id="alliance-list"></ul>
     </aside>
 
+    <!-- Main Content -->
     <main id="main-panel">
       <h1 data-i18n="title">Whiteout Survival Companion</h1>
-      <div id="map-container">
-        <img src="assets/map.png" id="map" alt="Facility Map"/>
+      
+      <!-- Controls -->
+      <div id="controls" style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+        <button onclick="exportCSV()" class="btn-modern" data-i18n="exportCsv">📊 Export CSV</button>
+        <button onclick="exportPNG()" class="btn-modern" data-i18n="exportPng">🖼️ Export PNG</button>
+        <input type="file" id="import-file" accept=".csv" style="background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 8px; color: white;"/>
+        <select id="language-selector" style="background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 8px; color: white;"></select>
       </div>
-      <div id="controls">
-        <button onclick="exportCSV()" data-i18n="exportCsv">Export CSV</button>
-        <button onclick="exportPNG()" data-i18n="exportPng">Export PNG</button>
-        <input type="file" id="import-file" accept=".csv" aria-label="Import CSV file"/>
-        <label for="language-selector" data-i18n="language">Language</label>
-        <select id="language-selector" aria-label="Select interface language"></select>
+
+      <!-- Interactive Map -->
+      <div id="map-container" class="glass-card" style="padding: 20px; margin-bottom: 20px; position: relative;">
+        <h3 style="text-align: center; margin-bottom: 16px;">🗺️ Interactive Facility Map</h3>
+        <div style="position: relative; overflow: hidden; border-radius: 12px;">
+          <img src="assets/map.png" id="map" alt="Facility Map" style="width: 100%; display: block;"/>
+          <!-- Markers will be added here dynamically -->
+        </div>
       </div>
-      <div id="summary"></div>
-      <div id="buff-summary"></div>
+
+      <!-- Summary Sections -->
+      <div id="summary" class="glass-card" style="padding: 20px; margin-bottom: 20px;"></div>
+      <div id="buff-summary" class="glass-card" style="padding: 20px;"></div>
     </main>
   </div>
 
-  <!-- Script dependencies (ORDER MATTERS) -->
+  <!-- Scripts -->
   <script src="data/facilitiesData.js"></script>
   <script src="data/buffData.js"></script>
   <script src="data/translations.js"></script>
-  <script src="scripts/enhanced_main_js.js"></script>
+  <script src="main.js"></script>
+
+  <!-- Enhanced initialization -->
+  <script>
+    // Hide loading screen when everything is loaded
+    window.addEventListener('load', () => {
+      const loadingScreen = document.getElementById('loading-screen');
+      const appContainer = document.getElementById('app-container');
+      
+      setTimeout(() => {
+        loadingScreen.style.opacity = '0';
+        appContainer.style.opacity = '1';
+        
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 500);
+        
+        // Update stats after load
+        updateQuickStats();
+      }, 1500);
+    });
+
+    // Quick stats updater
+    function updateQuickStats() {
+      const totalAlliances = alliances ? alliances.length : 0;
+      const assignedFacilities = facilityData ? facilityData.filter(f => f.Alliance).length : 0;
+      
+      const totalAlliancesEl = document.getElementById('total-alliances');
+      const assignedFacilitiesEl = document.getElementById('assigned-facilities');
+      
+      if (totalAlliancesEl) totalAlliancesEl.textContent = totalAlliances;
+      if (assignedFacilitiesEl) assignedFacilitiesEl.textContent = assignedFacilities;
+    }
+
+    // Override the original safeRender to include stats update
+    const originalSafeRender = window.safeRender;
+    if (originalSafeRender) {
+      window.safeRender = function() {
+        originalSafeRender();
+        updateQuickStats();
+      };
+    }
+  </script>
 </body>
 </html>
