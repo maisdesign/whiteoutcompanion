@@ -1,4 +1,53 @@
-<!DOCTYPE html>
+function importFacilitiesData() {
+            const fileInput = document.getElementById('import-facilities');
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result;
+                    console.log('File content preview:', content.substring(0, 500));
+                    
+                    // Try to extract facilityData from the JS file
+                    let facilityData;
+                    
+                    // Method 1: Try to find facilityData array with multiple regex patterns
+                    const patterns = [
+                        /const facilityData = (\[[\s\S]*?\]);/,
+                        /let facilityData = (\[[\s\S]*?\]);/,
+                        /var facilityData = (\[[\s\S]*?\]);/,
+                        /facilityData = (\[[\s\S]*?\]);/,
+                        /"facilityData":\s*(\[[\s\S]*?\])/
+                    ];
+                    
+                    let foundMatch = false;
+                    for (const pattern of patterns) {
+                        const match = content.match(pattern);
+                        if (match) {
+                            try {
+                                facilityData = JSON.parse(match[1]);
+                                foundMatch = true;
+                                console.log('Found facilityData with pattern:', pattern);
+                                break;
+                            } catch (parseError) {
+                                console.log('Parse error with pattern:', pattern, parseError);
+                                continue;
+                            }
+                        }
+                    }
+                    
+                    // Method 2: Try to execute the script in a sandbox if regex failed
+                    if (!foundMatch) {
+                        try {
+                            console.log('Trying to execute script...');
+                            const scriptFunc = new Function(`
+                                let facilityData;
+                                let module = {};
+                                let exports = {};
+                                let window = {};
+                                <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -456,9 +505,12 @@
 
             <div class="control-group">
                 <label style="margin-bottom: 10px; display: block;">Importa Dati:</label>
-                <input type="file" id="import-facilities" accept=".js" onchange="importFacilitiesData()" 
-                       style="margin-bottom: 10px; width: 100%; padding: 8px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 6px; background: rgba(255,255,255,0.1); color: white;">
-                <button class="btn btn-info" onclick="testAlignment()">🎯 Test Allineamento</button>
+                <textarea id="paste-facilities" placeholder="Incolla qui il contenuto di facilitiesData.js..." 
+                         style="width: 100%; height: 120px; padding: 8px; border: 2px solid rgba(255,255,255,0.3); border-radius: 6px; background: rgba(255,255,255,0.1); color: white; font-family: monospace; font-size: 12px; resize: vertical; margin-bottom: 10px;"></textarea>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-success" onclick="importFromPaste()" style="flex: 1;">📋 Importa da Clipboard</button>
+                    <button class="btn btn-info" onclick="testAlignment()" style="flex: 1;">🎯 Test Allineamento</button>
+                </div>
             </div>
 
             <div class="control-group">
@@ -535,7 +587,7 @@
                 
                 <div class="map-container">
                     <!-- IMPORTANTE: Sostituisci questo src con il path corretto della tua mappa -->
-                    <img src="map.png" 
+                    <img src="assets/map.png" 
                          id="map" 
                          alt="Whiteout Survival Map"
                          crossorigin="anonymous"
@@ -631,7 +683,119 @@
             alert('❌ Errore nel caricamento della mappa!\n\nAssicurati che il file della mappa sia nel percorso corretto:\n- assets/map.png\n\nOppure modifica il percorso nel codice HTML.');
         }
 
+        function importFromPaste() {
+            const textarea = document.getElementById('paste-facilities');
+            const content = textarea.value.trim();
+            
+            if (!content) {
+                alert('❌ Incolla prima il contenuto di facilitiesData.js nell\'area di testo!');
+                return;
+            }
+            
+            try {
+                console.log('Parsing pasted content...');
+                
+                // Try to extract facilityData from the pasted content
+                let facilityData;
+                
+                // Method 1: Try multiple regex patterns to find the array
+                const patterns = [
+                    /const facilityData\s*=\s*(\[[\s\S]*?\]);/,
+                    /let facilityData\s*=\s*(\[[\s\S]*?\]);/,
+                    /var facilityData\s*=\s*(\[[\s\S]*?\]);/,
+                    /facilityData\s*=\s*(\[[\s\S]*?\]);/,
+                    /\[[\s\S]*?\]/  // Just look for any array
+                ];
+                
+                let foundMatch = false;
+                for (const pattern of patterns) {
+                    const match = content.match(pattern);
+                    if (match) {
+                        try {
+                            const arrayContent = match[1] || match[0];
+                            facilityData = JSON.parse(arrayContent);
+                            foundMatch = true;
+                            console.log('Successfully parsed with pattern:', pattern);
+                            break;
+                        } catch (parseError) {
+                            console.log('Parse error with pattern:', pattern, parseError);
+                            continue;
+                        }
+                    }
+                }
+                
+                // Method 2: If regex failed, try to execute the code safely
+                if (!foundMatch) {
+                    try {
+                        console.log('Trying to execute pasted code...');
+                        
+                        // Create a safe environment
+                        const safeEval = new Function(`
+                            let facilityData;
+                            let module = { exports: {} };
+                            let exports = module.exports;
+                            let window = {};
+                            
+                            ${content}
+                            
+                            return facilityData || (typeof module !== 'undefined' && module.exports);
+                        `);
+                        
+                        facilityData = safeEval();
+                        
+                        if (facilityData) {
+                            foundMatch = true;
+                            console.log('Successfully executed pasted code');
+                        }
+                    } catch (execError) {
+                        console.log('Execution error:', execError);
+                    }
+                }
+                
+                // Validate and import the data
+                if (foundMatch && facilityData && Array.isArray(facilityData)) {
+                    // Clear existing facilities
+                    facilities = [];
+                    selectedFacilities.clear();
+                    
+                    // Import the facilities
+                    let importedCount = 0;
+                    facilityData.forEach(facility => {
+                        if (facility.Type && facility.Level && 
+                            typeof facility.x === 'number' && typeof facility.y === 'number') {
+                            facilities.push({
+                                Type: facility.Type,
+                                Level: facility.Level,
+                                x: facility.x,
+                                y: facility.y,
+                                ingameCoords: facility.ingameCoords || null
+                            });
+                            importedCount++;
+                        }
+                    });
+                    
+                    // Update UI
+                    updateMarkers();
+                    updateProgress();
+                    updateFacilityList();
+                    
+                    // Clear the textarea
+                    textarea.value = '';
+                    
+                    alert(`✅ Importate ${importedCount} strutture!\n\nOra puoi:\n• Usare "Test Allineamento" per verificare la posizione\n• Attivare "Modalità Selezione" per spostare le strutture\n• Usare i controlli di calibrazione se non sono allineate`);
+                    
+                } else {
+                    throw new Error('Formato dati non valido');
+                }
+                
+            } catch (error) {
+                console.error('Import error:', error);
+                alert(`❌ Errore nell'importazione!\n\nAssicurati di aver incollato il contenuto completo del file facilitiesData.js\n\nErrore: ${error.message}`);
+            }
+        }
+
         function importFacilitiesData() {
+            // Keep the old file import method as backup
             const fileInput = document.getElementById('import-facilities');
             const file = fileInput.files[0];
             
@@ -639,59 +803,9 @@
             
             const reader = new FileReader();
             reader.onload = function(e) {
-                try {
-                    const content = e.target.result;
-                    
-                    // Try to extract facilityData from the JS file
-                    let facilityData;
-                    
-                    // Method 1: Try to execute the script
-                    try {
-                        // Create a safe environment to execute the script
-                        const scriptFunc = new Function(content + '; return facilityData;');
-                        facilityData = scriptFunc();
-                    } catch (error) {
-                        // Method 2: Try to parse with regex
-                        const match = content.match(/const facilityData = (\[[\s\S]*?\]);/);
-                        if (match) {
-                            facilityData = JSON.parse(match[1]);
-                        } else {
-                            throw new Error('Cannot find facilityData in file');
-                        }
-                    }
-                    
-                    if (facilityData && Array.isArray(facilityData)) {
-                        // Clear existing facilities
-                        facilities = [];
-                        
-                        // Import the facilities
-                        facilityData.forEach(facility => {
-                            if (facility.Type && facility.Level && 
-                                typeof facility.x === 'number' && typeof facility.y === 'number') {
-                                facilities.push({
-                                    Type: facility.Type,
-                                    Level: facility.Level,
-                                    x: facility.x,
-                                    y: facility.y,
-                                    ingameCoords: facility.ingameCoords || null
-                                });
-                            }
-                        });
-                        
-                        // Update UI
-                        updateMarkers();
-                        updateProgress();
-                        updateFacilityList();
-                        
-                        alert(`✅ Importate ${facilities.length} strutture dal file!`);
-                    } else {
-                        throw new Error('Invalid facilityData format');
-                    }
-                    
-                } catch (error) {
-                    console.error('Import error:', error);
-                    alert('❌ Errore nell\'importazione del file!\n\nAssicurati che sia un file facilitiesData.js valido.');
-                }
+                const content = e.target.result;
+                document.getElementById('paste-facilities').value = content;
+                importFromPaste();
             };
             
             reader.readAsText(file);
