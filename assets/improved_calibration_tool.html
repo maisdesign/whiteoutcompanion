@@ -148,6 +148,51 @@
             z-index: 20;
         }
 
+        .marker.selected {
+            border: 3px solid #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+            transform: scale(1.2);
+        }
+
+        .marker.dragging {
+            z-index: 30;
+            transform: scale(1.3);
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.9);
+        }
+
+        .marker-checkbox {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 16px;
+            height: 16px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid white;
+            border-radius: 3px;
+            display: none;
+            cursor: pointer;
+            z-index: 25;
+        }
+
+        .selection-mode .marker-checkbox {
+            display: block;
+        }
+
+        .marker-checkbox.checked {
+            background: #43e97b;
+        }
+
+        .marker-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 10px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+        }
+
         /* Facility type colors */
         .marker.castle { background: #ffd700; border: 3px solid #ff6b35; }
         .marker.construction { background: #3498db; }
@@ -410,10 +455,17 @@
             </div>
 
             <div class="control-group">
+                <label style="margin-bottom: 10px; display: block;">Importa Dati:</label>
+                <input type="file" id="import-facilities" accept=".js" onchange="importFacilitiesData()" 
+                       style="margin-bottom: 10px; width: 100%; padding: 8px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 6px; background: rgba(255,255,255,0.1); color: white;">
+                <button class="btn btn-info" onclick="testAlignment()">🎯 Test Allineamento</button>
+            </div>
+
+            <div class="control-group">
                 <label style="margin-bottom: 10px; display: block;">Controlli:</label>
                 <button class="btn btn-warning" onclick="undoLast()">↶ Annulla Ultimo</button>
                 <button class="btn btn-danger" onclick="clearAll()">🗑️ Cancella Tutto</button>
-                <button class="btn btn-info" onclick="testAlignment()">🎯 Test Allineamento</button>
+                <button class="btn btn-success" onclick="toggleSelectionMode()">🎯 <span id="selection-mode-text">Modalità Selezione</span></button>
             </div>
         </div>
 
@@ -450,13 +502,40 @@
                     </div>
                 </div>
 
+                <div class="calibration-section" id="selection-controls" style="display: none;">
+                    <h4>🎯 Controlli Selezione</h4>
+                    <p style="font-size: 13px; margin-bottom: 15px;">Seleziona i marker da spostare:</p>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                        <button class="btn btn-info" onclick="selectAll()" style="font-size: 12px; padding: 6px 12px;">✅ Seleziona Tutto</button>
+                        <button class="btn btn-warning" onclick="selectNone()" style="font-size: 12px; padding: 6px 12px;">❌ Deseleziona Tutto</button>
+                        <button class="btn btn-success" onclick="selectByType()" style="font-size: 12px; padding: 6px 12px;">🏗️ Per Tipo</button>
+                    </div>
+                    
+                    <div class="offset-controls">
+                        <div class="offset-input">
+                            <label>Sposta X:</label>
+                            <input type="number" id="move-x" value="0" step="0.1">
+                        </div>
+                        <div class="offset-input">
+                            <label>Sposta Y:</label>
+                            <input type="number" id="move-y" value="0" step="0.1">
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="moveSelectedFacilities()">↗️ Sposta Selezionati</button>
+                        <button class="btn btn-danger" onclick="deleteSelectedFacilities()">🗑️ Elimina Selezionati</button>
+                    </div>
+                </div>
+
                 <div class="status info" id="current-status">
                     Pronto per posizionare: <span id="current-facility">Castle Lv.1</span>
                 </div>
                 
                 <div class="map-container">
                     <!-- IMPORTANTE: Sostituisci questo src con il path corretto della tua mappa -->
-                    <img src="map.png" 
+                    <img src="assets/map.png" 
                          id="map" 
                          alt="Whiteout Survival Map"
                          crossorigin="anonymous"
@@ -483,6 +562,10 @@
 
                 <div class="facility-list">
                     <h4>📋 Strutture Posizionate</h4>
+                    <div style="margin-bottom: 10px; font-size: 12px;">
+                        <span style="color: #43e97b;">● Selezionate: <span id="selected-count">0</span></span> |
+                        <span style="color: #4facfe;">● Totali: <span id="total-count">0</span></span>
+                    </div>
                     <div id="facility-list-content">
                         <p style="opacity: 0.6; font-style: italic;">Nessuna struttura posizionata. Clicca sulla mappa per iniziare!</p>
                     </div>
@@ -518,6 +601,10 @@
             scaleX: 1,
             scaleY: 1
         };
+        let isSelectionMode = false;
+        let selectedFacilities = new Set();
+        let isDragging = false;
+        let dragStartPos = null;
 
         // Get map element and set up click handler
         const map = document.getElementById('map');
@@ -527,6 +614,8 @@
         loadCalibration();
 
         map.addEventListener('click', function(e) {
+            if (isSelectionMode) return; // Don't place new facilities in selection mode
+            
             const rect = this.getBoundingClientRect();
             let x = ((e.clientX - rect.left) / rect.width) * 100;
             let y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -540,6 +629,166 @@
 
         function handleImageError() {
             alert('❌ Errore nel caricamento della mappa!\n\nAssicurati che il file della mappa sia nel percorso corretto:\n- assets/map.png\n\nOppure modifica il percorso nel codice HTML.');
+        }
+
+        function importFacilitiesData() {
+            const fileInput = document.getElementById('import-facilities');
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result;
+                    
+                    // Try to extract facilityData from the JS file
+                    let facilityData;
+                    
+                    // Method 1: Try to execute the script
+                    try {
+                        // Create a safe environment to execute the script
+                        const scriptFunc = new Function(content + '; return facilityData;');
+                        facilityData = scriptFunc();
+                    } catch (error) {
+                        // Method 2: Try to parse with regex
+                        const match = content.match(/const facilityData = (\[[\s\S]*?\]);/);
+                        if (match) {
+                            facilityData = JSON.parse(match[1]);
+                        } else {
+                            throw new Error('Cannot find facilityData in file');
+                        }
+                    }
+                    
+                    if (facilityData && Array.isArray(facilityData)) {
+                        // Clear existing facilities
+                        facilities = [];
+                        
+                        // Import the facilities
+                        facilityData.forEach(facility => {
+                            if (facility.Type && facility.Level && 
+                                typeof facility.x === 'number' && typeof facility.y === 'number') {
+                                facilities.push({
+                                    Type: facility.Type,
+                                    Level: facility.Level,
+                                    x: facility.x,
+                                    y: facility.y,
+                                    ingameCoords: facility.ingameCoords || null
+                                });
+                            }
+                        });
+                        
+                        // Update UI
+                        updateMarkers();
+                        updateProgress();
+                        updateFacilityList();
+                        
+                        alert(`✅ Importate ${facilities.length} strutture dal file!`);
+                    } else {
+                        throw new Error('Invalid facilityData format');
+                    }
+                    
+                } catch (error) {
+                    console.error('Import error:', error);
+                    alert('❌ Errore nell\'importazione del file!\n\nAssicurati che sia un file facilitiesData.js valido.');
+                }
+            };
+            
+            reader.readAsText(file);
+            fileInput.value = ''; // Reset input
+        }
+
+        function toggleSelectionMode() {
+            isSelectionMode = !isSelectionMode;
+            const container = mapContainer;
+            const selectionControls = document.getElementById('selection-controls');
+            const selectionModeText = document.getElementById('selection-mode-text');
+            
+            if (isSelectionMode) {
+                container.classList.add('selection-mode');
+                selectionControls.style.display = 'block';
+                selectionModeText.textContent = 'Modalità Normale';
+                map.style.cursor = 'default';
+            } else {
+                container.classList.remove('selection-mode');
+                selectionControls.style.display = 'none';
+                selectionModeText.textContent = 'Modalità Selezione';
+                map.style.cursor = 'crosshair';
+                selectedFacilities.clear();
+                updateMarkers();
+            }
+        }
+
+        function selectAll() {
+            selectedFacilities.clear();
+            facilities.forEach((_, index) => selectedFacilities.add(index));
+            updateMarkers();
+        }
+
+        function selectNone() {
+            selectedFacilities.clear();
+            updateMarkers();
+        }
+
+        function selectByType() {
+            const currentType = document.getElementById('facility-type').value;
+            selectedFacilities.clear();
+            facilities.forEach((facility, index) => {
+                if (facility.Type === currentType) {
+                    selectedFacilities.add(index);
+                }
+            });
+            updateMarkers();
+        }
+
+        function moveSelectedFacilities() {
+            const moveX = parseFloat(document.getElementById('move-x').value) || 0;
+            const moveY = parseFloat(document.getElementById('move-y').value) || 0;
+            
+            if (selectedFacilities.size === 0) {
+                alert('Seleziona almeno una struttura da spostare!');
+                return;
+            }
+            
+            selectedFacilities.forEach(index => {
+                if (facilities[index]) {
+                    facilities[index].x += moveX;
+                    facilities[index].y += moveY;
+                }
+            });
+            
+            updateMarkers();
+            
+            // Reset move inputs
+            document.getElementById('move-x').value = 0;
+            document.getElementById('move-y').value = 0;
+            
+            alert(`✅ Spostate ${selectedFacilities.size} strutture!`);
+        }
+
+        function deleteSelectedFacilities() {
+            if (selectedFacilities.size === 0) {
+                alert('Seleziona almeno una struttura da eliminare!');
+                return;
+            }
+            
+            if (!confirm(`Sei sicuro di voler eliminare ${selectedFacilities.size} strutture selezionate?`)) {
+                return;
+            }
+            
+            // Convert to array and sort in descending order to avoid index issues
+            const indicesToDelete = Array.from(selectedFacilities).sort((a, b) => b - a);
+            
+            indicesToDelete.forEach(index => {
+                facilities.splice(index, 1);
+            });
+            
+            selectedFacilities.clear();
+            updateMarkers();
+            updateProgress();
+            updateFacilityList();
+            
+            alert(`✅ Eliminate ${indicesToDelete.length} strutture!`);
         }
 
         function placeFacility(x, y) {
@@ -575,6 +824,7 @@
         function createMarker(facility, index) {
             const marker = document.createElement('div');
             marker.className = `marker ${facility.Type.toLowerCase()}`;
+            marker.dataset.index = index;
             
             // Apply reverse calibration for visual positioning
             let visualX = facility.x / calibrationData.scaleX - calibrationData.offsetX;
@@ -582,20 +832,104 @@
             
             marker.style.left = `calc(${visualX}% - 6px)`;
             marker.style.top = `calc(${visualY}% - 6px)`;
-            marker.dataset.index = index;
             
+            // Add selection indicator
+            if (selectedFacilities.has(index)) {
+                marker.classList.add('selected');
+            }
+            
+            // Create checkbox for selection mode
+            const checkbox = document.createElement('div');
+            checkbox.className = 'marker-checkbox';
+            if (selectedFacilities.has(index)) {
+                checkbox.classList.add('checked');
+            }
+            checkbox.onclick = (e) => {
+                e.stopPropagation();
+                toggleFacilitySelection(index);
+            };
+            marker.appendChild(checkbox);
+            
+            // Create label
             const label = document.createElement('div');
             label.className = 'marker-label';
             label.textContent = `${facility.Type} ${facility.Level}${facility.ingameCoords ? ' (' + facility.ingameCoords + ')' : ''}`;
             marker.appendChild(label);
             
-            // Double-click to remove
+            // Event handlers
+            marker.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (isSelectionMode) {
+                    toggleFacilitySelection(index);
+                }
+            });
+            
+            // Double-click to remove (only in normal mode)
             marker.addEventListener('dblclick', function(e) {
                 e.stopPropagation();
-                removeFacility(index);
+                if (!isSelectionMode) {
+                    removeFacility(index);
+                }
+            });
+            
+            // Drag functionality for individual markers
+            let isDraggingMarker = false;
+            let dragOffset = { x: 0, y: 0 };
+            
+            marker.addEventListener('mousedown', function(e) {
+                if (isSelectionMode && selectedFacilities.has(index)) {
+                    isDraggingMarker = true;
+                    marker.classList.add('dragging');
+                    
+                    const rect = map.getBoundingClientRect();
+                    dragOffset.x = e.clientX - rect.left;
+                    dragOffset.y = e.clientY - rect.top;
+                    
+                    e.preventDefault();
+                }
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (isDraggingMarker) {
+                    const rect = map.getBoundingClientRect();
+                    let x = ((e.clientX - rect.left) / rect.width) * 100;
+                    let y = ((e.clientY - rect.top) / rect.height) * 100;
+                    
+                    // Apply calibration
+                    x = (x + calibrationData.offsetX) * calibrationData.scaleX;
+                    y = (y + calibrationData.offsetY) * calibrationData.scaleY;
+                    
+                    // Update facility position
+                    facilities[index].x = Math.round(x * 100) / 100;
+                    facilities[index].y = Math.round(y * 100) / 100;
+                    
+                    // Update visual position
+                    let visualX = facilities[index].x / calibrationData.scaleX - calibrationData.offsetX;
+                    let visualY = facilities[index].y / calibrationData.scaleY - calibrationData.offsetY;
+                    
+                    marker.style.left = `calc(${visualX}% - 6px)`;
+                    marker.style.top = `calc(${visualY}% - 6px)`;
+                }
+            });
+            
+            document.addEventListener('mouseup', function() {
+                if (isDraggingMarker) {
+                    isDraggingMarker = false;
+                    marker.classList.remove('dragging');
+                    updateFacilityList();
+                }
             });
             
             mapContainer.appendChild(marker);
+        }
+
+        function toggleFacilitySelection(index) {
+            if (selectedFacilities.has(index)) {
+                selectedFacilities.delete(index);
+            } else {
+                selectedFacilities.add(index);
+            }
+            updateMarkers();
         }
 
         function removeFacility(index) {
