@@ -186,18 +186,22 @@ document.addEventListener("DOMContentLoaded", () => {
   function createMarker(facility, index) {
     const marker = document.createElement("div");
     marker.className = "marker";
-    marker.style.left = `calc(${facility.x}% - 5px)`;
-    marker.style.top = `calc(${facility.y}% - 5px)`;
+    
+    // RIMUOVI calc() e usa posizionamento diretto
+    marker.style.left = facility.x + '%';
+    marker.style.top = facility.y + '%';
+    
     marker.title = getMarkerTooltip(facility);
     marker.onclick = () => showDropdown(facility, marker, index);
+    
     mapContainer.appendChild(marker);
     facility.marker = marker;
     
-    // Render alliance icon immediately if facility has alliance assigned
     if (facility.Alliance) {
-      renderAllianceIcon(facility);
+        renderAllianceIcon(facility);
+        marker.classList.add('assigned');
     }
-  }
+}
 
   function showDropdown(facility, marker, index) {
     if (alliances.length === 0) {
