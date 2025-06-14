@@ -321,7 +321,7 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     }
 
-    /* Color coding per tipo di facility */
+    /* Color coding per tipo di facility - COLORI UFFICIALI DEL GIOCO */
     .marker.castle { 
       background: #ffd700; 
       border: 3px solid #ff6b35;
@@ -331,53 +331,53 @@
     }
 
     .marker.construction { 
-      background: #3498db;
-      border-color: #2980b9;
+      background: #e91e63; /* Rosa/Magenta - Construction Speed */
+      border-color: #c2185b;
     }
 
     .marker.production { 
-      background: #e74c3c;
-      border-color: #c0392b;
+      background: #4caf50; /* Verde - RSS Production Speed */
+      border-color: #388e3c;
     }
 
     .marker.defense { 
-      background: #9b59b6;
-      border-color: #8e44ad;
+      background: #00bcd4; /* Turchese/Azzurro - Troop Defense */
+      border-color: #0097a7;
     }
 
     .marker.gathering { 
-      background: #2ecc71;
-      border-color: #27ae60;
+      background: #8bc34a; /* Verde chiaro - Gathering Speed */
+      border-color: #689f38;
     }
 
     .marker.tech { 
-      background: #f39c12;
-      border-color: #e67e22;
+      background: #ff9800; /* Arancione/Giallo - Research Speed */
+      border-color: #f57c00;
     }
 
     .marker.weapons { 
-      background: #34495e;
-      border-color: #2c3e50;
+      background: #f44336; /* Rosso - Troop Attack */
+      border-color: #d32f2f;
     }
 
     .marker.training { 
-      background: #e67e22;
-      border-color: #d35400;
+      background: #9c27b0; /* Viola - Troop March Speed */
+      border-color: #7b1fa2;
     }
 
     .marker.expedition { 
-      background: #1abc9c;
-      border-color: #16a085;
+      background: #607d8b; /* Grigio-blu per Expedition */
+      border-color: #455a64;
     }
 
     .marker.stronghold { 
-      background: #8e44ad;
-      border-color: #7d3c98;
+      background: #795548; /* Marrone per Stronghold */
+      border-color: #5d4037;
     }
 
     .marker.fortress { 
-      background: #c0392b;
-      border-color: #a93226;
+      background: #424242; /* Grigio scuro per Fortress */
+      border-color: #212121;
     }
 
     /* Effetto per marker assegnati */
@@ -425,22 +425,22 @@
     @keyframes dropdownOpen {
       from {
         opacity: 0;
-        transform: translateX(-50%) translateY(-10px) scale(0.9);
+        transform: translateX(-50%) scale(0.9);
       }
       to {
         opacity: 1;
-        transform: translateX(-50%) translateY(0) scale(1);
+        transform: translateX(-50%) scale(1);
       }
     }
 
     @keyframes fadeOut {
       from {
         opacity: 1;
-        transform: translateX(-50%) translateY(0) scale(1);
+        transform: translateX(-50%) scale(1);
       }
       to {
         opacity: 0;
-        transform: translateX(-50%) translateY(-10px) scale(0.9);
+        transform: translateX(-50%) scale(0.9);
       }
     }
 
@@ -753,24 +753,24 @@
           
           <!-- Legend -->
           <div id="map-legend" class="map-legend hidden">
-            <h4>Legenda Tipi di Strutture</h4>
+            <h4>Legenda Colori Ufficiali del Gioco</h4>
             <div class="legend-grid">
-              <div class="legend-item"><div class="legend-marker castle"></div> Castle</div>
-              <div class="legend-item"><div class="legend-marker construction"></div> Construction</div>
-              <div class="legend-item"><div class="legend-marker production"></div> Production</div>
-              <div class="legend-item"><div class="legend-marker defense"></div> Defense</div>
-              <div class="legend-item"><div class="legend-marker gathering"></div> Gathering</div>
-              <div class="legend-item"><div class="legend-marker tech"></div> Tech</div>
-              <div class="legend-item"><div class="legend-marker weapons"></div> Weapons</div>
-              <div class="legend-item"><div class="legend-marker training"></div> Training</div>
-              <div class="legend-item"><div class="legend-marker expedition"></div> Expedition</div>
-              <div class="legend-item"><div class="legend-marker stronghold"></div> Stronghold</div>
-              <div class="legend-item"><div class="legend-marker fortress"></div> Fortress</div>
+              <div class="legend-item"><div class="legend-marker castle"></div> Castle (Oro)</div>
+              <div class="legend-item"><div class="legend-marker construction"></div> Construction (Rosa)</div>
+              <div class="legend-item"><div class="legend-marker production"></div> Production (Verde)</div>
+              <div class="legend-item"><div class="legend-marker defense"></div> Defense (Turchese)</div>
+              <div class="legend-item"><div class="legend-marker gathering"></div> Gathering (Verde Chiaro)</div>
+              <div class="legend-item"><div class="legend-marker tech"></div> Tech/Research (Arancione)</div>
+              <div class="legend-item"><div class="legend-marker weapons"></div> Weapons/Attack (Rosso)</div>
+              <div class="legend-item"><div class="legend-marker training"></div> Training/March (Viola)</div>
+              <div class="legend-item"><div class="legend-marker expedition"></div> Expedition (Grigio-Blu)</div>
+              <div class="legend-item"><div class="legend-marker stronghold"></div> Stronghold (Marrone)</div>
+              <div class="legend-item"><div class="legend-marker fortress"></div> Fortress (Grigio Scuro)</div>
             </div>
           </div>
           
           <div class="map-status" id="map-status">
-            Clicca sui marker colorati per assegnare le strutture alle alleanze. Ogni colore rappresenta un tipo diverso di struttura.
+            Marker con colori ufficiali del gioco: Rosa=Construction, Verde=Production/Gathering, Turchese=Defense, Arancione=Tech, Rosso=Weapons, Viola=Training. Clicca per assegnare alle alleanze.
           </div>
           
           <div class="map-wrapper" id="map-wrapper">
@@ -1121,6 +1121,21 @@
 
       const dropdown = document.createElement('div');
       dropdown.className = 'marker-dropdown';
+      
+      // Calcola la posizione del marker rispetto alla mappa per decidere dove posizionare il dropdown
+      const mapWrapper = document.getElementById('map-wrapper');
+      const markerRect = marker.getBoundingClientRect();
+      const mapRect = mapWrapper.getBoundingClientRect();
+      
+      // Se il marker è nella metà inferiore della mappa, posiziona il dropdown sopra
+      const markerTopRelative = markerRect.top - mapRect.top;
+      const mapHeight = mapRect.height;
+      
+      if (markerTopRelative > mapHeight * 0.6) { // Se è nel 60% inferiore
+        dropdown.classList.add('dropdown-above');
+      } else {
+        dropdown.classList.add('dropdown-below');
+      }
       
       // Header del dropdown
       const header = document.createElement('div');
@@ -1676,7 +1691,7 @@
         updateStats();
         updateSummaries();
         
-        showStatus(`🎯 App caricata! ${createdCount} strutture visualizzate con colori per tipo. Clicca 🎨 Legenda per vedere i colori.`, 'success');
+        showStatus(`🎯 App caricata! ${createdCount} strutture con colori ufficiali del gioco. Clicca 🎨 Legenda per vedere la corrispondenza colore-tipo.`, 'success');
         
         // Debug info
         console.log('Calibrazione caricata:', calibrationSettings);
