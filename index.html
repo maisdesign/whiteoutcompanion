@@ -262,9 +262,9 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     }
 
-    /* COLORI CORRETTI per i marker */
+    /* COLORI UFFICIALI CORRETTI per i marker */
     .marker.castle { 
-      background: #FFD700; /* Oro brillante */
+      background: #FFD700; /* Oro brillante per Castle */
       border: 3px solid #FF4500;
       width: 16px;
       height: 16px;
@@ -272,52 +272,52 @@
     }
 
     .marker.construction { 
-      background: #FF1493; /* Rosa magenta vivace */
-      border-color: #C71585;
+      background: #1274e2; /* Blu ufficiale Construction */
+      border-color: #0d5bb8;
     }
 
     .marker.production { 
-      background: #00FF00; /* Verde brillante */
-      border-color: #008000;
+      background: #40df0c; /* Verde ufficiale Production */
+      border-color: #2fb309;
     }
 
     .marker.defense { 
-      background: #00CED1; /* Turchese chiaro */
-      border-color: #008B8B;
+      background: #00a584; /* Verde acqua ufficiale Defense */
+      border-color: #008066;
     }
 
     .marker.gathering { 
-      background: #ADFF2F; /* Verde lime */
-      border-color: #9ACD32;
+      background: #c912dd; /* Viola magenta ufficiale Gathering */
+      border-color: #a00eb8;
     }
 
     .marker.tech { 
-      background: #FF8C00; /* Arancione scuro */
-      border-color: #FF7F00;
+      background: #e47c0b; /* Arancione ufficiale Research/Tech */
+      border-color: #b86209;
     }
 
     .marker.weapons { 
-      background: #FF0000; /* Rosso puro */
-      border-color: #DC143C;
+      background: #e4240c; /* Rosso ufficiale Troop Attack */
+      border-color: #b81d0a;
     }
 
     .marker.training { 
-      background: #8A2BE2; /* Viola blu */
-      border-color: #9932CC;
+      background: #e5e003; /* Giallo ufficiale Training */
+      border-color: #b8b803;
     }
 
     .marker.expedition { 
-      background: #4682B4; /* Blu acciaio */
-      border-color: #2F4F4F;
+      background: #f944ca; /* Rosa ufficiale March/Expedition */
+      border-color: #c7369f;
     }
 
     .marker.stronghold { 
-      background: #8B4513; /* Marrone saddle */
+      background: #8B4513; /* Marrone per Stronghold */
       border-color: #A0522D;
     }
 
     .marker.fortress { 
-      background: #2F2F2F; /* Grigio molto scuro */
+      background: #2F2F2F; /* Grigio scuro per Fortress */
       border-color: #000000;
     }
 
@@ -651,16 +651,16 @@
       flex-shrink: 0;
     }
 
-    /* Copia dei colori per la legenda */
+    /* Copia dei colori ufficiali per la legenda */
     .legend-marker.castle { background: #FFD700; border-color: #FF4500; }
-    .legend-marker.construction { background: #FF1493; border-color: #C71585; }
-    .legend-marker.production { background: #00FF00; border-color: #008000; }
-    .legend-marker.defense { background: #00CED1; border-color: #008B8B; }
-    .legend-marker.gathering { background: #ADFF2F; border-color: #9ACD32; }
-    .legend-marker.tech { background: #FF8C00; border-color: #FF7F00; }
-    .legend-marker.weapons { background: #FF0000; border-color: #DC143C; }
-    .legend-marker.training { background: #8A2BE2; border-color: #9932CC; }
-    .legend-marker.expedition { background: #4682B4; border-color: #2F4F4F; }
+    .legend-marker.construction { background: #1274e2; border-color: #0d5bb8; }
+    .legend-marker.production { background: #40df0c; border-color: #2fb309; }
+    .legend-marker.defense { background: #00a584; border-color: #008066; }
+    .legend-marker.gathering { background: #c912dd; border-color: #a00eb8; }
+    .legend-marker.tech { background: #e47c0b; border-color: #b86209; }
+    .legend-marker.weapons { background: #e4240c; border-color: #b81d0a; }
+    .legend-marker.training { background: #e5e003; border-color: #b8b803; }
+    .legend-marker.expedition { background: #f944ca; border-color: #c7369f; }
     .legend-marker.stronghold { background: #8B4513; border-color: #A0522D; }
     .legend-marker.fortress { background: #2F2F2F; border-color: #000000; }
 
@@ -780,6 +780,20 @@
           <button class="btn btn-info" onclick="exportPNG()">🖼️ Esporta PNG</button>
           <input type="file" id="import-file" accept=".csv" style="display: none;">
           <button class="btn btn-primary" onclick="document.getElementById('import-file').click()">📥 Importa CSV</button>
+          <button class="btn btn-warning" onclick="toggleLanguageSelector()">🌐 Lingua</button>
+        </div>
+
+        <!-- Language Selector (Hidden by default) -->
+        <div id="language-selector" class="glass-card hidden" style="padding: 15px; margin-bottom: 20px;">
+          <h4 style="margin-bottom: 10px;">🌐 Seleziona Lingua</h4>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
+            <button class="btn btn-info" onclick="setLanguage('en')" id="lang-en">🇺🇸 English</button>
+            <button class="btn btn-info" onclick="setLanguage('it')" id="lang-it">🇮🇹 Italiano</button>
+            <button class="btn btn-info" onclick="setLanguage('es')" id="lang-es">🇪🇸 Español</button>
+            <button class="btn btn-info" onclick="setLanguage('fr')" id="lang-fr">🇫🇷 Français</button>
+            <button class="btn btn-info" onclick="setLanguage('de')" id="lang-de">🇩🇪 Deutsch</button>
+            <button class="btn btn-info" onclick="setLanguage('pt')" id="lang-pt">🇵🇹 Português</button>
+          </div>
         </div>
 
         <!-- Map Container -->
@@ -794,21 +808,21 @@
             <h4>🎨 Legenda Colori Ufficiali del Gioco</h4>
             <div class="legend-grid">
               <div class="legend-item"><div class="legend-marker castle"></div> Castle (Oro)</div>
-              <div class="legend-item"><div class="legend-marker construction"></div> Construction (Rosa Magenta)</div>
-              <div class="legend-item"><div class="legend-marker production"></div> Production (Verde Brillante)</div>
-              <div class="legend-item"><div class="legend-marker defense"></div> Defense (Turchese)</div>
-              <div class="legend-item"><div class="legend-marker gathering"></div> Gathering (Verde Lime)</div>
-              <div class="legend-item"><div class="legend-marker tech"></div> Tech/Research (Arancione)</div>
-              <div class="legend-item"><div class="legend-marker weapons"></div> Weapons/Attack (Rosso)</div>
-              <div class="legend-item"><div class="legend-marker training"></div> Training/March (Viola)</div>
-              <div class="legend-item"><div class="legend-marker expedition"></div> Expedition (Blu Acciaio)</div>
+              <div class="legend-item"><div class="legend-marker construction"></div> Construction (Blu)</div>
+              <div class="legend-item"><div class="legend-marker production"></div> Production (Verde)</div>
+              <div class="legend-item"><div class="legend-marker defense"></div> Defense (Verde Acqua)</div>
+              <div class="legend-item"><div class="legend-marker gathering"></div> Gathering (Viola Magenta)</div>
+              <div class="legend-item"><div class="legend-marker tech"></div> Research/Tech (Arancione)</div>
+              <div class="legend-item"><div class="legend-marker weapons"></div> Troop Attack (Rosso)</div>
+              <div class="legend-item"><div class="legend-marker training"></div> Training (Giallo)</div>
+              <div class="legend-item"><div class="legend-marker expedition"></div> March/Expedition (Rosa)</div>
               <div class="legend-item"><div class="legend-marker stronghold"></div> Stronghold (Marrone)</div>
               <div class="legend-item"><div class="legend-marker fortress"></div> Fortress (Grigio Scuro)</div>
             </div>
           </div>
           
           <div class="map-status" id="map-status">
-            Marker con colori ufficiali corretti: Rosa=Construction, Verde=Production/Gathering, Turchese=Defense, Arancione=Tech, Rosso=Weapons, Viola=Training. Clicca per assegnare alle alleanze.
+            Marker con colori ufficiali: Blu=Construction, Verde=Production, Verde Acqua=Defense, Viola=Gathering, Arancione=Tech, Rosso=Attack, Giallo=Training, Rosa=March. Clicca per assegnare alle alleanze.
           </div>
           
           <div class="map-wrapper" id="map-wrapper">
