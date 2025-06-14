@@ -23,6 +23,98 @@
       --text-secondary: rgba(255, 255, 255, 0.8);
       --spacing-md: 16px;
       --radius-md: 12px;
+    // === UTILITY FUNCTIONS ===
+    function getRandomColor() {
+      const colors = ['#d7263d', '#0074d9', '#2ecc71', '#ff851b', '#7fdbff', '#b10dc9'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function showStatus(message, type = 'info') {
+      const statusEl = document.getElementById('map-status');
+      statusEl.textContent = message;
+      statusEl.style.background = type === 'success' ? 'rgba(67, 233, 123, 0.2)' :
+                                  type === 'error' ? 'rgba(220, 53, 69, 0.2)' :
+                                  'rgba(79, 172, 254, 0.2)';
+    }
+
+    // === LANGUAGE FUNCTIONS ===
+    function toggleLanguageSelector() {
+      const selector = document.getElementById('language-selector');
+      if (selector.classList.contains('hidden')) {
+        selector.classList.remove('hidden');
+        selector.style.animation = 'fadeIn 0.3s ease';
+      } else {
+        selector.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => {
+          selector.classList.add('hidden');
+        }, 300);
+      }
+    }
+
+    function setLanguage(lang) {
+      currentLanguage = lang;
+      updateUILanguage();
+      localStorage.setItem('whiteout-language', lang);
+      showStatus(`🌐 ${translations[lang].language} selezionata!`, 'success');
+      
+      // Hide language selector
+      document.getElementById('language-selector').classList.add('hidden');
+      
+      // Update button states
+      document.querySelectorAll('[id^="lang-"]').forEach(btn => {
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-info');
+      });
+      document.getElementById(`lang-${lang}`).classList.remove('btn-info');
+      document.getElementById(`lang-${lang}`).classList.add('btn-success');
+    }
+
+    function updateUILanguage() {
+      const t = translations[currentLanguage];
+      
+      // Update main titles and labels
+      document.querySelector('.header h1').textContent = t.title;
+      document.querySelector('.header p').textContent = t.subtitle;
+      
+      // Update stats labels
+      document.querySelector('#total-alliances').nextElementSibling.textContent = t.alliances;
+      document.querySelector('#assigned-facilities').nextElementSibling.textContent = t.assigned;
+      
+      // Update form and buttons
+      document.querySelector('h3').textContent = t.allianceManagement;
+      document.getElementById('alliance-name').placeholder = t.allianceName;
+      document.querySelector('.alliance-form button').innerHTML = t.addAlliance;
+      
+      // Update control buttons (preserve icons)
+      const exportBtn = document.querySelector('button[onclick="exportCSV()"]');
+      if (exportBtn) exportBtn.innerHTML = t.exportCSV;
+      
+      const pngBtn = document.querySelector('button[onclick="exportPNG()"]');
+      if (pngBtn) pngBtn.innerHTML = t.exportPNG;
+      
+      const importBtn = document.querySelector('button[onclick*="import-file"]');
+      if (importBtn) importBtn.innerHTML = t.importCSV;
+      
+      const langBtn = document.querySelector('button[onclick="toggleLanguageSelector()"]');
+      if (langBtn) langBtn.innerHTML = t.language;
+      
+      // Update map section
+      const mapHeader = document.querySelector('.map-header h3');
+      if (mapHeader) mapHeader.textContent = t.interactiveMap;
+      
+      const legendBtn = document.querySelector('button[onclick="toggleLegend()"]');
+      if (legendBtn) legendBtn.innerHTML = `🎨 ${t.legend}`;
+      
+      // Update summary sections
+      const facilitySummaryHeader = document.querySelector('#facility-summary').closest('.summary-section').querySelector('h3');
+      if (facilitySummaryHeader) facilitySummaryHeader.textContent = t.facilitySummary;
+      
+      const buffSummaryHeader = document.querySelector('#buff-summary').closest('.summary-section').querySelector('h3');
+      if (buffSummaryHeader) buffSummaryHeader.textContent = t.buffSummary;
+      
+      // Update calibration section
+      const calibrationHeader = document.querySelector('.calibration-header h3');
+      if (calibrationHeader) calibrationHeader.textContent = t.advancedCalibration;
     }
 
     * {
@@ -1023,8 +1115,131 @@
       scaleY: 1.0
     };
     let calibrationUnlocked = false;
+    let currentLanguage = 'it'; // Default language
 
-    // === UTILITY FUNCTIONS ===
+    // === LANGUAGE SYSTEM ===
+    const translations = {
+      en: {
+        title: "🗺️ Whiteout Survival Companion",
+        subtitle: "Professional alliance management with map calibration",
+        alliances: "Alliances",
+        assigned: "Assigned",
+        allianceManagement: "🏰 Alliance Management",
+        allianceName: "Alliance name...",
+        addAlliance: "✨ Add Alliance",
+        exportCSV: "📊 Export CSV",
+        exportPNG: "🖼️ Export PNG", 
+        importCSV: "📥 Import CSV",
+        language: "🌐 Language",
+        interactiveMap: "🗺️ Interactive Map",
+        legend: "🎨 Legend",
+        facilitySummary: "📋 Facility Summary",
+        buffSummary: "⚡ Buff Summary",
+        advancedCalibration: "🔧 Advanced Calibration",
+        unassigned: "❌ Unassigned",
+        coordinates: "Coordinates"
+      },
+      it: {
+        title: "🗺️ Whiteout Survival Companion", 
+        subtitle: "Gestione professionale alleanze con calibrazione mappa",
+        alliances: "Alleanze",
+        assigned: "Assegnate", 
+        allianceManagement: "🏰 Gestione Alleanze",
+        allianceName: "Nome alleanza...",
+        addAlliance: "✨ Aggiungi Alleanza",
+        exportCSV: "📊 Esporta CSV",
+        exportPNG: "🖼️ Esporta PNG",
+        importCSV: "📥 Importa CSV", 
+        language: "🌐 Lingua",
+        interactiveMap: "🗺️ Mappa Interattiva",
+        legend: "🎨 Legenda",
+        facilitySummary: "📋 Riepilogo Strutture",
+        buffSummary: "⚡ Riepilogo Buff", 
+        advancedCalibration: "🔧 Calibrazione Avanzata",
+        unassigned: "❌ Non assegnata",
+        coordinates: "Coordinate"
+      },
+      es: {
+        title: "🗺️ Whiteout Survival Companion",
+        subtitle: "Gestión profesional de alianzas con calibración de mapa", 
+        alliances: "Alianzas",
+        assigned: "Asignadas",
+        allianceManagement: "🏰 Gestión de Alianzas",
+        allianceName: "Nombre de alianza...",
+        addAlliance: "✨ Agregar Alianza",
+        exportCSV: "📊 Exportar CSV",
+        exportPNG: "🖼️ Exportar PNG",
+        importCSV: "📥 Importar CSV",
+        language: "🌐 Idioma", 
+        interactiveMap: "🗺️ Mapa Interactivo",
+        legend: "🎨 Leyenda",
+        facilitySummary: "📋 Resumen de Instalaciones",
+        buffSummary: "⚡ Resumen de Buff",
+        advancedCalibration: "🔧 Calibración Avanzada", 
+        unassigned: "❌ Sin asignar",
+        coordinates: "Coordenadas"
+      },
+      fr: {
+        title: "🗺️ Whiteout Survival Companion",
+        subtitle: "Gestion professionnelle d'alliances avec calibrage de carte",
+        alliances: "Alliances", 
+        assigned: "Assignées",
+        allianceManagement: "🏰 Gestion des Alliances",
+        allianceName: "Nom d'alliance...",
+        addAlliance: "✨ Ajouter Alliance",
+        exportCSV: "📊 Exporter CSV",
+        exportPNG: "🖼️ Exporter PNG",
+        importCSV: "📥 Importer CSV",
+        language: "🌐 Langue",
+        interactiveMap: "🗺️ Carte Interactive", 
+        legend: "🎨 Légende",
+        facilitySummary: "📋 Résumé des Installations",
+        buffSummary: "⚡ Résumé des Buff",
+        advancedCalibration: "🔧 Calibrage Avancé",
+        unassigned: "❌ Non assignée",
+        coordinates: "Coordonnées"
+      },
+      de: {
+        title: "🗺️ Whiteout Survival Companion",
+        subtitle: "Professionelle Allianz-Verwaltung mit Kartenkalibrierung",
+        alliances: "Allianzen",
+        assigned: "Zugewiesen",
+        allianceManagement: "🏰 Allianz-Verwaltung", 
+        allianceName: "Allianzname...",
+        addAlliance: "✨ Allianz Hinzufügen", 
+        exportCSV: "📊 CSV Exportieren",
+        exportPNG: "🖼️ PNG Exportieren",
+        importCSV: "📥 CSV Importieren",
+        language: "🌐 Sprache",
+        interactiveMap: "🗺️ Interaktive Karte",
+        legend: "🎨 Legende", 
+        facilitySummary: "📋 Anlagen-Zusammenfassung",
+        buffSummary: "⚡ Buff-Zusammenfassung",
+        advancedCalibration: "🔧 Erweiterte Kalibrierung",
+        unassigned: "❌ Nicht zugewiesen",
+        coordinates: "Koordinaten"
+      },
+      pt: {
+        title: "🗺️ Whiteout Survival Companion",
+        subtitle: "Gestão profissional de alianças com calibração de mapa",
+        alliances: "Alianças",
+        assigned: "Atribuídas",
+        allianceManagement: "🏰 Gestão de Alianças",
+        allianceName: "Nome da aliança...",
+        addAlliance: "✨ Adicionar Aliança",
+        exportCSV: "📊 Exportar CSV", 
+        exportPNG: "🖼️ Exportar PNG",
+        importCSV: "📥 Importar CSV",
+        language: "🌐 Idioma",
+        interactiveMap: "🗺️ Mapa Interativo",
+        legend: "🎨 Legenda",
+        facilitySummary: "📋 Resumo de Instalações", 
+        buffSummary: "⚡ Resumo de Buff",
+        advancedCalibration: "🔧 Calibração Avançada",
+        unassigned: "❌ Não atribuída", 
+        coordinates: "Coordenadas"
+      }
+    };
     function getRandomColor() {
       const colors = ['#d7263d', '#0074d9', '#2ecc71', '#ff851b', '#7fdbff', '#b10dc9'];
       return colors[Math.floor(Math.random() * colors.length)];
@@ -1038,7 +1253,208 @@
                                   'rgba(79, 172, 254, 0.2)';
     }
 
-    // === CALIBRATION PASSWORD ===
+    // === LANGUAGE SYSTEM ===
+    const translations = {
+      en: {
+        title: "🗺️ Whiteout Survival Companion",
+        subtitle: "Professional alliance management with map calibration",
+        alliances: "Alliances",
+        assigned: "Assigned",
+        allianceManagement: "🏰 Alliance Management",
+        allianceName: "Alliance name...",
+        addAlliance: "✨ Add Alliance",
+        exportCSV: "📊 Export CSV",
+        exportPNG: "🖼️ Export PNG", 
+        importCSV: "📥 Import CSV",
+        language: "🌐 Language",
+        interactiveMap: "🗺️ Interactive Map",
+        legend: "🎨 Legend",
+        facilitySummary: "📋 Facility Summary",
+        buffSummary: "⚡ Buff Summary",
+        advancedCalibration: "🔧 Advanced Calibration",
+        unassigned: "❌ Unassigned",
+        coordinates: "Coordinates"
+      },
+      it: {
+        title: "🗺️ Whiteout Survival Companion", 
+        subtitle: "Gestione professionale alleanze con calibrazione mappa",
+        alliances: "Alleanze",
+        assigned: "Assegnate", 
+        allianceManagement: "🏰 Gestione Alleanze",
+        allianceName: "Nome alleanza...",
+        addAlliance: "✨ Aggiungi Alleanza",
+        exportCSV: "📊 Esporta CSV",
+        exportPNG: "🖼️ Esporta PNG",
+        importCSV: "📥 Importa CSV", 
+        language: "🌐 Lingua",
+        interactiveMap: "🗺️ Mappa Interattiva",
+        legend: "🎨 Legenda",
+        facilitySummary: "📋 Riepilogo Strutture",
+        buffSummary: "⚡ Riepilogo Buff", 
+        advancedCalibration: "🔧 Calibrazione Avanzata",
+        unassigned: "❌ Non assegnata",
+        coordinates: "Coordinate"
+      },
+      es: {
+        title: "🗺️ Whiteout Survival Companion",
+        subtitle: "Gestión profesional de alianzas con calibración de mapa", 
+        alliances: "Alianzas",
+        assigned: "Asignadas",
+        allianceManagement: "🏰 Gestión de Alianzas",
+        allianceName: "Nombre de alianza...",
+        addAlliance: "✨ Agregar Alianza",
+        exportCSV: "📊 Exportar CSV",
+        exportPNG: "🖼️ Exportar PNG",
+        importCSV: "📥 Importar CSV",
+        language: "🌐 Idioma", 
+        interactiveMap: "🗺️ Mapa Interactivo",
+        legend: "🎨 Leyenda",
+        facilitySummary: "📋 Resumen de Instalaciones",
+        buffSummary: "⚡ Resumen de Buff",
+        advancedCalibration: "🔧 Calibración Avanzada", 
+        unassigned: "❌ Sin asignar",
+        coordinates: "Coordenadas"
+      },
+      fr: {
+        title: "🗺️ Whiteout Survival Companion",
+        subtitle: "Gestion professionnelle d'alliances avec calibrage de carte",
+        alliances: "Alliances", 
+        assigned: "Assignées",
+        allianceManagement: "🏰 Gestion des Alliances",
+        allianceName: "Nom d'alliance...",
+        addAlliance: "✨ Ajouter Alliance",
+        exportCSV: "📊 Exporter CSV",
+        exportPNG: "🖼️ Exporter PNG",
+        importCSV: "📥 Importer CSV",
+        language: "🌐 Langue",
+        interactiveMap: "🗺️ Carte Interactive", 
+        legend: "🎨 Légende",
+        facilitySummary: "📋 Résumé des Installations",
+        buffSummary: "⚡ Résumé des Buff",
+        advancedCalibration: "🔧 Calibrage Avancé",
+        unassigned: "❌ Non assignée",
+        coordinates: "Coordonnées"
+      },
+      de: {
+        title: "🗺️ Whiteout Survival Companion",
+        subtitle: "Professionelle Allianz-Verwaltung mit Kartenkalibrierung",
+        alliances: "Allianzen",
+        assigned: "Zugewiesen",
+        allianceManagement: "🏰 Allianz-Verwaltung", 
+        allianceName: "Allianzname...",
+        addAlliance: "✨ Allianz Hinzufügen", 
+        exportCSV: "📊 CSV Exportieren",
+        exportPNG: "🖼️ PNG Exportieren",
+        importCSV: "📥 CSV Importieren",
+        language: "🌐 Sprache",
+        interactiveMap: "🗺️ Interaktive Karte",
+        legend: "🎨 Legende", 
+        facilitySummary: "📋 Anlagen-Zusammenfassung",
+        buffSummary: "⚡ Buff-Zusammenfassung",
+        advancedCalibration: "🔧 Erweiterte Kalibrierung",
+        unassigned: "❌ Nicht zugewiesen",
+        coordinates: "Koordinaten"
+      },
+      pt: {
+        title: "🗺️ Whiteout Survival Companion",
+        subtitle: "Gestão profissional de alianças com calibração de mapa",
+        alliances: "Alianças",
+        assigned: "Atribuídas",
+        allianceManagement: "🏰 Gestão de Alianças",
+        allianceName: "Nome da aliança...",
+        addAlliance: "✨ Adicionar Aliança",
+        exportCSV: "📊 Exportar CSV", 
+        exportPNG: "🖼️ Exportar PNG",
+        importCSV: "📥 Importar CSV",
+        language: "🌐 Idioma",
+        interactiveMap: "🗺️ Mapa Interativo",
+        legend: "🎨 Legenda",
+        facilitySummary: "📋 Resumo de Instalações", 
+        buffSummary: "⚡ Resumo de Buff",
+        advancedCalibration: "🔧 Calibração Avançada",
+        unassigned: "❌ Não atribuída", 
+        coordinates: "Coordenadas"
+      }
+    };
+
+    function toggleLanguageSelector() {
+      const selector = document.getElementById('language-selector');
+      if (selector.classList.contains('hidden')) {
+        selector.classList.remove('hidden');
+        selector.style.animation = 'fadeIn 0.3s ease';
+      } else {
+        selector.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => {
+          selector.classList.add('hidden');
+        }, 300);
+      }
+    }
+
+    function setLanguage(lang) {
+      currentLanguage = lang;
+      updateUILanguage();
+      localStorage.setItem('whiteout-language', lang);
+      showStatus(`🌐 ${translations[lang].language} selezionata!`, 'success');
+      
+      // Hide language selector
+      document.getElementById('language-selector').classList.add('hidden');
+      
+      // Update button states
+      document.querySelectorAll('[id^="lang-"]').forEach(btn => {
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-info');
+      });
+      document.getElementById(`lang-${lang}`).classList.remove('btn-info');
+      document.getElementById(`lang-${lang}`).classList.add('btn-success');
+    }
+
+    function updateUILanguage() {
+      const t = translations[currentLanguage];
+      
+      // Update main titles and labels
+      document.querySelector('.header h1').textContent = t.title;
+      document.querySelector('.header p').textContent = t.subtitle;
+      
+      // Update stats labels
+      document.querySelector('#total-alliances').nextElementSibling.textContent = t.alliances;
+      document.querySelector('#assigned-facilities').nextElementSibling.textContent = t.assigned;
+      
+      // Update form and buttons
+      document.querySelector('h3').textContent = t.allianceManagement;
+      document.getElementById('alliance-name').placeholder = t.allianceName;
+      document.querySelector('.alliance-form button').innerHTML = t.addAlliance;
+      
+      // Update control buttons (preserve icons)
+      const exportBtn = document.querySelector('button[onclick="exportCSV()"]');
+      if (exportBtn) exportBtn.innerHTML = t.exportCSV;
+      
+      const pngBtn = document.querySelector('button[onclick="exportPNG()"]');
+      if (pngBtn) pngBtn.innerHTML = t.exportPNG;
+      
+      const importBtn = document.querySelector('button[onclick*="import-file"]');
+      if (importBtn) importBtn.innerHTML = t.importCSV;
+      
+      const langBtn = document.querySelector('button[onclick="toggleLanguageSelector()"]');
+      if (langBtn) langBtn.innerHTML = t.language;
+      
+      // Update map section
+      const mapHeader = document.querySelector('.map-header h3');
+      if (mapHeader) mapHeader.textContent = t.interactiveMap;
+      
+      const legendBtn = document.querySelector('button[onclick="toggleLegend()"]');
+      if (legendBtn) legendBtn.innerHTML = `🎨 ${t.legend}`;
+      
+      // Update summary sections
+      const facilitySummaryHeader = document.querySelector('#facility-summary').closest('.summary-section').querySelector('h3');
+      if (facilitySummaryHeader) facilitySummaryHeader.textContent = t.facilitySummary;
+      
+      const buffSummaryHeader = document.querySelector('#buff-summary').closest('.summary-section').querySelector('h3');
+      if (buffSummaryHeader) buffSummaryHeader.textContent = t.buffSummary;
+      
+      // Update calibration section
+      const calibrationHeader = document.querySelector('.calibration-header h3');
+      if (calibrationHeader) calibrationHeader.textContent = t.advancedCalibration;
+    }
     function checkCalibrationPassword() {
       const password = document.getElementById('calibration-password').value;
       if (password === 'calibration') {
@@ -1261,16 +1677,17 @@
         dropdown.classList.add('dropdown-above');
       }
       
-      // Header del dropdown
+      // Header del dropdown con coordinate
       const header = document.createElement('div');
       header.className = 'dropdown-header';
-      header.textContent = `${facility.Type} ${facility.Level}`;
+      const coordsText = facility.ingameCoords ? ` - ${facility.ingameCoords}` : '';
+      header.textContent = `${facility.Type} ${facility.Level}${coordsText}`;
       dropdown.appendChild(header);
       
       // Opzione per rimuovere assegnazione
       const unassignOption = document.createElement('div');
       unassignOption.className = 'dropdown-option unassign';
-      unassignOption.innerHTML = '❌ Non assegnata';
+      unassignOption.innerHTML = `❌ ${translations[currentLanguage].unassigned}`;
       if (!facility.Alliance) {
         unassignOption.classList.add('selected');
       }
@@ -1552,6 +1969,7 @@
     }
 
     function loadData() {
+      // Load main data
       const saved = localStorage.getItem('whiteout-companion-data');
       if (saved) {
         try {
@@ -1587,6 +2005,12 @@
         } catch (error) {
           console.error('Error loading data:', error);
         }
+      }
+      
+      // Load language preference
+      const savedLanguage = localStorage.getItem('whiteout-language');
+      if (savedLanguage && translations[savedLanguage]) {
+        currentLanguage = savedLanguage;
       }
     }
 
@@ -1825,7 +2249,11 @@
         updateStats();
         updateSummaries();
         
-        showStatus(`🎯 App caricata! ${createdCount} strutture con colori corretti. Clicca 🎨 Legenda per vedere la corrispondenza colore-tipo.`, 'success');
+        // Setup language
+        updateUILanguage();
+        setLanguage(currentLanguage); // This will update button states
+        
+        showStatus(`🎯 App caricata! ${createdCount} strutture con colori ufficiali. Clicca 🎨 Legenda per vedere la corrispondenza colore-tipo.`, 'success');
         
         // Debug info
         console.log('Calibrazione caricata:', calibrationSettings);
@@ -1851,6 +2279,8 @@
     window.exportCSV = exportCSV;
     window.exportPNG = exportPNG;
     window.toggleSection = toggleSection;
+    window.toggleLanguageSelector = toggleLanguageSelector;
+    window.setLanguage = setLanguage;
   </script>
 </body>
 </html>
