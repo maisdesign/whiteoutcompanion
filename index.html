@@ -349,18 +349,96 @@
 
     .marker-dropdown {
       position: absolute;
-      top: 100%;
+      top: 120%;
       left: 50%;
       transform: translateX(-50%);
       z-index: 1000;
       background: var(--glass-bg);
       backdrop-filter: blur(20px);
       border: 2px solid #4facfe;
-      border-radius: 8px;
-      padding: 4px;
+      border-radius: 12px;
+      padding: 8px;
+      min-width: 180px;
+      max-width: 220px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      animation: dropdownOpen 0.2s ease;
+    }
+
+    @keyframes dropdownOpen {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+      }
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+      }
+      to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px) scale(0.9);
+      }
+    }
+
+    .dropdown-header {
+      background: rgba(79, 172, 254, 0.2);
+      padding: 8px 12px;
+      margin: -8px -8px 8px -8px;
+      border-radius: 8px 8px 0 0;
       font-size: 12px;
-      min-width: 120px;
+      font-weight: 600;
       color: var(--text-primary);
+      border-bottom: 1px solid rgba(79, 172, 254, 0.3);
+    }
+
+    .dropdown-option {
+      padding: 10px 12px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-primary);
+      border: 1px solid transparent;
+      margin-bottom: 2px;
+    }
+
+    .dropdown-option:hover {
+      background: rgba(79, 172, 254, 0.2);
+      border-color: rgba(79, 172, 254, 0.4);
+      transform: translateX(2px);
+    }
+
+    .dropdown-option.selected {
+      background: rgba(67, 233, 123, 0.2);
+      border-color: rgba(67, 233, 123, 0.4);
+      color: #43e97b;
+    }
+
+    .dropdown-option.unassign {
+      color: #ff6b6b;
+      font-style: italic;
+    }
+
+    .dropdown-option.unassign:hover {
+      background: rgba(255, 107, 107, 0.2);
+      border-color: rgba(255, 107, 107, 0.4);
+    }
+
+    .alliance-icon-small {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: white;
+      flex-shrink: 0;
     }
 
     /* Controls */
@@ -552,14 +630,14 @@
       <!-- Main Content -->
       <main class="main-content">
         
-        <!-- Calibration Section -->
+        <!-- Calibration Section (Hidden by default) -->
         <section class="calibration-section glass-card">
           <div class="calibration-header">
-            <h3>🎯 Calibrazione Mappa</h3>
-            <button class="calibration-toggle" onclick="toggleCalibration()">▼</button>
+            <h3>🎯 Calibrazione Mappa (Avanzato)</h3>
+            <button class="calibration-toggle" onclick="toggleCalibration()">▶</button>
           </div>
           
-          <div id="calibration-content" class="expanded-content">
+          <div id="calibration-content" class="collapsed-content">
             <div class="calibration-controls">
               <div class="control-group">
                 <label>Offset X:</label>
@@ -935,42 +1013,103 @@
 
       closeAllDropdowns();
 
-      const dropdown = document.createElement('select');
+      const dropdown = document.createElement('div');
       dropdown.className = 'marker-dropdown';
-      dropdown.innerHTML = `<option value="">-- Seleziona Alleanza --</option>` +
-        alliances.map(a => `<option value="${a.name}" ${facility.Alliance === a.name ? "selected" : ""}>${a.name}</option>`).join("");
       
-      dropdown.onchange = () => {
-        facility.Alliance = dropdown.value;
-        renderAllianceIcon(facility);
-        
-        if (dropdown.value) {
-          marker.classList.add('assigned');
-        } else {
-          marker.classList.remove('assigned');
+      // Header del dropdown
+      const header = document.createElement('div');
+      header.className = 'dropdown-header';
+      header.textContent = `${facility.Type} ${facility.Level}`;
+      dropdown.appendChild(header);
+      
+      // Opzione per rimuovere assegnazione
+      const unassignOption = document.createElement('div');
+      unassignOption.className = 'dropdown-option unassign';
+      unassignOption.innerHTML = '❌ Non assegnata';
+      if (!facility.Alliance) {
+        unassignOption.classList.add('selected');
+      }
+      unassignOption.onclick = (e) => {
+        e.stopPropagation();
+        assignFacilityToAlliance(facility, marker, null);
+        dropdown.remove();
+      };
+      dropdown.appendChild(unassignOption);
+      
+      // Opzioni per le alleanze
+      alliances.forEach(alliance => {
+        const option = document.createElement('div');
+        option.className = 'dropdown-option';
+        if (facility.Alliance === alliance.name) {
+          option.classList.add('selected');
         }
         
-        updateStats();
-        updateSummaries();
-        saveData();
+        option.innerHTML = `
+          <img src="${alliance.icon}" alt="${alliance.name}" class="alliance-icon-small">
+          <span>${alliance.name}</span>
+        `;
         
-        setTimeout(() => dropdown.remove(), 100);
-      };
+        option.onclick = (e) => {
+          e.stopPropagation();
+          assignFacilityToAlliance(facility, marker, alliance.name);
+          dropdown.remove();
+        };
+        
+        dropdown.appendChild(option);
+      });
+      
+      marker.appendChild(dropdown);
+      
+      // Chiudi dropdown dopo 8 secondi (molto più lungo)
+      setTimeout(() => {
+        if (dropdown.parentNode) {
+          dropdown.remove();
+        }
+      }, 8000);
+      
+      // Chiudi se si clicca fuori, ma con delay per evitare chiusure accidentali
+      setTimeout(() => {
+        document.addEventListener('click', handleOutsideClick, { once: true });
+      }, 100);
+      
+      function handleOutsideClick(e) {
+        if (!dropdown.contains(e.target) && dropdown.parentNode) {
+          dropdown.remove();
+        }
+      }
+    }
 
-      dropdown.onblur = () => {
+    function assignFacilityToAlliance(facility, marker, allianceName) {
+      const oldAlliance = facility.Alliance;
+      facility.Alliance = allianceName;
+      
+      // Update marker appearance
+      renderAllianceIcon(facility);
+      
+      if (allianceName) {
+        marker.classList.add('assigned');
+        showStatus(`✅ ${facility.Type} assegnata a ${allianceName}`, 'success');
+      } else {
+        marker.classList.remove('assigned');
+        if (oldAlliance) {
+          showStatus(`❌ ${facility.Type} rimossa da ${oldAlliance}`, 'info');
+        }
+      }
+      
+      updateStats();
+      updateSummaries();
+      saveData();
+    }
+
+    function closeAllDropdowns() {
+      document.querySelectorAll('.marker-dropdown').forEach(dropdown => {
+        dropdown.style.animation = 'fadeOut 0.2s ease';
         setTimeout(() => {
           if (dropdown.parentNode) {
             dropdown.remove();
           }
-        }, 300);
-      };
-      
-      marker.appendChild(dropdown);
-      dropdown.focus();
-    }
-
-    function closeAllDropdowns() {
-      document.querySelectorAll('.marker-dropdown').forEach(dropdown => dropdown.remove());
+        }, 200);
+      });
     }
 
     function renderAllianceIcon(facility) {
@@ -1381,10 +1520,13 @@
       });
     });
 
-    // Close dropdowns when clicking elsewhere
+    // Close dropdowns when clicking elsewhere (with delay to prevent accidental closure)
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.marker')) {
-        closeAllDropdowns();
+      if (!e.target.closest('.marker') && !e.target.closest('.marker-dropdown')) {
+        // Small delay to allow dropdown interaction
+        setTimeout(() => {
+          closeAllDropdowns();
+        }, 50);
       }
     });
 
@@ -1445,6 +1587,7 @@
     window.resetCalibration = resetCalibration;
     window.debugMarkers = debugMarkers;
     window.recreateAllMarkers = recreateAllMarkers;
+    window.closeAllDropdowns = closeAllDropdowns;
   </script>
 </body>
 </html>
