@@ -23,98 +23,6 @@
       --text-secondary: rgba(255, 255, 255, 0.8);
       --spacing-md: 16px;
       --radius-md: 12px;
-    // === UTILITY FUNCTIONS ===
-    function getRandomColor() {
-      const colors = ['#d7263d', '#0074d9', '#2ecc71', '#ff851b', '#7fdbff', '#b10dc9'];
-      return colors[Math.floor(Math.random() * colors.length)];
-    }
-
-    function showStatus(message, type = 'info') {
-      const statusEl = document.getElementById('map-status');
-      statusEl.textContent = message;
-      statusEl.style.background = type === 'success' ? 'rgba(67, 233, 123, 0.2)' :
-                                  type === 'error' ? 'rgba(220, 53, 69, 0.2)' :
-                                  'rgba(79, 172, 254, 0.2)';
-    }
-
-    // === LANGUAGE FUNCTIONS ===
-    function toggleLanguageSelector() {
-      const selector = document.getElementById('language-selector');
-      if (selector.classList.contains('hidden')) {
-        selector.classList.remove('hidden');
-        selector.style.animation = 'fadeIn 0.3s ease';
-      } else {
-        selector.style.animation = 'fadeOut 0.3s ease';
-        setTimeout(() => {
-          selector.classList.add('hidden');
-        }, 300);
-      }
-    }
-
-    function setLanguage(lang) {
-      currentLanguage = lang;
-      updateUILanguage();
-      localStorage.setItem('whiteout-language', lang);
-      showStatus(`🌐 ${translations[lang].language} selezionata!`, 'success');
-      
-      // Hide language selector
-      document.getElementById('language-selector').classList.add('hidden');
-      
-      // Update button states
-      document.querySelectorAll('[id^="lang-"]').forEach(btn => {
-        btn.classList.remove('btn-success');
-        btn.classList.add('btn-info');
-      });
-      document.getElementById(`lang-${lang}`).classList.remove('btn-info');
-      document.getElementById(`lang-${lang}`).classList.add('btn-success');
-    }
-
-    function updateUILanguage() {
-      const t = translations[currentLanguage];
-      
-      // Update main titles and labels
-      document.querySelector('.header h1').textContent = t.title;
-      document.querySelector('.header p').textContent = t.subtitle;
-      
-      // Update stats labels
-      document.querySelector('#total-alliances').nextElementSibling.textContent = t.alliances;
-      document.querySelector('#assigned-facilities').nextElementSibling.textContent = t.assigned;
-      
-      // Update form and buttons
-      document.querySelector('h3').textContent = t.allianceManagement;
-      document.getElementById('alliance-name').placeholder = t.allianceName;
-      document.querySelector('.alliance-form button').innerHTML = t.addAlliance;
-      
-      // Update control buttons (preserve icons)
-      const exportBtn = document.querySelector('button[onclick="exportCSV()"]');
-      if (exportBtn) exportBtn.innerHTML = t.exportCSV;
-      
-      const pngBtn = document.querySelector('button[onclick="exportPNG()"]');
-      if (pngBtn) pngBtn.innerHTML = t.exportPNG;
-      
-      const importBtn = document.querySelector('button[onclick*="import-file"]');
-      if (importBtn) importBtn.innerHTML = t.importCSV;
-      
-      const langBtn = document.querySelector('button[onclick="toggleLanguageSelector()"]');
-      if (langBtn) langBtn.innerHTML = t.language;
-      
-      // Update map section
-      const mapHeader = document.querySelector('.map-header h3');
-      if (mapHeader) mapHeader.textContent = t.interactiveMap;
-      
-      const legendBtn = document.querySelector('button[onclick="toggleLegend()"]');
-      if (legendBtn) legendBtn.innerHTML = `🎨 ${t.legend}`;
-      
-      // Update summary sections
-      const facilitySummaryHeader = document.querySelector('#facility-summary').closest('.summary-section').querySelector('h3');
-      if (facilitySummaryHeader) facilitySummaryHeader.textContent = t.facilitySummary;
-      
-      const buffSummaryHeader = document.querySelector('#buff-summary').closest('.summary-section').querySelector('h3');
-      if (buffSummaryHeader) buffSummaryHeader.textContent = t.buffSummary;
-      
-      // Update calibration section
-      const calibrationHeader = document.querySelector('.calibration-header h3');
-      if (calibrationHeader) calibrationHeader.textContent = t.advancedCalibration;
     }
 
     * {
@@ -354,9 +262,9 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     }
 
-    /* COLORI UFFICIALI CORRETTI per i marker */
+    /* COLORI UFFICIALI per i marker */
     .marker.castle { 
-      background: #FFD700; /* Oro brillante per Castle */
+      background: #FFD700;
       border: 3px solid #FF4500;
       width: 16px;
       height: 16px;
@@ -364,52 +272,52 @@
     }
 
     .marker.construction { 
-      background: #1274e2; /* Blu ufficiale Construction */
+      background: #1274e2;
       border-color: #0d5bb8;
     }
 
     .marker.production { 
-      background: #40df0c; /* Verde ufficiale Production */
+      background: #40df0c;
       border-color: #2fb309;
     }
 
     .marker.defense { 
-      background: #00a584; /* Verde acqua ufficiale Defense */
+      background: #00a584;
       border-color: #008066;
     }
 
     .marker.gathering { 
-      background: #c912dd; /* Viola magenta ufficiale Gathering */
+      background: #c912dd;
       border-color: #a00eb8;
     }
 
     .marker.tech { 
-      background: #e47c0b; /* Arancione ufficiale Research/Tech */
+      background: #e47c0b;
       border-color: #b86209;
     }
 
     .marker.weapons { 
-      background: #e4240c; /* Rosso ufficiale Troop Attack */
+      background: #e4240c;
       border-color: #b81d0a;
     }
 
     .marker.training { 
-      background: #e5e003; /* Giallo ufficiale Training */
+      background: #e5e003;
       border-color: #b8b803;
     }
 
     .marker.expedition { 
-      background: #f944ca; /* Rosa ufficiale March/Expedition */
+      background: #f944ca;
       border-color: #c7369f;
     }
 
     .marker.stronghold { 
-      background: #8B4513; /* Marrone per Stronghold */
+      background: #8B4513;
       border-color: #A0522D;
     }
 
     .marker.fortress { 
-      background: #2F2F2F; /* Grigio scuro per Fortress */
+      background: #2F2F2F;
       border-color: #000000;
     }
 
@@ -443,8 +351,8 @@
       top: 120%;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 2000; /* Z-index aumentato */
-      background: rgba(30, 30, 30, 0.95); /* Sfondo più scuro */
+      z-index: 2000;
+      background: rgba(30, 30, 30, 0.95);
       backdrop-filter: blur(20px);
       border: 2px solid #4facfe;
       border-radius: 12px;
@@ -455,7 +363,6 @@
       animation: dropdownOpen 0.2s ease;
     }
 
-    /* Dropdown che si apre verso l'alto */
     .marker-dropdown.dropdown-above {
       top: auto;
       bottom: 120%;
@@ -501,7 +408,7 @@
       border-radius: 8px 8px 0 0;
       font-size: 12px;
       font-weight: 600;
-      color: #FFFFFF; /* Testo bianco su sfondo scuro */
+      color: #FFFFFF;
       border-bottom: 1px solid rgba(79, 172, 254, 0.5);
     }
 
@@ -514,7 +421,7 @@
       align-items: center;
       gap: 8px;
       font-size: 13px;
-      color: #FFFFFF; /* Testo bianco leggibile */
+      color: #FFFFFF;
       border: 1px solid transparent;
       margin-bottom: 2px;
     }
@@ -629,7 +536,7 @@
       transition: all 0.3s ease;
     }
 
-    /* Calibration Section - Spostata in fondo */
+    /* Calibration Section */
     .calibration-section {
       background: rgba(255, 193, 7, 0.1);
       border: 1px solid rgba(255, 193, 7, 0.3);
@@ -743,7 +650,7 @@
       flex-shrink: 0;
     }
 
-    /* Copia dei colori ufficiali per la legenda */
+    /* Copia dei colori per la legenda */
     .legend-marker.castle { background: #FFD700; border-color: #FF4500; }
     .legend-marker.construction { background: #1274e2; border-color: #0d5bb8; }
     .legend-marker.production { background: #40df0c; border-color: #2fb309; }
@@ -944,7 +851,7 @@
           </div>
         </section>
 
-        <!-- Calibration Section - SPOSTATA IN FONDO -->
+        <!-- Calibration Section -->
         <section class="calibration-section glass-card">
           <div class="calibration-header">
             <h3>🔧 Calibrazione Avanzata</h3>
@@ -996,7 +903,7 @@
   </div>
 
   <script>
-    // === DATA === (Tutti i 91 facility dal file originale)
+    // === DATA ===
     const facilityData = [
       { "Type": "Castle", "Level": "Lv.1", "x": 50.06, "y": 48.79, "ingameCoords": "X:597 Y:597" },
       { "Type": "Construction", "Level": "Lv.1", "x": 50.19, "y": 12.48, "ingameCoords": "X:168 Y:168" },
@@ -1106,17 +1013,6 @@
       "Expedition|Lv.3": "+15%"
     };
 
-    // === STATE ===
-    const alliances = [];
-    let calibrationSettings = {
-      offsetX: 0,
-      offsetY: 0.7,
-      scaleX: 1.0,
-      scaleY: 1.0
-    };
-    let calibrationUnlocked = false;
-    let currentLanguage = 'it'; // Default language
-
     // === LANGUAGE SYSTEM ===
     const translations = {
       en: {
@@ -1240,6 +1136,19 @@
         coordinates: "Coordenadas"
       }
     };
+
+    // === STATE ===
+    const alliances = [];
+    let calibrationSettings = {
+      offsetX: 0,
+      offsetY: 0.7,
+      scaleX: 1.0,
+      scaleY: 1.0
+    };
+    let calibrationUnlocked = false;
+    let currentLanguage = 'it';
+
+    // === UTILITY FUNCTIONS ===
     function getRandomColor() {
       const colors = ['#d7263d', '#0074d9', '#2ecc71', '#ff851b', '#7fdbff', '#b10dc9'];
       return colors[Math.floor(Math.random() * colors.length)];
@@ -1253,130 +1162,7 @@
                                   'rgba(79, 172, 254, 0.2)';
     }
 
-    // === LANGUAGE SYSTEM ===
-    const translations = {
-      en: {
-        title: "🗺️ Whiteout Survival Companion",
-        subtitle: "Professional alliance management with map calibration",
-        alliances: "Alliances",
-        assigned: "Assigned",
-        allianceManagement: "🏰 Alliance Management",
-        allianceName: "Alliance name...",
-        addAlliance: "✨ Add Alliance",
-        exportCSV: "📊 Export CSV",
-        exportPNG: "🖼️ Export PNG", 
-        importCSV: "📥 Import CSV",
-        language: "🌐 Language",
-        interactiveMap: "🗺️ Interactive Map",
-        legend: "🎨 Legend",
-        facilitySummary: "📋 Facility Summary",
-        buffSummary: "⚡ Buff Summary",
-        advancedCalibration: "🔧 Advanced Calibration",
-        unassigned: "❌ Unassigned",
-        coordinates: "Coordinates"
-      },
-      it: {
-        title: "🗺️ Whiteout Survival Companion", 
-        subtitle: "Gestione professionale alleanze con calibrazione mappa",
-        alliances: "Alleanze",
-        assigned: "Assegnate", 
-        allianceManagement: "🏰 Gestione Alleanze",
-        allianceName: "Nome alleanza...",
-        addAlliance: "✨ Aggiungi Alleanza",
-        exportCSV: "📊 Esporta CSV",
-        exportPNG: "🖼️ Esporta PNG",
-        importCSV: "📥 Importa CSV", 
-        language: "🌐 Lingua",
-        interactiveMap: "🗺️ Mappa Interattiva",
-        legend: "🎨 Legenda",
-        facilitySummary: "📋 Riepilogo Strutture",
-        buffSummary: "⚡ Riepilogo Buff", 
-        advancedCalibration: "🔧 Calibrazione Avanzata",
-        unassigned: "❌ Non assegnata",
-        coordinates: "Coordinate"
-      },
-      es: {
-        title: "🗺️ Whiteout Survival Companion",
-        subtitle: "Gestión profesional de alianzas con calibración de mapa", 
-        alliances: "Alianzas",
-        assigned: "Asignadas",
-        allianceManagement: "🏰 Gestión de Alianzas",
-        allianceName: "Nombre de alianza...",
-        addAlliance: "✨ Agregar Alianza",
-        exportCSV: "📊 Exportar CSV",
-        exportPNG: "🖼️ Exportar PNG",
-        importCSV: "📥 Importar CSV",
-        language: "🌐 Idioma", 
-        interactiveMap: "🗺️ Mapa Interactivo",
-        legend: "🎨 Leyenda",
-        facilitySummary: "📋 Resumen de Instalaciones",
-        buffSummary: "⚡ Resumen de Buff",
-        advancedCalibration: "🔧 Calibración Avanzada", 
-        unassigned: "❌ Sin asignar",
-        coordinates: "Coordenadas"
-      },
-      fr: {
-        title: "🗺️ Whiteout Survival Companion",
-        subtitle: "Gestion professionnelle d'alliances avec calibrage de carte",
-        alliances: "Alliances", 
-        assigned: "Assignées",
-        allianceManagement: "🏰 Gestion des Alliances",
-        allianceName: "Nom d'alliance...",
-        addAlliance: "✨ Ajouter Alliance",
-        exportCSV: "📊 Exporter CSV",
-        exportPNG: "🖼️ Exporter PNG",
-        importCSV: "📥 Importer CSV",
-        language: "🌐 Langue",
-        interactiveMap: "🗺️ Carte Interactive", 
-        legend: "🎨 Légende",
-        facilitySummary: "📋 Résumé des Installations",
-        buffSummary: "⚡ Résumé des Buff",
-        advancedCalibration: "🔧 Calibrage Avancé",
-        unassigned: "❌ Non assignée",
-        coordinates: "Coordonnées"
-      },
-      de: {
-        title: "🗺️ Whiteout Survival Companion",
-        subtitle: "Professionelle Allianz-Verwaltung mit Kartenkalibrierung",
-        alliances: "Allianzen",
-        assigned: "Zugewiesen",
-        allianceManagement: "🏰 Allianz-Verwaltung", 
-        allianceName: "Allianzname...",
-        addAlliance: "✨ Allianz Hinzufügen", 
-        exportCSV: "📊 CSV Exportieren",
-        exportPNG: "🖼️ PNG Exportieren",
-        importCSV: "📥 CSV Importieren",
-        language: "🌐 Sprache",
-        interactiveMap: "🗺️ Interaktive Karte",
-        legend: "🎨 Legende", 
-        facilitySummary: "📋 Anlagen-Zusammenfassung",
-        buffSummary: "⚡ Buff-Zusammenfassung",
-        advancedCalibration: "🔧 Erweiterte Kalibrierung",
-        unassigned: "❌ Nicht zugewiesen",
-        coordinates: "Koordinaten"
-      },
-      pt: {
-        title: "🗺️ Whiteout Survival Companion",
-        subtitle: "Gestão profissional de alianças com calibração de mapa",
-        alliances: "Alianças",
-        assigned: "Atribuídas",
-        allianceManagement: "🏰 Gestão de Alianças",
-        allianceName: "Nome da aliança...",
-        addAlliance: "✨ Adicionar Aliança",
-        exportCSV: "📊 Exportar CSV", 
-        exportPNG: "🖼️ Exportar PNG",
-        importCSV: "📥 Importar CSV",
-        language: "🌐 Idioma",
-        interactiveMap: "🗺️ Mapa Interativo",
-        legend: "🎨 Legenda",
-        facilitySummary: "📋 Resumo de Instalações", 
-        buffSummary: "⚡ Resumo de Buff",
-        advancedCalibration: "🔧 Calibração Avançada",
-        unassigned: "❌ Não atribuída", 
-        coordinates: "Coordenadas"
-      }
-    };
-
+    // === LANGUAGE FUNCTIONS ===
     function toggleLanguageSelector() {
       const selector = document.getElementById('language-selector');
       if (selector.classList.contains('hidden')) {
@@ -1394,7 +1180,7 @@
       currentLanguage = lang;
       updateUILanguage();
       localStorage.setItem('whiteout-language', lang);
-      showStatus(`🌐 ${translations[lang].language} selezionata!`, 'success');
+      showStatus(`🌐 Lingua impostata!`, 'success');
       
       // Hide language selector
       document.getElementById('language-selector').classList.add('hidden');
@@ -1404,27 +1190,41 @@
         btn.classList.remove('btn-success');
         btn.classList.add('btn-info');
       });
-      document.getElementById(`lang-${lang}`).classList.remove('btn-info');
-      document.getElementById(`lang-${lang}`).classList.add('btn-success');
+      const currentBtn = document.getElementById(`lang-${lang}`);
+      if (currentBtn) {
+        currentBtn.classList.remove('btn-info');
+        currentBtn.classList.add('btn-success');
+      }
     }
 
     function updateUILanguage() {
       const t = translations[currentLanguage];
       
       // Update main titles and labels
-      document.querySelector('.header h1').textContent = t.title;
-      document.querySelector('.header p').textContent = t.subtitle;
+      const titleEl = document.querySelector('.header h1');
+      if (titleEl) titleEl.textContent = t.title;
+      
+      const subtitleEl = document.querySelector('.header p');
+      if (subtitleEl) subtitleEl.textContent = t.subtitle;
       
       // Update stats labels
-      document.querySelector('#total-alliances').nextElementSibling.textContent = t.alliances;
-      document.querySelector('#assigned-facilities').nextElementSibling.textContent = t.assigned;
+      const alliancesStat = document.querySelector('#total-alliances').nextElementSibling;
+      if (alliancesStat) alliancesStat.textContent = t.alliances;
+      
+      const assignedStat = document.querySelector('#assigned-facilities').nextElementSibling;
+      if (assignedStat) assignedStat.textContent = t.assigned;
       
       // Update form and buttons
-      document.querySelector('h3').textContent = t.allianceManagement;
-      document.getElementById('alliance-name').placeholder = t.allianceName;
-      document.querySelector('.alliance-form button').innerHTML = t.addAlliance;
+      const managementTitle = document.querySelector('h3');
+      if (managementTitle) managementTitle.textContent = t.allianceManagement;
       
-      // Update control buttons (preserve icons)
+      const nameInput = document.getElementById('alliance-name');
+      if (nameInput) nameInput.placeholder = t.allianceName;
+      
+      const addBtn = document.querySelector('.alliance-form button');
+      if (addBtn) addBtn.innerHTML = t.addAlliance;
+      
+      // Update control buttons
       const exportBtn = document.querySelector('button[onclick="exportCSV()"]');
       if (exportBtn) exportBtn.innerHTML = t.exportCSV;
       
@@ -1445,30 +1245,29 @@
       if (legendBtn) legendBtn.innerHTML = `🎨 ${t.legend}`;
       
       // Update summary sections
-      const facilitySummaryHeader = document.querySelector('#facility-summary').closest('.summary-section').querySelector('h3');
-      if (facilitySummaryHeader) facilitySummaryHeader.textContent = t.facilitySummary;
-      
-      const buffSummaryHeader = document.querySelector('#buff-summary').closest('.summary-section').querySelector('h3');
-      if (buffSummaryHeader) buffSummaryHeader.textContent = t.buffSummary;
+      const facilitySummaryHeaders = document.querySelectorAll('h3');
+      if (facilitySummaryHeaders[1]) facilitySummaryHeaders[1].textContent = t.facilitySummary;
+      if (facilitySummaryHeaders[2]) facilitySummaryHeaders[2].textContent = t.buffSummary;
       
       // Update calibration section
       const calibrationHeader = document.querySelector('.calibration-header h3');
       if (calibrationHeader) calibrationHeader.textContent = t.advancedCalibration;
     }
+
+    // === CALIBRATION FUNCTIONS ===
     function checkCalibrationPassword() {
       const password = document.getElementById('calibration-password').value;
       if (password === 'calibration') {
         calibrationUnlocked = true;
         document.getElementById('password-section').classList.add('hidden');
         document.getElementById('calibration-controls-section').classList.remove('hidden');
-        showStatus('🔓 Calibrazione sbloccata! Ora puoi modificare i parametri avanzati.', 'success');
+        showStatus('🔓 Calibrazione sbloccata!', 'success');
       } else {
-        showStatus('❌ Password errata! La password è "calibration".', 'error');
+        showStatus('❌ Password errata!', 'error');
         document.getElementById('calibration-password').value = '';
       }
     }
 
-    // === CALIBRATION FUNCTIONS ===
     function updateCalibrationFromInputs() {
       if (!calibrationUnlocked) return;
       calibrationSettings.offsetX = parseFloat(document.getElementById('offsetX').value) || 0;
@@ -1478,20 +1277,112 @@
     }
 
     function applyMarkerPosition(facility) {
-      // Applica calibrazione: prima scala, poi offset
       const adjustedX = (facility.x * calibrationSettings.scaleX) + calibrationSettings.offsetX;
       const adjustedY = (facility.y * calibrationSettings.scaleY) + calibrationSettings.offsetY;
       return { x: adjustedX, y: adjustedY };
     }
 
+    function highlightCastle() {
+      if (!calibrationUnlocked) return;
+      const castle = facilityData.find(f => f.Type === "Castle");
+      if (castle && castle.marker) {
+        castle.marker.style.backgroundColor = 'red';
+        castle.marker.style.width = '20px';
+        castle.marker.style.height = '20px';
+        castle.marker.style.zIndex = '1000';
+        castle.marker.style.border = '3px solid yellow';
+        showStatus('🏰 Castello evidenziato in rosso.', 'info');
+        
+        setTimeout(() => {
+          if (castle.marker) {
+            castle.marker.style.backgroundColor = '';
+            castle.marker.style.width = '';
+            castle.marker.style.height = '';
+            castle.marker.style.zIndex = '';
+            castle.marker.style.border = '';
+          }
+        }, 5000);
+      }
+    }
+
+    function testCurrentCalibration() {
+      if (!calibrationUnlocked) return;
+      updateCalibrationFromInputs();
+      recreateAllMarkers();
+      showStatus('🎯 Calibrazione testata.', 'info');
+    }
+
+    function applyCalibration() {
+      if (!calibrationUnlocked) return;
+      updateCalibrationFromInputs();
+      recreateAllMarkers();
+      localStorage.setItem('whiteout-calibration', JSON.stringify(calibrationSettings));
+      showStatus('✅ Calibrazione applicata!', 'success');
+    }
+
+    function resetCalibration() {
+      if (!calibrationUnlocked) return;
+      calibrationSettings = { offsetX: 0, offsetY: 0.7, scaleX: 1.0, scaleY: 1.0 };
+      
+      document.getElementById('offsetX').value = calibrationSettings.offsetX;
+      document.getElementById('offsetY').value = calibrationSettings.offsetY;
+      document.getElementById('scaleX').value = calibrationSettings.scaleX;
+      document.getElementById('scaleY').value = calibrationSettings.scaleY;
+      
+      recreateAllMarkers();
+      showStatus('🔄 Calibrazione resettata', 'info');
+    }
+
+    function debugMarkers() {
+      if (!calibrationUnlocked) return;
+      console.log('=== DEBUG MARKERS ===');
+      console.log('Total facilities:', facilityData.length);
+      console.log('Calibration settings:', calibrationSettings);
+      
+      const markersOnPage = document.querySelectorAll('.marker').length;
+      console.log('Markers on page:', markersOnPage);
+      
+      showStatus(`🔍 Debug: ${markersOnPage} marker su ${facilityData.length} strutture.`, 'info');
+    }
+
+    function toggleCalibration() {
+      const content = document.getElementById('calibration-content');
+      const toggle = document.querySelector('.calibration-toggle');
+      
+      if (content.classList.contains('collapsed-content')) {
+        content.classList.remove('collapsed-content');
+        content.classList.add('expanded-content');
+        toggle.textContent = '▼';
+      } else {
+        content.classList.remove('expanded-content');
+        content.classList.add('collapsed-content');
+        toggle.textContent = '▶';
+        if (!calibrationUnlocked) {
+          document.getElementById('password-section').classList.remove('hidden');
+          document.getElementById('calibration-controls-section').classList.add('hidden');
+          document.getElementById('calibration-password').value = '';
+        }
+      }
+    }
+
+    function toggleLegend() {
+      const legend = document.getElementById('map-legend');
+      if (legend.classList.contains('hidden')) {
+        legend.classList.remove('hidden');
+        legend.style.animation = 'fadeIn 0.3s ease';
+      } else {
+        legend.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => {
+          legend.classList.add('hidden');
+        }, 300);
+      }
+    }
+
+    // === MARKER FUNCTIONS ===
     function createMarker(facility, index) {
       const mapWrapper = document.getElementById('map-wrapper');
-      if (!mapWrapper) {
-        console.error('Map wrapper not found for facility:', facility);
-        return;
-      }
+      if (!mapWrapper) return;
 
-      // Remove existing marker for this facility if exists
       if (facility.marker) {
         facility.marker.remove();
       }
@@ -1518,144 +1409,24 @@
     }
 
     function recreateAllMarkers() {
-      console.log('Recreating all markers with calibration:', calibrationSettings);
-      
-      // Remove all existing markers
       document.querySelectorAll('.marker').forEach(marker => marker.remove());
       
-      // Clear marker references
       facilityData.forEach(facility => {
         facility.marker = null;
       });
       
-      // Create new markers with current calibration
       let createdCount = 0;
       facilityData.forEach((facility, index) => {
         const marker = createMarker(facility, index);
         if (marker) createdCount++;
       });
       
-      console.log(`Created ${createdCount} markers out of ${facilityData.length} facilities`);
-      showStatus(`📍 ${createdCount} marker aggiornati con calibrazione`, 'info');
+      showStatus(`📍 ${createdCount} marker aggiornati`, 'info');
     }
 
-    function highlightCastle() {
-      if (!calibrationUnlocked) return;
-      const castle = facilityData.find(f => f.Type === "Castle");
-      if (castle && castle.marker) {
-        castle.marker.style.backgroundColor = 'red';
-        castle.marker.style.width = '20px';
-        castle.marker.style.height = '20px';
-        castle.marker.style.zIndex = '1000';
-        castle.marker.style.border = '3px solid yellow';
-        showStatus('🏰 Castello evidenziato in rosso. Verifica se è allineato con la mappa.', 'info');
-        
-        setTimeout(() => {
-          if (castle.marker) {
-            castle.marker.style.backgroundColor = '';
-            castle.marker.style.width = '';
-            castle.marker.style.height = '';
-            castle.marker.style.zIndex = '';
-            castle.marker.style.border = '';
-          }
-        }, 5000);
-      } else {
-        showStatus('❌ Castello non trovato', 'error');
-      }
-    }
-
-    function testCurrentCalibration() {
-      if (!calibrationUnlocked) return;
-      updateCalibrationFromInputs();
-      recreateAllMarkers();
-      showStatus('🎯 Calibrazione testata. Controlla l\'allineamento dei marker.', 'info');
-    }
-
-    function applyCalibration() {
-      if (!calibrationUnlocked) return;
-      updateCalibrationFromInputs();
-      recreateAllMarkers();
-      
-      // Save to localStorage
-      localStorage.setItem('whiteout-calibration', JSON.stringify(calibrationSettings));
-      
-      showStatus('✅ Calibrazione applicata e salvata!', 'success');
-    }
-
-    function resetCalibration() {
-      if (!calibrationUnlocked) return;
-      calibrationSettings = { offsetX: 0, offsetY: 0.7, scaleX: 1.0, scaleY: 1.0 };
-      
-      document.getElementById('offsetX').value = calibrationSettings.offsetX;
-      document.getElementById('offsetY').value = calibrationSettings.offsetY;
-      document.getElementById('scaleX').value = calibrationSettings.scaleX;
-      document.getElementById('scaleY').value = calibrationSettings.scaleY;
-      
-      recreateAllMarkers();
-      showStatus('🔄 Calibrazione resettata', 'info');
-    }
-
-    function toggleLegend() {
-      const legend = document.getElementById('map-legend');
-      if (legend.classList.contains('hidden')) {
-        legend.classList.remove('hidden');
-        legend.style.animation = 'fadeIn 0.3s ease';
-      } else {
-        legend.style.animation = 'fadeOut 0.3s ease';
-        setTimeout(() => {
-          legend.classList.add('hidden');
-        }, 300);
-      }
-    }
-
-    function debugMarkers() {
-      if (!calibrationUnlocked) return;
-      console.log('=== DEBUG MARKERS ===');
-      console.log('Total facilities:', facilityData.length);
-      console.log('Calibration settings:', calibrationSettings);
-      
-      const markersOnPage = document.querySelectorAll('.marker').length;
-      console.log('Markers on page:', markersOnPage);
-      
-      const facilitiesWithMarkers = facilityData.filter(f => f.marker).length;
-      console.log('Facilities with marker reference:', facilitiesWithMarkers);
-      
-      // Test some specific coordinates
-      const testFacilities = facilityData.slice(0, 5);
-      console.log('First 5 facilities positions:');
-      testFacilities.forEach(f => {
-        const pos = applyMarkerPosition(f);
-        console.log(`${f.Type} ${f.Level}: original(${f.x}, ${f.y}) -> calibrated(${pos.x.toFixed(2)}, ${pos.y.toFixed(2)})`);
-      });
-      
-      showStatus(`🔍 Debug: ${markersOnPage} marker su ${facilityData.length} strutture. Vedi console per dettagli.`, 'info');
-    }
-
-    function toggleCalibration() {
-      const content = document.getElementById('calibration-content');
-      const toggle = document.querySelector('.calibration-toggle');
-      
-      if (content.classList.contains('collapsed-content')) {
-        content.classList.remove('collapsed-content');
-        content.classList.add('expanded-content');
-        toggle.textContent = '▼';
-      } else {
-        content.classList.remove('expanded-content');
-        content.classList.add('collapsed-content');
-        toggle.textContent = '▶';
-        // Reset calibration unlock when collapsed
-        if (!calibrationUnlocked) {
-          document.getElementById('password-section').classList.remove('hidden');
-          document.getElementById('calibration-controls-section').classList.add('hidden');
-          document.getElementById('calibration-password').value = '';
-        }
-      }
-    }
-
-    // === ALLIANCE MANAGEMENT ===
     function showDropdown(facility, marker, index) {
       if (alliances.length === 0) {
-        showStatus('⚠️ Aggiungi almeno un\'alleanza prima di assegnare.', 'error');
+        showStatus('⚠️ Aggiungi almeno un\'alleanza.', 'error');
         return;
       }
 
@@ -1664,20 +1435,18 @@
       const dropdown = document.createElement('div');
       dropdown.className = 'marker-dropdown';
       
-      // Calcola la posizione del marker rispetto alla mappa per decidere dove posizionare il dropdown
       const mapWrapper = document.getElementById('map-wrapper');
       const markerRect = marker.getBoundingClientRect();
       const mapRect = mapWrapper.getBoundingClientRect();
       
-      // Se il marker è nella metà inferiore della mappa, posiziona il dropdown sopra
       const markerTopRelative = markerRect.top - mapRect.top;
       const mapHeight = mapRect.height;
       
-      if (markerTopRelative > mapHeight * 0.5) { // Se è nella metà inferiore
+      if (markerTopRelative > mapHeight * 0.5) {
         dropdown.classList.add('dropdown-above');
       }
       
-      // Header del dropdown con coordinate
+      // Header con coordinate
       const header = document.createElement('div');
       header.className = 'dropdown-header';
       const coordsText = facility.ingameCoords ? ` - ${facility.ingameCoords}` : '';
@@ -1722,14 +1491,12 @@
       
       marker.appendChild(dropdown);
       
-      // Chiudi dropdown dopo 8 secondi
       setTimeout(() => {
         if (dropdown.parentNode) {
           dropdown.remove();
         }
       }, 8000);
       
-      // Chiudi se si clicca fuori, ma con delay per evitare chiusure accidentali
       setTimeout(() => {
         document.addEventListener('click', handleOutsideClick, { once: true });
       }, 100);
@@ -1742,10 +1509,8 @@
     }
 
     function assignFacilityToAlliance(facility, marker, allianceName) {
-      const oldAlliance = facility.Alliance;
       facility.Alliance = allianceName;
       
-      // Update marker appearance
       renderAllianceIcon(facility);
       
       if (allianceName) {
@@ -1753,9 +1518,7 @@
         showStatus(`✅ ${facility.Type} assegnata a ${allianceName}`, 'success');
       } else {
         marker.classList.remove('assigned');
-        if (oldAlliance) {
-          showStatus(`❌ ${facility.Type} rimossa da ${oldAlliance}`, 'info');
-        }
+        showStatus(`❌ ${facility.Type} rimossa`, 'info');
       }
       
       updateStats();
@@ -1788,6 +1551,7 @@
       }
     }
 
+    // === ALLIANCE MANAGEMENT ===
     function renderAllianceList() {
       const list = document.getElementById('alliance-list');
       list.innerHTML = '';
@@ -1813,14 +1577,12 @@
     }
 
     function editAlliance(index) {
-      // Simplified edit - just change name
       const alliance = alliances[index];
       const newName = prompt('Nuovo nome alleanza:', alliance.name);
       if (newName && newName.trim()) {
         const oldName = alliance.name;
         alliance.name = newName.trim();
         
-        // Update facility assignments
         facilityData.forEach(f => {
           if (f.Alliance === oldName) {
             f.Alliance = newName.trim();
@@ -1843,7 +1605,6 @@
       }
       
       if (confirm(confirmMsg)) {
-        // Remove assignments
         facilityData.forEach(f => {
           if (f.Alliance === alliance.name) {
             delete f.Alliance;
@@ -1969,7 +1730,6 @@
     }
 
     function loadData() {
-      // Load main data
       const saved = localStorage.getItem('whiteout-companion-data');
       if (saved) {
         try {
@@ -2007,7 +1767,6 @@
         }
       }
       
-      // Load language preference
       const savedLanguage = localStorage.getItem('whiteout-language');
       if (savedLanguage && translations[savedLanguage]) {
         currentLanguage = savedLanguage;
@@ -2100,7 +1859,6 @@
             return;
           }
           
-          // Clear existing assignments
           facilityData.forEach(f => delete f.Alliance);
           
           let importedCount = 0;
@@ -2130,7 +1888,6 @@
             }
           }
           
-          // Create missing alliances
           newAlliances.forEach(allianceName => {
             if (!alliances.find(a => a.name.toLowerCase() === allianceName.toLowerCase())) {
               const defaultIcon = "data:image/svg+xml;base64," + btoa(`
@@ -2145,7 +1902,6 @@
             }
           });
           
-          // Update UI
           facilityData.forEach(f => {
             if (f.marker) {
               renderAllianceIcon(f);
@@ -2174,7 +1930,7 @@
       e.target.value = '';
     });
 
-    // Auto-apply calibration only when unlocked
+    // Auto-apply calibration
     ['offsetX', 'offsetY', 'scaleX', 'scaleY'].forEach(id => {
       const input = document.getElementById(id);
       input.addEventListener('blur', () => {
@@ -2184,7 +1940,6 @@
         }
       });
       
-      // Also apply on Enter key
       input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && calibrationUnlocked) {
           updateCalibrationFromInputs();
@@ -2213,10 +1968,8 @@
     document.addEventListener('DOMContentLoaded', () => {
       console.log('=== WHITEOUT COMPANION INIT ===');
       
-      // Load saved data first
       loadData();
       
-      // Wait for map to load before creating markers
       const mapImg = document.getElementById('map');
       if (mapImg.complete) {
         initializeMarkers();
@@ -2231,7 +1984,6 @@
       function initializeMarkers() {
         console.log('Initializing markers...');
         
-        // Create all markers
         let createdCount = 0;
         facilityData.forEach((facility, index) => {
           try {
@@ -2244,43 +1996,22 @@
         
         console.log(`Created ${createdCount} markers out of ${facilityData.length} facilities`);
         
-        // Update UI
         renderAllianceList();
         updateStats();
         updateSummaries();
         
         // Setup language
         updateUILanguage();
-        setLanguage(currentLanguage); // This will update button states
+        setLanguage(currentLanguage);
         
-        showStatus(`🎯 App caricata! ${createdCount} strutture con colori ufficiali. Clicca 🎨 Legenda per vedere la corrispondenza colore-tipo.`, 'success');
+        showStatus(`🎯 App caricata! ${createdCount} strutture con colori ufficiali.`, 'success');
         
-        // Debug info
         console.log('Calibrazione caricata:', calibrationSettings);
         console.log('Alleanze caricate:', alliances.length);
         console.log('Strutture totali:', facilityData.length);
         console.log('Marker creati:', createdCount);
       }
     });
-    
-    // Make functions globally accessible
-    window.highlightCastle = highlightCastle;
-    window.testCurrentCalibration = testCurrentCalibration;
-    window.applyCalibration = applyCalibration;
-    window.resetCalibration = resetCalibration;
-    window.debugMarkers = debugMarkers;
-    window.recreateAllMarkers = recreateAllMarkers;
-    window.closeAllDropdowns = closeAllDropdowns;
-    window.toggleLegend = toggleLegend;
-    window.toggleCalibration = toggleCalibration;
-    window.checkCalibrationPassword = checkCalibrationPassword;
-    window.editAlliance = editAlliance;
-    window.deleteAlliance = deleteAlliance;
-    window.exportCSV = exportCSV;
-    window.exportPNG = exportPNG;
-    window.toggleSection = toggleSection;
-    window.toggleLanguageSelector = toggleLanguageSelector;
-    window.setLanguage = setLanguage;
   </script>
 </body>
 </html>
