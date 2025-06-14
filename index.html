@@ -313,23 +313,81 @@
       transition: all 0.2s ease;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
       z-index: 10;
-      background-color: #4facfe;
     }
 
     .marker:hover {
       transform: scale(1.5);
       z-index: 20;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     }
 
+    /* Color coding per tipo di facility */
     .marker.castle { 
       background: #ffd700; 
       border: 3px solid #ff6b35;
       width: 16px;
       height: 16px;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
     }
 
+    .marker.construction { 
+      background: #3498db;
+      border-color: #2980b9;
+    }
+
+    .marker.production { 
+      background: #e74c3c;
+      border-color: #c0392b;
+    }
+
+    .marker.defense { 
+      background: #9b59b6;
+      border-color: #8e44ad;
+    }
+
+    .marker.gathering { 
+      background: #2ecc71;
+      border-color: #27ae60;
+    }
+
+    .marker.tech { 
+      background: #f39c12;
+      border-color: #e67e22;
+    }
+
+    .marker.weapons { 
+      background: #34495e;
+      border-color: #2c3e50;
+    }
+
+    .marker.training { 
+      background: #e67e22;
+      border-color: #d35400;
+    }
+
+    .marker.expedition { 
+      background: #1abc9c;
+      border-color: #16a085;
+    }
+
+    .marker.stronghold { 
+      background: #8e44ad;
+      border-color: #7d3c98;
+    }
+
+    .marker.fortress { 
+      background: #c0392b;
+      border-color: #a93226;
+    }
+
+    /* Effetto per marker assegnati */
     .marker.assigned {
-      background-color: #43e97b;
+      box-shadow: 0 0 12px rgba(67, 233, 123, 0.8);
+      border-width: 3px;
+    }
+
+    .marker.assigned:hover {
+      box-shadow: 0 0 15px rgba(67, 233, 123, 1);
     }
 
     .marker img {
@@ -383,6 +441,17 @@
       to {
         opacity: 0;
         transform: translateX(-50%) translateY(-10px) scale(0.9);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
     }
 
@@ -679,10 +748,29 @@
         <section class="map-container glass-card">
           <div class="map-header">
             <h3>🗺️ Mappa Interattiva</h3>
+            <button class="btn btn-info" onclick="toggleLegend()" style="font-size: 12px;">🎨 Legenda</button>
+          </div>
+          
+          <!-- Legend -->
+          <div id="map-legend" class="map-legend hidden">
+            <h4>Legenda Tipi di Strutture</h4>
+            <div class="legend-grid">
+              <div class="legend-item"><div class="legend-marker castle"></div> Castle</div>
+              <div class="legend-item"><div class="legend-marker construction"></div> Construction</div>
+              <div class="legend-item"><div class="legend-marker production"></div> Production</div>
+              <div class="legend-item"><div class="legend-marker defense"></div> Defense</div>
+              <div class="legend-item"><div class="legend-marker gathering"></div> Gathering</div>
+              <div class="legend-item"><div class="legend-marker tech"></div> Tech</div>
+              <div class="legend-item"><div class="legend-marker weapons"></div> Weapons</div>
+              <div class="legend-item"><div class="legend-marker training"></div> Training</div>
+              <div class="legend-item"><div class="legend-marker expedition"></div> Expedition</div>
+              <div class="legend-item"><div class="legend-marker stronghold"></div> Stronghold</div>
+              <div class="legend-item"><div class="legend-marker fortress"></div> Fortress</div>
+            </div>
           </div>
           
           <div class="map-status" id="map-status">
-            Carica alcune alleanze e inizia ad assegnare le strutture cliccando sui marker
+            Clicca sui marker colorati per assegnare le strutture alle alleanze. Ogni colore rappresenta un tipo diverso di struttura.
           </div>
           
           <div class="map-wrapper" id="map-wrapper">
@@ -814,12 +902,17 @@
 
     const buffValues = {
       "Construction|Lv.1": "+5%",
+      "Construction|Lv.3": "+10%",
       "Production|Lv.1": "+5%", 
       "Defense|Lv.2": "+8%",
+      "Defense|Lv.4": "+10%",
       "Gathering|Lv.1": "+5%",
       "Tech|Lv.1": "+5%",
+      "Tech|Lv.3": "+10%",
       "Weapons|Lv.2": "+8%",
-      "Training|Lv.2": "+8%"
+      "Weapons|Lv.4": "+10%",
+      "Training|Lv.2": "+8%",
+      "Expedition|Lv.3": "+15%"
     };
 
     // === STATE ===
@@ -965,6 +1058,19 @@
       
       recreateAllMarkers();
       showStatus('🔄 Calibrazione resettata', 'info');
+    }
+
+    function toggleLegend() {
+      const legend = document.getElementById('map-legend');
+      if (legend.classList.contains('hidden')) {
+        legend.classList.remove('hidden');
+        legend.style.animation = 'fadeIn 0.3s ease';
+      } else {
+        legend.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => {
+          legend.classList.add('hidden');
+        }, 300);
+      }
     }
 
     function debugMarkers() {
@@ -1570,7 +1676,7 @@
         updateStats();
         updateSummaries();
         
-        showStatus(`🎯 App caricata! ${createdCount} strutture visualizzate. Usa la calibrazione per allineare i marker.`, 'success');
+        showStatus(`🎯 App caricata! ${createdCount} strutture visualizzate con colori per tipo. Clicca 🎨 Legenda per vedere i colori.`, 'success');
         
         // Debug info
         console.log('Calibrazione caricata:', calibrationSettings);
@@ -1588,6 +1694,7 @@
     window.debugMarkers = debugMarkers;
     window.recreateAllMarkers = recreateAllMarkers;
     window.closeAllDropdowns = closeAllDropdowns;
+    window.toggleLegend = toggleLegend;
   </script>
 </body>
 </html>
