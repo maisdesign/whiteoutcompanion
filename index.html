@@ -57,6 +57,13 @@
       font-size: 2.5rem;
       margin-bottom: 10px;
       font-weight: 700;
+      text-align: center;
+    }
+
+    .header p {
+      text-align: center;
+      color: var(--text-secondary);
+      margin: 0 auto;
     }
 
     .glass-card {
@@ -262,7 +269,7 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     }
 
-    /* COLORI UFFICIALI per i marker */
+    /* COLORI UFFICIALI CORRETTI */
     .marker.castle { 
       background: #FFD700;
       border: 3px solid #FF4500;
@@ -321,7 +328,6 @@
       border-color: #000000;
     }
 
-    /* Effetto per marker assegnati */
     .marker.assigned {
       box-shadow: 0 0 12px rgba(67, 233, 123, 0.8);
       border-width: 3px;
@@ -369,36 +375,18 @@
     }
 
     @keyframes dropdownOpen {
-      from {
-        opacity: 0;
-        transform: translateX(-50%) scale(0.9);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(-50%) scale(1);
-      }
+      from { opacity: 0; transform: translateX(-50%) scale(0.9); }
+      to { opacity: 1; transform: translateX(-50%) scale(1); }
     }
 
     @keyframes fadeOut {
-      from {
-        opacity: 1;
-        transform: translateX(-50%) scale(1);
-      }
-      to {
-        opacity: 0;
-        transform: translateX(-50%) scale(0.9);
-      }
+      from { opacity: 1; transform: translateX(-50%) scale(1); }
+      to { opacity: 0; transform: translateX(-50%) scale(0.9); }
     }
 
     @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .dropdown-header {
@@ -595,7 +583,6 @@
       flex-wrap: wrap;
     }
 
-    /* Password protection */
     .password-section {
       background: rgba(255, 0, 0, 0.1);
       border: 1px solid rgba(255, 0, 0, 0.3);
@@ -650,7 +637,6 @@
       flex-shrink: 0;
     }
 
-    /* Copia dei colori per la legenda */
     .legend-marker.castle { background: #FFD700; border-color: #FF4500; }
     .legend-marker.construction { background: #1274e2; border-color: #0d5bb8; }
     .legend-marker.production { background: #40df0c; border-color: #2fb309; }
@@ -665,42 +651,19 @@
 
     /* Responsive */
     @media (max-width: 1024px) {
-      .app-layout {
-        grid-template-columns: 1fr;
-      }
-      
-      .calibration-controls {
-        grid-template-columns: repeat(2, 1fr);
-      }
+      .app-layout { grid-template-columns: 1fr; }
+      .calibration-controls { grid-template-columns: repeat(2, 1fr); }
     }
 
     @media (max-width: 768px) {
-      .container {
-        padding: 10px;
-      }
-      
-      .header h1 {
-        font-size: 2rem;
-      }
-      
-      .calibration-controls {
-        grid-template-columns: 1fr;
-      }
-      
-      .calibration-buttons {
-        flex-direction: column;
-      }
-      
-      .controls {
-        flex-direction: column;
-      }
-      
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
+      .container { padding: 10px; }
+      .header h1 { font-size: 2rem; }
+      .calibration-controls { grid-template-columns: 1fr; }
+      .calibration-buttons { flex-direction: column; }
+      .controls { flex-direction: column; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
-    /* Loading Animation */
     .spinner {
       width: 40px;
       height: 40px;
@@ -716,27 +679,17 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Hide/Show sections */
-    .hidden {
-      display: none;
-    }
-
-    .collapsed-content {
-      max-height: 0;
-      overflow: hidden;
-    }
-
-    .expanded-content {
-      max-height: 2000px;
-    }
+    .hidden { display: none; }
+    .collapsed-content { max-height: 0; overflow: hidden; }
+    .expanded-content { max-height: 2000px; }
   </style>
 </head>
 <body>
   <div class="container">
     <!-- Header -->
     <div class="header">
-      <h1>🗺️ Whiteout Survival Companion</h1>
-      <p>Professional alliance management with map calibration</p>
+      <h1 id="main-title">🗺️ Whiteout Survival Companion</h1>
+      <p id="main-subtitle">Professional alliance management with map calibration</p>
     </div>
 
     <!-- App Layout -->
@@ -748,20 +701,20 @@
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-number" id="total-alliances">0</div>
-            <div class="stat-label">Alleanze</div>
+            <div class="stat-label" id="alliances-label">Alleanze</div>
           </div>
           <div class="stat-card">
             <div class="stat-number" id="assigned-facilities">0</div>
-            <div class="stat-label">Assegnate</div>
+            <div class="stat-label" id="assigned-label">Assegnate</div>
           </div>
         </div>
 
         <!-- Alliance Form -->
-        <h3>🏰 Gestione Alleanze</h3>
+        <h3 id="alliance-management-title">🏰 Gestione Alleanze</h3>
         <form class="alliance-form" id="alliance-form">
           <input type="text" id="alliance-name" placeholder="Nome alleanza..." maxlength="30" required>
           <input type="file" id="alliance-icon" accept="image/*">
-          <button type="submit" class="btn btn-primary" style="width: 100%;">
+          <button type="submit" class="btn btn-primary" style="width: 100%;" id="add-alliance-btn">
             ✨ Aggiungi Alleanza
           </button>
         </form>
@@ -775,16 +728,16 @@
         
         <!-- Controls -->
         <div class="controls">
-          <button class="btn btn-success" onclick="exportCSV()">📊 Esporta CSV</button>
-          <button class="btn btn-info" onclick="exportPNG()">🖼️ Esporta PNG</button>
+          <button class="btn btn-success" onclick="exportCSV()" id="export-csv-btn">📊 Esporta CSV</button>
+          <button class="btn btn-info" onclick="exportPNG()" id="export-png-btn">🖼️ Esporta PNG</button>
           <input type="file" id="import-file" accept=".csv" style="display: none;">
-          <button class="btn btn-primary" onclick="document.getElementById('import-file').click()">📥 Importa CSV</button>
-          <button class="btn btn-warning" onclick="toggleLanguageSelector()">🌐 Lingua</button>
+          <button class="btn btn-primary" onclick="document.getElementById('import-file').click()" id="import-csv-btn">📥 Importa CSV</button>
+          <button class="btn btn-warning" onclick="toggleLanguageSelector()" id="language-btn">🌐 Lingua</button>
         </div>
 
-        <!-- Language Selector (Hidden by default) -->
+        <!-- Language Selector -->
         <div id="language-selector" class="glass-card hidden" style="padding: 15px; margin-bottom: 20px;">
-          <h4 style="margin-bottom: 10px;">🌐 Seleziona Lingua</h4>
+          <h4 style="margin-bottom: 10px;" id="select-language-title">🌐 Seleziona Lingua</h4>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
             <button class="btn btn-info" onclick="setLanguage('en')" id="lang-en">🇺🇸 English</button>
             <button class="btn btn-info" onclick="setLanguage('it')" id="lang-it">🇮🇹 Italiano</button>
@@ -798,25 +751,25 @@
         <!-- Map Container -->
         <section class="map-container glass-card">
           <div class="map-header">
-            <h3>🗺️ Mappa Interattiva</h3>
-            <button class="btn btn-info" onclick="toggleLegend()" style="font-size: 12px;">🎨 Legenda</button>
+            <h3 id="map-title">🗺️ Mappa Interattiva</h3>
+            <button class="btn btn-info" onclick="toggleLegend()" style="font-size: 12px;" id="legend-btn">🎨 Legenda</button>
           </div>
           
           <!-- Legend -->
           <div id="map-legend" class="map-legend hidden">
-            <h4>🎨 Legenda Colori Ufficiali del Gioco</h4>
+            <h4 id="legend-title">🎨 Legenda Colori Ufficiali</h4>
             <div class="legend-grid">
-              <div class="legend-item"><div class="legend-marker castle"></div> Castle (Oro)</div>
-              <div class="legend-item"><div class="legend-marker construction"></div> Construction (Blu)</div>
-              <div class="legend-item"><div class="legend-marker production"></div> Production (Verde)</div>
-              <div class="legend-item"><div class="legend-marker defense"></div> Defense (Verde Acqua)</div>
-              <div class="legend-item"><div class="legend-marker gathering"></div> Gathering (Viola Magenta)</div>
-              <div class="legend-item"><div class="legend-marker tech"></div> Research/Tech (Arancione)</div>
-              <div class="legend-item"><div class="legend-marker weapons"></div> Troop Attack (Rosso)</div>
-              <div class="legend-item"><div class="legend-marker training"></div> Training (Giallo)</div>
-              <div class="legend-item"><div class="legend-marker expedition"></div> March/Expedition (Rosa)</div>
-              <div class="legend-item"><div class="legend-marker stronghold"></div> Stronghold (Marrone)</div>
-              <div class="legend-item"><div class="legend-marker fortress"></div> Fortress (Grigio Scuro)</div>
+              <div class="legend-item"><div class="legend-marker castle"></div> <span id="color-castle">Castle (Oro)</span></div>
+              <div class="legend-item"><div class="legend-marker construction"></div> <span id="color-construction">Construction (Blu)</span></div>
+              <div class="legend-item"><div class="legend-marker production"></div> <span id="color-production">Production (Verde)</span></div>
+              <div class="legend-item"><div class="legend-marker defense"></div> <span id="color-defense">Defense (Verde Acqua)</span></div>
+              <div class="legend-item"><div class="legend-marker gathering"></div> <span id="color-gathering">Gathering (Viola)</span></div>
+              <div class="legend-item"><div class="legend-marker tech"></div> <span id="color-tech">Research/Tech (Arancione)</span></div>
+              <div class="legend-item"><div class="legend-marker weapons"></div> <span id="color-weapons">Troop Attack (Rosso)</span></div>
+              <div class="legend-item"><div class="legend-marker training"></div> <span id="color-training">Training (Giallo)</span></div>
+              <div class="legend-item"><div class="legend-marker expedition"></div> <span id="color-expedition">March/Expedition (Rosa)</span></div>
+              <div class="legend-item"><div class="legend-marker stronghold"></div> <span id="color-stronghold">Stronghold (Marrone)</span></div>
+              <div class="legend-item"><div class="legend-marker fortress"></div> <span id="color-fortress">Fortress (Grigio Scuro)</span></div>
             </div>
           </div>
           
@@ -833,7 +786,7 @@
         <!-- Summary Sections -->
         <section class="summary-section glass-card">
           <div class="summary-header" onclick="toggleSection('facility-summary')">
-            <h3>📋 Riepilogo Strutture</h3>
+            <h3 id="facility-summary-title">📋 Riepilogo Strutture</h3>
             <span class="section-toggle" id="facility-toggle">▼</span>
           </div>
           <div id="facility-summary-content" class="summary-content expanded-content">
@@ -843,7 +796,7 @@
 
         <section class="summary-section glass-card">
           <div class="summary-header" onclick="toggleSection('buff-summary')">
-            <h3>⚡ Riepilogo Buff</h3>
+            <h3 id="buff-summary-title">⚡ Riepilogo Buff</h3>
             <span class="section-toggle" id="buff-toggle">▼</span>
           </div>
           <div id="buff-summary-content" class="summary-content expanded-content">
@@ -854,7 +807,7 @@
         <!-- Calibration Section -->
         <section class="calibration-section glass-card">
           <div class="calibration-header">
-            <h3>🔧 Calibrazione Avanzata</h3>
+            <h3 id="calibration-title">🔧 Calibrazione Avanzata</h3>
             <button class="calibration-toggle" onclick="toggleCalibration()">▶</button>
           </div>
           
@@ -866,7 +819,7 @@
               <button class="btn btn-warning" onclick="checkCalibrationPassword()">🔓 Sblocca</button>
             </div>
             
-            <!-- Calibration Controls (Hidden initially) -->
+            <!-- Calibration Controls -->
             <div id="calibration-controls-section" class="hidden">
               <div class="calibration-controls">
                 <div class="control-group">
@@ -903,7 +856,305 @@
   </div>
 
   <script>
-    // === DATA ===
+    // === TRADUZIONI COMPLETE ===
+    const translations = {
+      it: {
+        title: "🗺️ Whiteout Survival Companion",
+        subtitle: "Gestione professionale alleanze con calibrazione mappa",
+        alliances: "Alleanze",
+        assigned: "Assegnate",
+        allianceManagement: "🏰 Gestione Alleanze",
+        allianceName: "Nome alleanza...",
+        addAlliance: "✨ Aggiungi Alleanza",
+        exportCSV: "📊 Esporta CSV",
+        exportPNG: "🖼️ Esporta PNG",
+        importCSV: "📥 Importa CSV",
+        language: "🌐 Lingua",
+        selectLanguage: "🌐 Seleziona Lingua",
+        interactiveMap: "🗺️ Mappa Interattiva",
+        legend: "🎨 Legenda",
+        legendTitle: "🎨 Legenda Colori Ufficiali",
+        facilitySummary: "📋 Riepilogo Strutture",
+        buffSummary: "⚡ Riepilogo Buff",
+        advancedCalibration: "🔧 Calibrazione Avanzata",
+        unassigned: "❌ Non assegnata",
+        // Colori
+        colorCastle: "Castle (Oro)",
+        colorConstruction: "Construction (Blu)",
+        colorProduction: "Production (Verde)",
+        colorDefense: "Defense (Verde Acqua)",
+        colorGathering: "Gathering (Viola)",
+        colorTech: "Research/Tech (Arancione)",
+        colorWeapons: "Troop Attack (Rosso)",
+        colorTraining: "Training (Giallo)",
+        colorExpedition: "March/Expedition (Rosa)",
+        colorStronghold: "Stronghold (Marrone)",
+        colorFortress: "Fortress (Grigio Scuro)",
+        // Messaggi
+        noStructuresLoaded: "Nessuna struttura caricata",
+        noAllianceAssigned: "Nessuna alleanza assegnata",
+        noBuffRecognized: "Nessun buff riconosciuto",
+        structures: "strutture",
+        addAtLeastOneAlliance: "⚠️ Aggiungi almeno un'alleanza prima di assegnare.",
+        enterAllianceName: "Inserisci un nome per l'alleanza",
+        allianceExists: "Alleanza già esistente",
+        maxAlliances: "Massimo 50 alleanze",
+        emptyCsv: "CSV vuoto o non valido",
+        importError: "Errore nell'importazione del CSV",
+        languageSet: "🌐 Lingua impostata!",
+        calibrationUnlocked: "🔓 Calibrazione sbloccata!",
+        wrongPassword: "❌ Password errata!",
+        appLoaded: "🎯 App caricata! {count} strutture con colori ufficiali.",
+        assigned: "assegnate"
+      },
+      en: {
+        title: "🗺️ Whiteout Survival Companion",
+        subtitle: "Professional alliance management with map calibration",
+        alliances: "Alliances",
+        assigned: "Assigned",
+        allianceManagement: "🏰 Alliance Management",
+        allianceName: "Alliance name...",
+        addAlliance: "✨ Add Alliance",
+        exportCSV: "📊 Export CSV",
+        exportPNG: "🖼️ Export PNG",
+        importCSV: "📥 Import CSV",
+        language: "🌐 Language",
+        selectLanguage: "🌐 Select Language",
+        interactiveMap: "🗺️ Interactive Map",
+        legend: "🎨 Legend",
+        legendTitle: "🎨 Official Colors Legend",
+        facilitySummary: "📋 Facility Summary",
+        buffSummary: "⚡ Buff Summary",
+        advancedCalibration: "🔧 Advanced Calibration",
+        unassigned: "❌ Unassigned",
+        // Colori
+        colorCastle: "Castle (Gold)",
+        colorConstruction: "Construction (Blue)",
+        colorProduction: "Production (Green)",
+        colorDefense: "Defense (Teal)",
+        colorGathering: "Gathering (Purple)",
+        colorTech: "Research/Tech (Orange)",
+        colorWeapons: "Troop Attack (Red)",
+        colorTraining: "Training (Yellow)",
+        colorExpedition: "March/Expedition (Pink)",
+        colorStronghold: "Stronghold (Brown)",
+        colorFortress: "Fortress (Dark Gray)",
+        // Messaggi
+        noStructuresLoaded: "No structures loaded",
+        noAllianceAssigned: "No alliance assigned",
+        noBuffRecognized: "No buff recognized",
+        structures: "structures",
+        addAtLeastOneAlliance: "⚠️ Add at least one alliance before assigning.",
+        enterAllianceName: "Enter an alliance name",
+        allianceExists: "Alliance already exists",
+        maxAlliances: "Maximum 50 alliances",
+        emptyCsv: "Empty or invalid CSV",
+        importError: "Error importing CSV",
+        languageSet: "🌐 Language set!",
+        calibrationUnlocked: "🔓 Calibration unlocked!",
+        wrongPassword: "❌ Wrong password!",
+        appLoaded: "🎯 App loaded! {count} structures with official colors.",
+        assigned: "assigned"
+      },
+      es: {
+        title: "🗺️ Whiteout Survival Companion",
+        subtitle: "Gestión profesional de alianzas con calibración de mapa",
+        alliances: "Alianzas",
+        assigned: "Asignadas",
+        allianceManagement: "🏰 Gestión de Alianzas",
+        allianceName: "Nombre de alianza...",
+        addAlliance: "✨ Agregar Alianza",
+        exportCSV: "📊 Exportar CSV",
+        exportPNG: "🖼️ Exportar PNG",
+        importCSV: "📥 Importar CSV",
+        language: "🌐 Idioma",
+        selectLanguage: "🌐 Seleccionar Idioma",
+        interactiveMap: "🗺️ Mapa Interactivo",
+        legend: "🎨 Leyenda",
+        legendTitle: "🎨 Leyenda Colores Oficiales",
+        facilitySummary: "📋 Resumen de Instalaciones",
+        buffSummary: "⚡ Resumen de Buff",
+        advancedCalibration: "🔧 Calibración Avanzada",
+        unassigned: "❌ Sin asignar",
+        // Colori
+        colorCastle: "Castle (Oro)",
+        colorConstruction: "Construction (Azul)",
+        colorProduction: "Production (Verde)",
+        colorDefense: "Defense (Verde Agua)",
+        colorGathering: "Gathering (Púrpura)",
+        colorTech: "Research/Tech (Naranja)",
+        colorWeapons: "Troop Attack (Rojo)",
+        colorTraining: "Training (Amarillo)",
+        colorExpedition: "March/Expedition (Rosa)",
+        colorStronghold: "Stronghold (Marrón)",
+        colorFortress: "Fortress (Gris Oscuro)",
+        // Messaggi
+        noStructuresLoaded: "No hay estructuras cargadas",
+        noAllianceAssigned: "No hay alianza asignada",
+        noBuffRecognized: "No hay buff reconocido",
+        structures: "estructuras",
+        addAtLeastOneAlliance: "⚠️ Agrega al menos una alianza antes de asignar.",
+        enterAllianceName: "Ingresa un nombre de alianza",
+        allianceExists: "La alianza ya existe",
+        maxAlliances: "Máximo 50 alianzas",
+        emptyCsv: "CSV vacío o inválido",
+        importError: "Error al importar CSV",
+        languageSet: "🌐 ¡Idioma establecido!",
+        calibrationUnlocked: "🔓 ¡Calibración desbloqueada!",
+        wrongPassword: "❌ ¡Contraseña incorrecta!",
+        appLoaded: "🎯 ¡App cargada! {count} estructuras con colores oficiales.",
+        assigned: "asignadas"
+      },
+      fr: {
+        title: "🗺️ Whiteout Survival Companion",
+        subtitle: "Gestion professionnelle d'alliances avec calibrage de carte",
+        alliances: "Alliances",
+        assigned: "Assignées",
+        allianceManagement: "🏰 Gestion des Alliances",
+        allianceName: "Nom d'alliance...",
+        addAlliance: "✨ Ajouter Alliance",
+        exportCSV: "📊 Exporter CSV",
+        exportPNG: "🖼️ Exporter PNG",
+        importCSV: "📥 Importer CSV",
+        language: "🌐 Langue",
+        selectLanguage: "🌐 Sélectionner la Langue",
+        interactiveMap: "🗺️ Carte Interactive",
+        legend: "🎨 Légende",
+        legendTitle: "🎨 Légende Couleurs Officielles",
+        facilitySummary: "📋 Résumé des Installations",
+        buffSummary: "⚡ Résumé des Buff",
+        advancedCalibration: "🔧 Calibrage Avancé",
+        unassigned: "❌ Non assignée",
+        // Colori
+        colorCastle: "Castle (Or)",
+        colorConstruction: "Construction (Bleu)",
+        colorProduction: "Production (Vert)",
+        colorDefense: "Defense (Vert d'Eau)",
+        colorGathering: "Gathering (Violet)",
+        colorTech: "Research/Tech (Orange)",
+        colorWeapons: "Troop Attack (Rouge)",
+        colorTraining: "Training (Jaune)",
+        colorExpedition: "March/Expedition (Rose)",
+        colorStronghold: "Stronghold (Marron)",
+        colorFortress: "Fortress (Gris Foncé)",
+        // Messaggi
+        noStructuresLoaded: "Aucune structure chargée",
+        noAllianceAssigned: "Aucune alliance assignée",
+        noBuffRecognized: "Aucun buff reconnu",
+        structures: "structures",
+        addAtLeastOneAlliance: "⚠️ Ajoutez au moins une alliance avant d'assigner.",
+        enterAllianceName: "Entrez un nom d'alliance",
+        allianceExists: "L'alliance existe déjà",
+        maxAlliances: "Maximum 50 alliances",
+        emptyCsv: "CSV vide ou invalide",
+        importError: "Erreur lors de l'importation CSV",
+        languageSet: "🌐 Langue définie !",
+        calibrationUnlocked: "🔓 Calibrage débloqué !",
+        wrongPassword: "❌ Mot de passe incorrect !",
+        appLoaded: "🎯 App chargée ! {count} structures avec couleurs officielles.",
+        assigned: "assignées"
+      },
+      de: {
+        title: "🗺️ Whiteout Survival Companion",
+        subtitle: "Professionelle Allianz-Verwaltung mit Kartenkalibrierung",
+        alliances: "Allianzen",
+        assigned: "Zugewiesen",
+        allianceManagement: "🏰 Allianz-Verwaltung",
+        allianceName: "Allianzname...",
+        addAlliance: "✨ Allianz Hinzufügen",
+        exportCSV: "📊 CSV Exportieren",
+        exportPNG: "🖼️ PNG Exportieren",
+        importCSV: "📥 CSV Importieren",
+        language: "🌐 Sprache",
+        selectLanguage: "🌐 Sprache Auswählen",
+        interactiveMap: "🗺️ Interaktive Karte",
+        legend: "🎨 Legende",
+        legendTitle: "🎨 Offizielle Farben Legende",
+        facilitySummary: "📋 Anlagen-Zusammenfassung",
+        buffSummary: "⚡ Buff-Zusammenfassung",
+        advancedCalibration: "🔧 Erweiterte Kalibrierung",
+        unassigned: "❌ Nicht zugewiesen",
+        // Colori
+        colorCastle: "Castle (Gold)",
+        colorConstruction: "Construction (Blau)",
+        colorProduction: "Production (Grün)",
+        colorDefense: "Defense (Türkis)",
+        colorGathering: "Gathering (Lila)",
+        colorTech: "Research/Tech (Orange)",
+        colorWeapons: "Troop Attack (Rot)",
+        colorTraining: "Training (Gelb)",
+        colorExpedition: "March/Expedition (Rosa)",
+        colorStronghold: "Stronghold (Braun)",
+        colorFortress: "Fortress (Dunkelgrau)",
+        // Messaggi
+        noStructuresLoaded: "Keine Strukturen geladen",
+        noAllianceAssigned: "Keine Allianz zugewiesen",
+        noBuffRecognized: "Kein Buff erkannt",
+        structures: "Strukturen",
+        addAtLeastOneAlliance: "⚠️ Fügen Sie mindestens eine Allianz hinzu, bevor Sie zuweisen.",
+        enterAllianceName: "Geben Sie einen Allianznamen ein",
+        allianceExists: "Allianz existiert bereits",
+        maxAlliances: "Maximal 50 Allianzen",
+        emptyCsv: "Leere oder ungültige CSV",
+        importError: "Fehler beim CSV-Import",
+        languageSet: "🌐 Sprache eingestellt!",
+        calibrationUnlocked: "🔓 Kalibrierung freigeschaltet!",
+        wrongPassword: "❌ Falsches Passwort!",
+        appLoaded: "🎯 App geladen! {count} Strukturen mit offiziellen Farben.",
+        assigned: "zugewiesen"
+      },
+      pt: {
+        title: "🗺️ Whiteout Survival Companion",
+        subtitle: "Gestão profissional de alianças com calibração de mapa",
+        alliances: "Alianças",
+        assigned: "Atribuídas",
+        allianceManagement: "🏰 Gestão de Alianças",
+        allianceName: "Nome da aliança...",
+        addAlliance: "✨ Adicionar Aliança",
+        exportCSV: "📊 Exportar CSV",
+        exportPNG: "🖼️ Exportar PNG",
+        importCSV: "📥 Importar CSV",
+        language: "🌐 Idioma",
+        selectLanguage: "🌐 Selecionar Idioma",
+        interactiveMap: "🗺️ Mapa Interativo",
+        legend: "🎨 Legenda",
+        legendTitle: "🎨 Legenda Cores Oficiais",
+        facilitySummary: "📋 Resumo de Instalações",
+        buffSummary: "⚡ Resumo de Buff",
+        advancedCalibration: "🔧 Calibração Avançada",
+        unassigned: "❌ Não atribuída",
+        // Colori
+        colorCastle: "Castle (Ouro)",
+        colorConstruction: "Construction (Azul)",
+        colorProduction: "Production (Verde)",
+        colorDefense: "Defense (Verde Água)",
+        colorGathering: "Gathering (Roxo)",
+        colorTech: "Research/Tech (Laranja)",
+        colorWeapons: "Troop Attack (Vermelho)",
+        colorTraining: "Training (Amarelo)",
+        colorExpedition: "March/Expedition (Rosa)",
+        colorStronghold: "Stronghold (Marrom)",
+        colorFortress: "Fortress (Cinza Escuro)",
+        // Messaggi
+        noStructuresLoaded: "Nenhuma estrutura carregada",
+        noAllianceAssigned: "Nenhuma aliança atribuída",
+        noBuffRecognized: "Nenhum buff reconhecido",
+        structures: "estruturas",
+        addAtLeastOneAlliance: "⚠️ Adicione pelo menos uma aliança antes de atribuir.",
+        enterAllianceName: "Digite um nome de aliança",
+        allianceExists: "Aliança já existe",
+        maxAlliances: "Máximo 50 alianças",
+        emptyCsv: "CSV vazio ou inválido",
+        importError: "Erro ao importar CSV",
+        languageSet: "🌐 Idioma definido!",
+        calibrationUnlocked: "🔓 Calibração desbloqueada!",
+        wrongPassword: "❌ Senha incorreta!",
+        appLoaded: "🎯 App carregado! {count} estruturas com cores oficiais.",
+        assigned: "atribuídas"
+      }
+    };
+
+    // === DATI ===
     const facilityData = [
       { "Type": "Castle", "Level": "Lv.1", "x": 50.06, "y": 48.79, "ingameCoords": "X:597 Y:597" },
       { "Type": "Construction", "Level": "Lv.1", "x": 50.19, "y": 12.48, "ingameCoords": "X:168 Y:168" },
@@ -984,18 +1235,18 @@
       { "Type": "Stronghold", "Level": "Lv.2", "x": 42.25, "y": 57.61 },
       { "Type": "Stronghold", "Level": "Lv.3", "x": 57.63, "y": 57.61 },
       { "Type": "Stronghold", "Level": "Lv.4", "x": 58, "y": 41.39 },
-      { "Type": "Fortress", "Level": "Lv.1", "x": 26.63, "y": 54.97 },
-      { "Type": "Fortress", "Level": "Lv.2", "x": 35.13, "y": 63.6 },
-      { "Type": "Fortress", "Level": "Lv.3", "x": 45.63, "y": 74.01 },
-      { "Type": "Fortress", "Level": "Lv.4", "x": 55.38, "y": 73.65 },
-      { "Type": "Fortress", "Level": "Lv.5", "x": 64, "y": 64.31 },
-      { "Type": "Fortress", "Level": "Lv.6", "x": 74.25, "y": 54.08 },
-      { "Type": "Fortress", "Level": "Lv.7", "x": 74.25, "y": 45.45 },
-      { "Type": "Fortress", "Level": "Lv.8", "x": 64.13, "y": 35.22 },
-      { "Type": "Fortress", "Level": "Lv.9", "x": 55.25, "y": 26.23 },
-      { "Type": "Fortress", "Level": "Lv.10", "x": 45.63, "y": 25.35 },
-      { "Type": "Fortress", "Level": "Lv.11", "x": 35.88, "y": 34.87 },
-      { "Type": "Fortress", "Level": "Lv.12", "x": 26.38, "y": 44.21 }
+      { "Type": "Fortress", "Level": "Lv.1", "x": 26.63, "y": 54.97, "ingameCoords": "X:240 Y:831" },
+      { "Type": "Fortress", "Level": "Lv.2", "x": 35.13, "y": 63.6, "ingameCoords": "X:240 Y:609" },
+      { "Type": "Fortress", "Level": "Lv.3", "x": 45.63, "y": 74.01, "ingameCoords": "X:240 Y:351" },
+      { "Type": "Fortress", "Level": "Lv.4", "x": 55.38, "y": 73.65, "ingameCoords": "X:369 Y:240" },
+      { "Type": "Fortress", "Level": "Lv.5", "x": 64, "y": 64.31, "ingameCoords": "X:591 Y:240" },
+      { "Type": "Fortress", "Level": "Lv.6", "x": 74.25, "y": 54.08, "ingameCoords": "X:849 Y:240" },
+      { "Type": "Fortress", "Level": "Lv.7", "x": 74.25, "y": 45.45, "ingameCoords": "X:960 Y:351" },
+      { "Type": "Fortress", "Level": "Lv.8", "x": 64.13, "y": 35.22, "ingameCoords": "X:960 Y:609" },
+      { "Type": "Fortress", "Level": "Lv.9", "x": 55.25, "y": 26.23, "ingameCoords": "X:960 Y:831" },
+      { "Type": "Fortress", "Level": "Lv.10", "x": 45.63, "y": 25.35, "ingameCoords": "X:849 Y:960" },
+      { "Type": "Fortress", "Level": "Lv.11", "x": 35.88, "y": 34.87, "ingameCoords": "X:609 Y:960" },
+      { "Type": "Fortress", "Level": "Lv.12", "x": 26.38, "y": 44.21, "ingameCoords": "X:369 Y:960" }
     ];
 
     const buffValues = {
@@ -1013,142 +1264,13 @@
       "Expedition|Lv.3": "+15%"
     };
 
-    // === LANGUAGE SYSTEM ===
-    const translations = {
-      en: {
-        title: "🗺️ Whiteout Survival Companion",
-        subtitle: "Professional alliance management with map calibration",
-        alliances: "Alliances",
-        assigned: "Assigned",
-        allianceManagement: "🏰 Alliance Management",
-        allianceName: "Alliance name...",
-        addAlliance: "✨ Add Alliance",
-        exportCSV: "📊 Export CSV",
-        exportPNG: "🖼️ Export PNG", 
-        importCSV: "📥 Import CSV",
-        language: "🌐 Language",
-        interactiveMap: "🗺️ Interactive Map",
-        legend: "🎨 Legend",
-        facilitySummary: "📋 Facility Summary",
-        buffSummary: "⚡ Buff Summary",
-        advancedCalibration: "🔧 Advanced Calibration",
-        unassigned: "❌ Unassigned",
-        coordinates: "Coordinates"
-      },
-      it: {
-        title: "🗺️ Whiteout Survival Companion", 
-        subtitle: "Gestione professionale alleanze con calibrazione mappa",
-        alliances: "Alleanze",
-        assigned: "Assegnate", 
-        allianceManagement: "🏰 Gestione Alleanze",
-        allianceName: "Nome alleanza...",
-        addAlliance: "✨ Aggiungi Alleanza",
-        exportCSV: "📊 Esporta CSV",
-        exportPNG: "🖼️ Esporta PNG",
-        importCSV: "📥 Importa CSV", 
-        language: "🌐 Lingua",
-        interactiveMap: "🗺️ Mappa Interattiva",
-        legend: "🎨 Legenda",
-        facilitySummary: "📋 Riepilogo Strutture",
-        buffSummary: "⚡ Riepilogo Buff", 
-        advancedCalibration: "🔧 Calibrazione Avanzata",
-        unassigned: "❌ Non assegnata",
-        coordinates: "Coordinate"
-      },
-      es: {
-        title: "🗺️ Whiteout Survival Companion",
-        subtitle: "Gestión profesional de alianzas con calibración de mapa", 
-        alliances: "Alianzas",
-        assigned: "Asignadas",
-        allianceManagement: "🏰 Gestión de Alianzas",
-        allianceName: "Nombre de alianza...",
-        addAlliance: "✨ Agregar Alianza",
-        exportCSV: "📊 Exportar CSV",
-        exportPNG: "🖼️ Exportar PNG",
-        importCSV: "📥 Importar CSV",
-        language: "🌐 Idioma", 
-        interactiveMap: "🗺️ Mapa Interactivo",
-        legend: "🎨 Leyenda",
-        facilitySummary: "📋 Resumen de Instalaciones",
-        buffSummary: "⚡ Resumen de Buff",
-        advancedCalibration: "🔧 Calibración Avanzada", 
-        unassigned: "❌ Sin asignar",
-        coordinates: "Coordenadas"
-      },
-      fr: {
-        title: "🗺️ Whiteout Survival Companion",
-        subtitle: "Gestion professionnelle d'alliances avec calibrage de carte",
-        alliances: "Alliances", 
-        assigned: "Assignées",
-        allianceManagement: "🏰 Gestion des Alliances",
-        allianceName: "Nom d'alliance...",
-        addAlliance: "✨ Ajouter Alliance",
-        exportCSV: "📊 Exporter CSV",
-        exportPNG: "🖼️ Exporter PNG",
-        importCSV: "📥 Importer CSV",
-        language: "🌐 Langue",
-        interactiveMap: "🗺️ Carte Interactive", 
-        legend: "🎨 Légende",
-        facilitySummary: "📋 Résumé des Installations",
-        buffSummary: "⚡ Résumé des Buff",
-        advancedCalibration: "🔧 Calibrage Avancé",
-        unassigned: "❌ Non assignée",
-        coordinates: "Coordonnées"
-      },
-      de: {
-        title: "🗺️ Whiteout Survival Companion",
-        subtitle: "Professionelle Allianz-Verwaltung mit Kartenkalibrierung",
-        alliances: "Allianzen",
-        assigned: "Zugewiesen",
-        allianceManagement: "🏰 Allianz-Verwaltung", 
-        allianceName: "Allianzname...",
-        addAlliance: "✨ Allianz Hinzufügen", 
-        exportCSV: "📊 CSV Exportieren",
-        exportPNG: "🖼️ PNG Exportieren",
-        importCSV: "📥 CSV Importieren",
-        language: "🌐 Sprache",
-        interactiveMap: "🗺️ Interaktive Karte",
-        legend: "🎨 Legende", 
-        facilitySummary: "📋 Anlagen-Zusammenfassung",
-        buffSummary: "⚡ Buff-Zusammenfassung",
-        advancedCalibration: "🔧 Erweiterte Kalibrierung",
-        unassigned: "❌ Nicht zugewiesen",
-        coordinates: "Koordinaten"
-      },
-      pt: {
-        title: "🗺️ Whiteout Survival Companion",
-        subtitle: "Gestão profissional de alianças com calibração de mapa",
-        alliances: "Alianças",
-        assigned: "Atribuídas",
-        allianceManagement: "🏰 Gestão de Alianças",
-        allianceName: "Nome da aliança...",
-        addAlliance: "✨ Adicionar Aliança",
-        exportCSV: "📊 Exportar CSV", 
-        exportPNG: "🖼️ Exportar PNG",
-        importCSV: "📥 Importar CSV",
-        language: "🌐 Idioma",
-        interactiveMap: "🗺️ Mapa Interativo",
-        legend: "🎨 Legenda",
-        facilitySummary: "📋 Resumo de Instalações", 
-        buffSummary: "⚡ Resumo de Buff",
-        advancedCalibration: "🔧 Calibração Avançada",
-        unassigned: "❌ Não atribuída", 
-        coordinates: "Coordenadas"
-      }
-    };
-
-    // === STATE ===
+    // === STATO ===
     const alliances = [];
-    let calibrationSettings = {
-      offsetX: 0,
-      offsetY: 0.7,
-      scaleX: 1.0,
-      scaleY: 1.0
-    };
+    let calibrationSettings = { offsetX: 0, offsetY: 0.7, scaleX: 1.0, scaleY: 1.0 };
     let calibrationUnlocked = false;
     let currentLanguage = 'it';
 
-    // === UTILITY FUNCTIONS ===
+    // === FUNZIONI UTILITIES ===
     function getRandomColor() {
       const colors = ['#d7263d', '#0074d9', '#2ecc71', '#ff851b', '#7fdbff', '#b10dc9'];
       return colors[Math.floor(Math.random() * colors.length)];
@@ -1162,7 +1284,7 @@
                                   'rgba(79, 172, 254, 0.2)';
     }
 
-    // === LANGUAGE FUNCTIONS ===
+    // === SISTEMA LINGUE ===
     function toggleLanguageSelector() {
       const selector = document.getElementById('language-selector');
       if (selector.classList.contains('hidden')) {
@@ -1170,9 +1292,7 @@
         selector.style.animation = 'fadeIn 0.3s ease';
       } else {
         selector.style.animation = 'fadeOut 0.3s ease';
-        setTimeout(() => {
-          selector.classList.add('hidden');
-        }, 300);
+        setTimeout(() => selector.classList.add('hidden'), 300);
       }
     }
 
@@ -1180,12 +1300,10 @@
       currentLanguage = lang;
       updateUILanguage();
       localStorage.setItem('whiteout-language', lang);
-      showStatus(`🌐 Lingua impostata!`, 'success');
+      showStatus(translations[lang].languageSet, 'success');
       
-      // Hide language selector
       document.getElementById('language-selector').classList.add('hidden');
       
-      // Update button states
       document.querySelectorAll('[id^="lang-"]').forEach(btn => {
         btn.classList.remove('btn-success');
         btn.classList.add('btn-info');
@@ -1200,70 +1318,63 @@
     function updateUILanguage() {
       const t = translations[currentLanguage];
       
-      // Update main titles and labels
-      const titleEl = document.querySelector('.header h1');
-      if (titleEl) titleEl.textContent = t.title;
+      // Titoli principali
+      document.getElementById('main-title').textContent = t.title;
+      document.getElementById('main-subtitle').textContent = t.subtitle;
       
-      const subtitleEl = document.querySelector('.header p');
-      if (subtitleEl) subtitleEl.textContent = t.subtitle;
+      // Stats e form
+      document.getElementById('alliances-label').textContent = t.alliances;
+      document.getElementById('assigned-label').textContent = t.assigned;
+      document.getElementById('alliance-management-title').textContent = t.allianceManagement;
+      document.getElementById('alliance-name').placeholder = t.allianceName;
+      document.getElementById('add-alliance-btn').innerHTML = t.addAlliance;
       
-      // Update stats labels
-      const alliancesStat = document.querySelector('#total-alliances').nextElementSibling;
-      if (alliancesStat) alliancesStat.textContent = t.alliances;
+      // Pulsanti controlli
+      document.getElementById('export-csv-btn').innerHTML = t.exportCSV;
+      document.getElementById('export-png-btn').innerHTML = t.exportPNG;
+      document.getElementById('import-csv-btn').innerHTML = t.importCSV;
+      document.getElementById('language-btn').innerHTML = t.language;
       
-      const assignedStat = document.querySelector('#assigned-facilities').nextElementSibling;
-      if (assignedStat) assignedStat.textContent = t.assigned;
+      // Selettore lingua
+      document.getElementById('select-language-title').textContent = t.selectLanguage;
       
-      // Update form and buttons
-      const managementTitle = document.querySelector('h3');
-      if (managementTitle) managementTitle.textContent = t.allianceManagement;
+      // Mappa
+      document.getElementById('map-title').textContent = t.interactiveMap;
+      document.getElementById('legend-btn').innerHTML = `🎨 ${t.legend}`;
+      document.getElementById('legend-title').textContent = t.legendTitle;
       
-      const nameInput = document.getElementById('alliance-name');
-      if (nameInput) nameInput.placeholder = t.allianceName;
+      // Colori legenda
+      document.getElementById('color-castle').textContent = t.colorCastle;
+      document.getElementById('color-construction').textContent = t.colorConstruction;
+      document.getElementById('color-production').textContent = t.colorProduction;
+      document.getElementById('color-defense').textContent = t.colorDefense;
+      document.getElementById('color-gathering').textContent = t.colorGathering;
+      document.getElementById('color-tech').textContent = t.colorTech;
+      document.getElementById('color-weapons').textContent = t.colorWeapons;
+      document.getElementById('color-training').textContent = t.colorTraining;
+      document.getElementById('color-expedition').textContent = t.colorExpedition;
+      document.getElementById('color-stronghold').textContent = t.colorStronghold;
+      document.getElementById('color-fortress').textContent = t.colorFortress;
       
-      const addBtn = document.querySelector('.alliance-form button');
-      if (addBtn) addBtn.innerHTML = t.addAlliance;
+      // Riepiloghi
+      document.getElementById('facility-summary-title').textContent = t.facilitySummary;
+      document.getElementById('buff-summary-title').textContent = t.buffSummary;
+      document.getElementById('calibration-title').textContent = t.advancedCalibration;
       
-      // Update control buttons
-      const exportBtn = document.querySelector('button[onclick="exportCSV()"]');
-      if (exportBtn) exportBtn.innerHTML = t.exportCSV;
-      
-      const pngBtn = document.querySelector('button[onclick="exportPNG()"]');
-      if (pngBtn) pngBtn.innerHTML = t.exportPNG;
-      
-      const importBtn = document.querySelector('button[onclick*="import-file"]');
-      if (importBtn) importBtn.innerHTML = t.importCSV;
-      
-      const langBtn = document.querySelector('button[onclick="toggleLanguageSelector()"]');
-      if (langBtn) langBtn.innerHTML = t.language;
-      
-      // Update map section
-      const mapHeader = document.querySelector('.map-header h3');
-      if (mapHeader) mapHeader.textContent = t.interactiveMap;
-      
-      const legendBtn = document.querySelector('button[onclick="toggleLegend()"]');
-      if (legendBtn) legendBtn.innerHTML = `🎨 ${t.legend}`;
-      
-      // Update summary sections
-      const facilitySummaryHeaders = document.querySelectorAll('h3');
-      if (facilitySummaryHeaders[1]) facilitySummaryHeaders[1].textContent = t.facilitySummary;
-      if (facilitySummaryHeaders[2]) facilitySummaryHeaders[2].textContent = t.buffSummary;
-      
-      // Update calibration section
-      const calibrationHeader = document.querySelector('.calibration-header h3');
-      if (calibrationHeader) calibrationHeader.textContent = t.advancedCalibration;
+      // Aggiorna i riepiloghi
+      updateSummaries();
     }
 
-    // === CALIBRATION FUNCTIONS ===
+    // === CALIBRAZIONE ===
     function checkCalibrationPassword() {
       const password = document.getElementById('calibration-password').value;
       if (password === 'calibration') {
         calibrationUnlocked = true;
         document.getElementById('password-section').classList.add('hidden');
         document.getElementById('calibration-controls-section').classList.remove('hidden');
-        showStatus('🔓 Calibrazione sbloccata!', 'success');
+        showStatus(translations[currentLanguage].calibrationUnlocked, 'success');
       } else {
-        showStatus('❌ Password errata!', 'error');
+        showStatus(translations[currentLanguage].wrongPassword, 'error');
         document.getElementById('calibration-password').value = '';
       }
     }
@@ -1372,13 +1483,11 @@
         legend.style.animation = 'fadeIn 0.3s ease';
       } else {
         legend.style.animation = 'fadeOut 0.3s ease';
-        setTimeout(() => {
-          legend.classList.add('hidden');
-        }, 300);
+        setTimeout(() => legend.classList.add('hidden'), 300);
       }
     }
 
-    // === MARKER FUNCTIONS ===
+    // === MARKER ===
     function createMarker(facility, index) {
       const mapWrapper = document.getElementById('map-wrapper');
       if (!mapWrapper) return;
@@ -1425,8 +1534,9 @@
     }
 
     function showDropdown(facility, marker, index) {
+      const t = translations[currentLanguage];
       if (alliances.length === 0) {
-        showStatus('⚠️ Aggiungi almeno un\'alleanza.', 'error');
+        showStatus(t.addAtLeastOneAlliance, 'error');
         return;
       }
 
@@ -1456,7 +1566,7 @@
       // Opzione per rimuovere assegnazione
       const unassignOption = document.createElement('div');
       unassignOption.className = 'dropdown-option unassign';
-      unassignOption.innerHTML = `❌ ${translations[currentLanguage].unassigned}`;
+      unassignOption.innerHTML = t.unassigned;
       if (!facility.Alliance) {
         unassignOption.classList.add('selected');
       }
@@ -1551,7 +1661,7 @@
       }
     }
 
-    // === ALLIANCE MANAGEMENT ===
+    // === GESTIONE ALLEANZE ===
     function renderAllianceList() {
       const list = document.getElementById('alliance-list');
       list.innerHTML = '';
@@ -1561,11 +1671,12 @@
         li.className = 'alliance-item';
         
         const assignedCount = facilityData.filter(f => f.Alliance === alliance.name).length;
+        const t = translations[currentLanguage];
         
         li.innerHTML = `
           <img src="${alliance.icon}" alt="${alliance.name}">
           <span class="alliance-name">${alliance.name}</span>
-          <span style="font-size: 11px; color: var(--text-secondary);">${assignedCount} assegnate</span>
+          <span style="font-size: 11px; color: var(--text-secondary);">${assignedCount} ${t.assigned}</span>
           <div class="alliance-actions">
             <button class="action-btn edit-btn" onclick="editAlliance(${index})">✏️</button>
             <button class="action-btn delete-btn" onclick="deleteAlliance(${index})">🗑️</button>
@@ -1598,6 +1709,7 @@
     function deleteAlliance(index) {
       const alliance = alliances[index];
       const assignedCount = facilityData.filter(f => f.Alliance === alliance.name).length;
+      const t = translations[currentLanguage];
       
       let confirmMsg = `Eliminare "${alliance.name}"?`;
       if (assignedCount > 0) {
@@ -1623,7 +1735,7 @@
       }
     }
 
-    // === UI UPDATES ===
+    // === AGGIORNAMENTI UI ===
     function updateStats() {
       document.getElementById('total-alliances').textContent = alliances.length;
       document.getElementById('assigned-facilities').textContent = 
@@ -1637,6 +1749,7 @@
 
     function renderFacilitySummary() {
       const container = document.getElementById('facility-summary');
+      const t = translations[currentLanguage];
       
       const grouped = {};
       facilityData.forEach(f => {
@@ -1649,7 +1762,7 @@
         const assigned = facilities.filter(f => f.Alliance).length;
         html += `
           <div style="margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
-            <strong>${type}</strong> (${assigned}/${facilities.length} assegnate)
+            <strong>${type}</strong> (${assigned}/${facilities.length} ${t.assigned})
             <div style="margin-top: 5px; font-size: 12px;">
               ${facilities.map(f => 
                 `<span style="margin-right: 10px; ${f.Alliance ? 'color: #43e97b' : 'color: var(--text-secondary)'}">
@@ -1661,11 +1774,12 @@
         `;
       });
       
-      container.innerHTML = html || '<p>Nessuna struttura caricata</p>';
+      container.innerHTML = html || `<p>${t.noStructuresLoaded}</p>`;
     }
 
     function renderBuffSummary() {
       const container = document.getElementById('buff-summary');
+      const t = translations[currentLanguage];
       const byAlliance = {};
 
       facilityData.forEach(f => {
@@ -1685,15 +1799,15 @@
         html += `
           <div style="margin-bottom: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
             <strong style="color: #43e97b;">${alliance}</strong><br>
-            <span style="font-size: 14px; color: var(--text-secondary);">${buffs || 'Nessun buff riconosciuto'}</span>
+            <span style="font-size: 14px; color: var(--text-secondary);">${buffs || t.noBuffRecognized}</span>
             <div style="margin-top: 8px; font-size: 12px;">
-              ${facilities.length} strutture: ${[...unique].join(', ')}
+              ${facilities.length} ${t.structures}: ${[...unique].join(', ')}
             </div>
           </div>
         `;
       });
 
-      container.innerHTML = html || '<p>Nessuna alleanza assegnata</p>';
+      container.innerHTML = html || `<p>${t.noAllianceAssigned}</p>`;
     }
 
     function toggleSection(sectionId) {
@@ -1713,7 +1827,7 @@
       }
     }
 
-    // === DATA PERSISTENCE ===
+    // === PERSISTENZA DATI ===
     function saveData() {
       const data = {
         alliances: alliances,
@@ -1773,7 +1887,7 @@
       }
     }
 
-    // === EXPORT FUNCTIONS ===
+    // === FUNZIONI EXPORT ===
     function exportCSV() {
       const csvContent = "Type,Level,X,Y,Alliance\n" + 
         facilityData.map(f => `${f.Type},${f.Level},${f.x},${f.y},${f.Alliance || ""}`).join("\n");
@@ -1796,23 +1910,24 @@
     // === EVENT LISTENERS ===
     document.getElementById('alliance-form').addEventListener('submit', (e) => {
       e.preventDefault();
+      const t = translations[currentLanguage];
       
       const nameInput = document.getElementById('alliance-name');
       const name = nameInput.value.trim();
       const file = document.getElementById('alliance-icon').files[0];
       
       if (!name) {
-        alert('Inserisci un nome per l\'alleanza');
+        alert(t.enterAllianceName);
         return;
       }
       
       if (alliances.find(a => a.name.toLowerCase() === name.toLowerCase())) {
-        alert('Alleanza già esistente');
+        alert(t.allianceExists);
         return;
       }
       
       if (alliances.length >= 50) {
-        alert('Massimo 50 alleanze');
+        alert(t.maxAlliances);
         return;
       }
       
@@ -1847,6 +1962,7 @@
     document.getElementById('import-file').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
+      const t = translations[currentLanguage];
       
       const reader = new FileReader();
       reader.onload = (evt) => {
@@ -1855,7 +1971,7 @@
           const lines = csv.split('\n').filter(line => line.trim());
           
           if (lines.length < 2) {
-            alert("CSV vuoto o non valido");
+            alert(t.emptyCsv);
             return;
           }
           
@@ -1922,7 +2038,7 @@
           
         } catch (error) {
           console.error("Import error:", error);
-          alert("Errore nell'importazione del CSV");
+          alert(t.importError);
         }
       };
       
@@ -1964,7 +2080,7 @@
       }
     });
 
-    // === INITIALIZATION ===
+    // === INIZIALIZZAZIONE ===
     document.addEventListener('DOMContentLoaded', () => {
       console.log('=== WHITEOUT COMPANION INIT ===');
       
@@ -2004,7 +2120,8 @@
         updateUILanguage();
         setLanguage(currentLanguage);
         
-        showStatus(`🎯 App caricata! ${createdCount} strutture con colori ufficiali.`, 'success');
+        const t = translations[currentLanguage];
+        showStatus(t.appLoaded.replace('{count}', createdCount), 'success');
         
         console.log('Calibrazione caricata:', calibrationSettings);
         console.log('Alleanze caricate:', alliances.length);
