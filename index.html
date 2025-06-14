@@ -109,8 +109,7 @@
           </div>
           
           <div class="map-wrapper" id="map-wrapper">
-            <img src="assets/map.png" id="map" alt="Whiteout Survival Map" 
-                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNDQ0Ii8+PHRleHQgeD0iNTAlIiB5PSI0NSUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk1hcHBhIGRlbCBHaW9jbzwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjU1JSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjY2NjIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+U29zdGl0dWlyZSBjb24gbGEgbWFwcGEgdmVyYSAoYXNzZXRzL21hcC5wbmcpPC90ZXh0Pjwvc3ZnPic;">
+            <img src="assets/map.png" id="map" alt="Whiteout Survival Map" onload="handleMapLoad()" onerror="handleMapError()">
           </div>
         </section>
 
@@ -185,6 +184,8 @@
       </main>
     </div>
   </div>
+
+<!-- Scripts -->
 <script src="js/translations.js"></script>
 <script src="js/data.js"></script>
 <script src="js/utilities.js"></script>
@@ -193,5 +194,7 @@
 <script src="js/markers.js"></script>
 <script src="js/alliances.js"></script>
 <script src="js/app.js"></script>
+<script src="js/mapfallback.js"></script>
+
 </body>
 </html>
