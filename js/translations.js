@@ -66,7 +66,25 @@ const translations = {
     allianceCreated: "Alleanza creata",
     csvExported: "📊 CSV esportato con successo!",
     pngExportInDevelopment: "🖼️ Funzione esportazione PNG in sviluppo",
-    importSuccess: "Importazione completata"
+    importSuccess: "Importazione completata",
+
+    //Reset
+    resetAssignments: "Reset Assegnazioni",
+    noAssignmentsToReset: "⚠️ Nessuna assegnazione da resettare",
+    resetConfirmationTitle: "🗑️ Conferma Reset Totale",
+    resetConfirmationMessage: "Questa azione rimuoverà TUTTE le assegnazioni di alleanze dalle strutture. Sarà possibile annullare per 10 secondi.",
+    assignedStructures: "Strutture Assegnate",
+    alliancesAffected: "Alleanze Coinvolte", 
+    willRemainFree: "Rimarranno Libere",
+    resetWarning: "⚠️ Per confermare, digita \"RESET\" qui sotto:",
+    typeReset: "Digita RESET",
+    confirmReset: "CONFERMA RESET",
+    resetCompleted: "Reset Completato",
+    assignmentsRemoved: "assegnazioni rimosse",
+    undo: "Annulla",
+    undoNotAvailable: "❌ Annullamento non disponibile",
+    undoCompleted: "Annullamento completato",
+    assignmentsRestored: "assegnazioni ripristinate",
   },
   
   en: {
@@ -135,7 +153,25 @@ const translations = {
     allianceCreated: "Alliance created",
     csvExported: "📊 CSV exported successfully!",
     pngExportInDevelopment: "🖼️ PNG export feature in development",
-    importSuccess: "Import completed"
+    importSuccess: "Import completed",
+
+    // Reset
+    resetAssignments: "Reset Assignments",
+    noAssignmentsToReset: "⚠️ No assignments to reset",
+    resetConfirmationTitle: "🗑️ Confirm Total Reset",
+    resetConfirmationMessage: "This action will remove ALL alliance assignments from structures. You can undo for 10 seconds.",
+    assignedStructures: "Assigned Structures",
+    alliancesAffected: "Alliances Affected",
+    willRemainFree: "Will Remain Free", 
+    resetWarning: "⚠️ To confirm, type \"RESET\" below:",
+    typeReset: "Type RESET",
+    confirmReset: "CONFIRM RESET",
+    resetCompleted: "Reset Completed",
+    assignmentsRemoved: "assignments removed",
+    undo: "Undo",
+    undoNotAvailable: "❌ Undo not available",
+    undoCompleted: "Undo completed",
+    assignmentsRestored: "assignments restored",
   },
   
   es: {
@@ -204,7 +240,25 @@ const translations = {
     allianceCreated: "Alianza creada",
     csvExported: "📊 ¡CSV exportado con éxito!",
     pngExportInDevelopment: "🖼️ Función de exportación PNG en desarrollo",
-    importSuccess: "Importación completada"
+    importSuccess: "Importación completada",
+
+    // Reset
+    resetAssignments: "Resetear Asignaciones",
+    noAssignmentsToReset: "⚠️ No hay asignaciones que resetear",
+    resetConfirmationTitle: "🗑️ Confirmar Reset Total",
+    resetConfirmationMessage: "Esta acción eliminará TODAS las asignaciones de alianzas de las estructuras. Podrás deshacerlo por 10 segundos.",
+    assignedStructures: "Estructuras Asignadas",
+    alliancesAffected: "Alianzas Afectadas",
+    willRemainFree: "Permanecerán Libres",
+    resetWarning: "⚠️ Para confirmar, escribe \"RESET\" abajo:",
+    typeReset: "Escribe RESET", 
+    confirmReset: "CONFIRMAR RESET",
+    resetCompleted: "Reset Completado",
+    assignmentsRemoved: "asignaciones eliminadas",
+    undo: "Deshacer",
+    undoNotAvailable: "❌ Deshacer no disponible",
+    undoCompleted: "Deshacer completado",
+    assignmentsRestored: "asignaciones restauradas",
   },
   
   fr: {
@@ -273,7 +327,25 @@ const translations = {
     allianceCreated: "Alliance créée",
     csvExported: "📊 CSV exporté avec succès !",
     pngExportInDevelopment: "🖼️ Fonction d'export PNG en développement",
-    importSuccess: "Importation terminée"
+    importSuccess: "Importation terminée",
+
+    // Reset
+    resetAssignments: "Reset Assignations",
+    noAssignmentsToReset: "⚠️ Aucune assignation à remettre à zéro",
+    resetConfirmationTitle: "🗑️ Confirmer Reset Total",
+    resetConfirmationMessage: "Cette action supprimera TOUTES les assignations d'alliances des structures. Vous pouvez annuler pendant 10 secondes.",
+    assignedStructures: "Structures Assignées",
+    alliancesAffected: "Alliances Affectées",
+    willRemainFree: "Resteront Libres",
+    resetWarning: "⚠️ Pour confirmer, tapez \"RESET\" ci-dessous:",
+    typeReset: "Tapez RESET",
+    confirmReset: "CONFIRMER RESET", 
+    resetCompleted: "Reset Terminé",
+    assignmentsRemoved: "assignations supprimées",
+    undo: "Annuler",
+    undoNotAvailable: "❌ Annulation non disponible",
+    undoCompleted: "Annulation terminée",
+    assignmentsRestored: "assignations restaurées",
   },
   
   de: {
@@ -342,7 +414,25 @@ const translations = {
     allianceCreated: "Allianz erstellt",
     csvExported: "📊 CSV erfolgreich exportiert!",
     pngExportInDevelopment: "🖼️ PNG-Export-Funktion in Entwicklung",
-    importSuccess: "Import abgeschlossen"
+    importSuccess: "Import abgeschlossen",
+
+    // Reset
+    resetAssignments: "Zuweisungen Zurücksetzen",
+    noAssignmentsToReset: "⚠️ Keine Zuweisungen zum Zurücksetzen",
+    resetConfirmationTitle: "🗑️ Totalen Reset Bestätigen",
+    resetConfirmationMessage: "Diese Aktion wird ALLE Allianzzuweisungen von Strukturen entfernen. Sie können 10 Sekunden lang rückgängig machen.",
+    assignedStructures: "Zugewiesene Strukturen",
+    alliancesAffected: "Betroffene Allianzen",
+    willRemainFree: "Bleiben Frei",
+    resetWarning: "⚠️ Zur Bestätigung geben Sie \"RESET\" unten ein:",
+    typeReset: "RESET eingeben",
+    confirmReset: "RESET BESTÄTIGEN",
+    resetCompleted: "Reset Abgeschlossen", 
+    assignmentsRemoved: "Zuweisungen entfernt",
+    undo: "Rückgängig",
+    undoNotAvailable: "❌ Rückgängig nicht verfügbar",
+    undoCompleted: "Rückgängig abgeschlossen",
+    assignmentsRestored: "Zuweisungen wiederhergestellt",
   },
   
   pt: {
@@ -411,6 +501,24 @@ const translations = {
     allianceCreated: "Aliança criada",
     csvExported: "📊 CSV exportado com sucesso!",
     pngExportInDevelopment: "🖼️ Função de exportação PNG em desenvolvimento",
-    importSuccess: "Importação concluída"
+    importSuccess: "Importação concluída",
+
+    // Reset
+    resetAssignments: "Resetar Atribuições",
+    noAssignmentsToReset: "⚠️ Nenhuma atribuição para resetar",
+    resetConfirmationTitle: "🗑️ Confirmar Reset Total",
+    resetConfirmationMessage: "Esta ação removerá TODAS as atribuições de alianças das estruturas. Você pode desfazer por 10 segundos.",
+    assignedStructures: "Estruturas Atribuídas",
+    alliancesAffected: "Alianças Afetadas",
+    willRemainFree: "Permanecerão Livres",
+    resetWarning: "⚠️ Para confirmar, digite \"RESET\" abaixo:",
+    typeReset: "Digite RESET",
+    confirmReset: "CONFIRMAR RESET",
+    resetCompleted: "Reset Concluído",
+    assignmentsRemoved: "atribuições removidas", 
+    undo: "Desfazer",
+    undoNotAvailable: "❌ Desfazer não disponível",
+    undoCompleted: "Desfazer concluído",
+    assignmentsRestored: "atribuições restauradas",
   }
 };

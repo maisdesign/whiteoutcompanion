@@ -771,3 +771,291 @@ function checkAndOpenAccordions() {
 
 // Nella funzione updateAllUI esistente, aggiungi questa riga dopo updateSummaries():
 // setTimeout(checkAndOpenAccordions, 100);
+
+// === SISTEMA RESET ASSEGNAZIONI ===
+let undoState = null;
+let undoTimeout = null;
+
+function showResetConfirmation() {
+  const t = translations[currentLanguage];
+  
+  // Conta assegnazioni attuali
+  const assignedFacilities = facilityData.filter(f => f.Alliance).length;
+  const totalFacilities = facilityData.length;
+  const alliancesWithAssignments = alliances.filter(alliance => 
+    facilityData.some(f => f.Alliance === alliance.name)
+  ).length;
+  
+  if (assignedFacilities === 0) {
+    showStatus(t.noAssignmentsToReset || '⚠️ Nessuna assegnazione da resettare', 'warning');
+    return;
+  }
+  
+  const modal = document.createElement('div');
+  modal.className = 'reset-modal';
+  modal.id = 'reset-modal';
+  
+  modal.innerHTML = `
+    <div class="reset-modal-content">
+      <div class="reset-warning">⚠️</div>
+      
+      <h2 style="color: #ff6b6b; margin-bottom: 15px; font-size: 24px;">
+        ${t.resetConfirmationTitle || '🗑️ Conferma Reset Totale'}
+      </h2>
+      
+      <p style="color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
+        ${t.resetConfirmationMessage || 'Questa azione rimuoverà TUTTE le assegnazioni di alleanze dalle strutture. Sarà possibile annullare per 10 secondi.'}
+      </p>
+      
+      <div class="reset-stats">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; text-align: center;">
+          <div>
+            <div style="font-size: 24px; color: #ff6b6b; font-weight: bold;">${assignedFacilities}</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">${t.assignedStructures || 'Strutture Assegnate'}</div>
+          </div>
+          <div>
+            <div style="font-size: 24px; color: #4facfe; font-weight: bold;">${alliancesWithAssignments}</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">${t.alliancesAffected || 'Alleanze Coinvolte'}</div>
+          </div>
+          <div>
+            <div style="font-size: 24px; color: #43e97b; font-weight: bold;">${totalFacilities - assignedFacilities}</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">${t.willRemainFree || 'Rimarranno Libere'}</div>
+          </div>
+        </div>
+      </div>
+      
+      <p style="color: #ff6b6b; font-weight: bold; margin-bottom: 15px;">
+        ${t.resetWarning || '⚠️ Per confermare, digita "RESET" qui sotto:'}
+      </p>
+      
+      <input type="text" class="reset-confirmation-input" id="reset-confirmation-input" 
+             placeholder="${t.typeReset || 'Digita RESET'}" maxlength="10">
+      
+      <div class="reset-buttons">
+        <button class="btn btn-danger" id="confirm-reset-btn" disabled style="opacity: 0.5;">
+          🗑️ ${t.confirmReset || 'CONFERMA RESET'}
+        </button>
+        <button class="btn btn-primary" id="cancel-reset-btn">
+          ❌ ${t.cancel || 'Annulla'}
+        </button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Focus sull'input
+  const input = document.getElementById('reset-confirmation-input');
+  const confirmBtn = document.getElementById('confirm-reset-btn');
+  
+  input.focus();
+  
+  // Abilita pulsante solo quando si digita "RESET"
+  input.addEventListener('input', () => {
+    const value = input.value.toUpperCase();
+    if (value === 'RESET') {
+      confirmBtn.disabled = false;
+      confirmBtn.style.opacity = '1';
+      confirmBtn.style.background = 'linear-gradient(135deg, #ff5252 0%, #c82333 100%)';
+    } else {
+      confirmBtn.disabled = true;
+      confirmBtn.style.opacity = '0.5';
+      confirmBtn.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #dc3545 100%)';
+    }
+  });
+  
+  // Enter per confermare
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !confirmBtn.disabled) {
+      confirmReset();
+    }
+  });
+  
+  // Event listeners
+  confirmBtn.onclick = confirmReset;
+  document.getElementById('cancel-reset-btn').onclick = () => modal.remove();
+  
+  // Chiudi con ESC o click fuori
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.remove();
+  };
+  
+  document.addEventListener('keydown', function escHandler(e) {
+    if (e.key === 'Escape') {
+      modal.remove();
+      document.removeEventListener('keydown', escHandler);
+    }
+  });
+}
+
+function confirmReset() {
+  const t = translations[currentLanguage];
+  const modal = document.getElementById('reset-modal');
+  
+  console.log('🗑️ Avvio reset totale assegnazioni...');
+  
+  // Salva stato per undo
+  saveUndoState();
+  
+  let resetCount = 0;
+  
+  // Reset di tutte le assegnazioni
+  facilityData.forEach(facility => {
+    if (facility.Alliance) {
+      delete facility.Alliance;
+      resetCount++;
+      
+      // Aggiorna marker visualmente
+      if (facility.marker) {
+        facility.marker.classList.remove('assigned');
+        // Rimuovi icona alleanza
+        const allianceIcons = facility.marker.querySelectorAll('img');
+        allianceIcons.forEach(icon => icon.remove());
+      }
+    }
+  });
+  
+  // Chiudi modal
+  modal.remove();
+  
+  // Aggiorna UI
+  updateAllUI();
+  saveData();
+  
+  // Mostra notifica di successo con undo
+  showUndoNotification(resetCount);
+  
+  console.log(`✅ Reset completato: ${resetCount} assegnazioni rimosse`);
+}
+
+function saveUndoState() {
+  // Salva lo stato attuale delle assegnazioni
+  undoState = facilityData.map(f => ({
+    Type: f.Type,
+    Level: f.Level,
+    x: f.x,
+    y: f.y,
+    Alliance: f.Alliance
+  })).filter(f => f.Alliance); // Solo quelle assegnate
+  
+  console.log('💾 Stato undo salvato:', undoState.length, 'assegnazioni');
+}
+
+function showUndoNotification(resetCount) {
+  const t = translations[currentLanguage];
+  
+  // Rimuovi notifica precedente se esiste
+  const existingNotification = document.getElementById('undo-notification');
+  if (existingNotification) {
+    existingNotification.remove();
+  }
+  
+  const notification = document.createElement('div');
+  notification.className = 'undo-notification';
+  notification.id = 'undo-notification';
+  
+  notification.innerHTML = `
+    <div style="flex: 1;">
+      <div style="font-weight: bold; margin-bottom: 5px;">
+        ✅ ${t.resetCompleted || 'Reset Completato'}
+      </div>
+      <div style="font-size: 12px; opacity: 0.9;">
+        ${resetCount} ${t.assignmentsRemoved || 'assegnazioni rimosse'}
+      </div>
+    </div>
+    <button class="btn btn-warning" onclick="undoReset()" style="font-size: 12px; padding: 8px 12px;">
+      ↩️ ${t.undo || 'Annulla'}
+    </button>
+    <div class="undo-countdown" id="undo-countdown">10</div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Countdown 10 secondi
+  let countdown = 10;
+  const countdownEl = document.getElementById('undo-countdown');
+  
+  undoTimeout = setInterval(() => {
+    countdown--;
+    if (countdownEl) {
+      countdownEl.textContent = countdown;
+    }
+    
+    if (countdown <= 0) {
+      clearUndoState();
+      notification.remove();
+    }
+  }, 1000);
+  
+  // Auto-rimozione dopo 10 secondi
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.remove();
+      clearUndoState();
+    }
+  }, 10000);
+}
+
+function undoReset() {
+  const t = translations[currentLanguage];
+  
+  if (!undoState) {
+    showStatus(t.undoNotAvailable || '❌ Annullamento non disponibile', 'error');
+    return;
+  }
+  
+  console.log('↩️ Ripristino assegnazioni precedenti...');
+  
+  let restoredCount = 0;
+  
+  // Ripristina le assegnazioni salvate
+  undoState.forEach(savedFacility => {
+    const facility = facilityData.find(f => 
+      f.Type === savedFacility.Type && 
+      f.Level === savedFacility.Level && 
+      Math.abs(f.x - savedFacility.x) < 0.1 && 
+      Math.abs(f.y - savedFacility.y) < 0.1
+    );
+    
+    if (facility) {
+      facility.Alliance = savedFacility.Alliance;
+      restoredCount++;
+      
+      // Aggiorna marker visualmente
+      if (facility.marker) {
+        facility.marker.classList.add('assigned');
+        renderAllianceIcon(facility);
+      }
+    }
+  });
+  
+  // Pulisci stato undo
+  clearUndoState();
+  
+  // Rimuovi notifica
+  const notification = document.getElementById('undo-notification');
+  if (notification) {
+    notification.remove();
+  }
+  
+  // Aggiorna UI
+  updateAllUI();
+  saveData();
+  
+  showStatus(`↩️ ${t.undoCompleted || 'Annullamento completato'}: ${restoredCount} ${t.assignmentsRestored || 'assegnazioni ripristinate'}`, 'success');
+  
+  console.log(`✅ Undo completato: ${restoredCount} assegnazioni ripristinate`);
+}
+
+function clearUndoState() {
+  if (undoTimeout) {
+    clearInterval(undoTimeout);
+    undoTimeout = null;
+  }
+  undoState = null;
+  console.log('🧹 Stato undo pulito');
+}
+
+// Funzione globale per il pulsante HTML
+window.showResetConfirmation = showResetConfirmation;
+window.undoReset = undoReset;

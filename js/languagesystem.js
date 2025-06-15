@@ -105,11 +105,14 @@ function updateUILanguage() {
   const exportPngBtn = document.getElementById('export-png-btn');
   const importCsvBtn = document.getElementById('import-csv-btn');
   const languageBtn = document.getElementById('language-btn');
+  const resetBtnText = document.getElementById('reset-btn-text');
+
   
   if (exportCsvBtn) exportCsvBtn.innerHTML = t.exportCSV;
   if (exportPngBtn) exportPngBtn.innerHTML = t.exportPNG;
   if (importCsvBtn) importCsvBtn.innerHTML = t.importCSV;
   if (languageBtn) languageBtn.innerHTML = t.language;
+  if (resetBtnText) resetBtnText.textContent = t.resetAssignments;
   
   // Selettore lingua
   const selectLanguageTitle = document.getElementById('select-language-title');

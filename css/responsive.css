@@ -81,3 +81,100 @@
     font-size: 13px;
   }
 }
+
+/* Responsive per pulsante reset e modal */
+@media (max-width: 768px) {
+  .reset-modal-content {
+    padding: 20px;
+    margin: 10px;
+  }
+  
+  .reset-warning {
+    font-size: 36px;
+    margin-bottom: 15px;
+  }
+  
+  .reset-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .reset-stats {
+    padding: 12px;
+  }
+  
+  .reset-stats > div {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .undo-notification {
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+    min-width: auto;
+    padding: 12px 15px;
+  }
+  
+  .undo-countdown {
+    width: 25px;
+    height: 25px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .reset-modal-content {
+    padding: 15px;
+    max-width: 95%;
+  }
+  
+  .reset-modal-content h2 {
+    font-size: 20px;
+  }
+  
+  .reset-warning {
+    font-size: 32px;
+  }
+  
+  .reset-confirmation-input {
+    font-size: 14px;
+    padding: 10px;
+  }
+  
+  .undo-notification {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+}
+
+/* Miglioramento per touch devices */
+@media (pointer: coarse) {
+  .btn-danger {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+  
+  .reset-modal-content button {
+    min-height: 44px;
+    padding: 12px 20px;
+  }
+  
+  .reset-confirmation-input {
+    min-height: 44px;
+    font-size: 16px; /* Previene zoom su iOS */
+  }
+}
+
+/* Dark mode enhancements per reset modal */
+@media (prefers-color-scheme: dark) {
+  .reset-modal {
+    background: rgba(0, 0, 0, 0.95);
+  }
+  
+  .reset-modal-content {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.15), rgba(255, 107, 107, 0.08));
+    border-color: rgba(220, 53, 69, 0.6);
+  }
+}

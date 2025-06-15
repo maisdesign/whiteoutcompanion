@@ -66,14 +66,22 @@
       <!-- Main Content -->
       <main class="main-content">
         
-        <!-- Controls -->
-        <div class="controls">
-          <button class="btn btn-success" onclick="exportCSV()" id="export-csv-btn">📊 Esporta CSV</button>
-          <button class="btn btn-info" onclick="exportPNG()" id="export-png-btn">🖼️ Esporta PNG</button>
-          <input type="file" id="import-file" accept=".csv" style="display: none;">
-          <button class="btn btn-primary" onclick="document.getElementById('import-file').click()" id="import-csv-btn">📥 Importa CSV</button>
-          <button class="btn btn-warning" onclick="toggleLanguageSelector()" id="language-btn">🌐 Lingua</button>
-        </div>
+      <!-- Controls -->
+      <div class="controls">
+        <button class="btn btn-success" onclick="exportCSV()" id="export-csv-btn">📊 Esporta CSV</button>
+        <button class="btn btn-info" onclick="exportPNG()" id="export-png-btn">🖼️ Esporta PNG</button>
+        <input type="file" id="import-file" accept=".csv" style="display: none;">
+        <button class="btn btn-primary" onclick="document.getElementById('import-file').click()" id="import-csv-btn">📥 Importa CSV</button>
+        <button class="btn btn-warning" onclick="toggleLanguageSelector()" id="language-btn">🌐 Lingua</button>
+        
+        <!-- Separatore visivo per pulsante pericoloso -->
+        <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.2); margin: 10px 0;"></div>
+        
+        <!-- Pulsante Reset con stile diverso -->
+        <button class="btn btn-danger" onclick="showResetConfirmation()" id="reset-btn" title="Rimuovi tutte le assegnazioni">
+          🗑️ <span id="reset-btn-text">Reset Assegnazioni</span>
+        </button>
+      </div>
 
         <!-- Language Selector -->
         <div id="language-selector" class="glass-card hidden" style="padding: 15px; margin-bottom: 20px;">
