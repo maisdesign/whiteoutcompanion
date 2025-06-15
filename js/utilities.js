@@ -392,3 +392,231 @@ if (typeof window !== 'undefined') {
     })
   };
 }
+
+// === EXPORT PNG ===
+
+// Carica html2canvas dinamicamente se non già presente
+function loadHtml2Canvas() {
+  return new Promise((resolve, reject) => {
+    if (window.html2canvas) {
+      resolve(window.html2canvas);
+      return;
+    }
+    
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    script.onload = () => {
+      if (window.html2canvas) {
+        resolve(window.html2canvas);
+      } else {
+        reject(new Error('html2canvas failed to load'));
+      }
+    };
+    script.onerror = () => reject(new Error('Failed to load html2canvas'));
+    document.head.appendChild(script);
+  });
+}
+
+// Prepara il contenuto per l'export
+function prepareExportContent() {
+  const t = translations[currentLanguage];
+  
+  // Crea container temporaneo
+  const exportContainer = document.createElement('div');
+  exportContainer.style.cssText = `
+    position: fixed;
+    top: -10000px;
+    left: -10000px;
+    width: 1200px;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    font-family: 'Inter', Arial, sans-serif;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  `;
+  
+  // Header
+  const header = document.createElement('div');
+  header.style.cssText = `
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+  `;
+  header.innerHTML = `
+    <h1 style="margin: 0 0 10px 0; font-size: 28px; color: #fff;">
+      🗺️ Whiteout Survival Companion
+    </h1>
+    <p style="margin: 0; color: rgba(255, 255, 255, 0.9); font-size: 16px;">
+      ${t.subtitle}
+    </p>
+    <p style="margin: 10px 0 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.7);">
+      ${t.exportedOn || 'Esportato il'}: ${new Date().toLocaleString(currentLanguage)}
+    </p>
+  `;
+  
+  // Clona la mappa
+  const originalMap = document.querySelector('.map-container');
+  const mapClone = originalMap.cloneNode(true);
+  
+  // Rimuovi elementi non necessari dal clone
+  const statusElements = mapClone.querySelectorAll('.map-status');
+  statusElements.forEach(el => el.remove());
+  
+  const dropdowns = mapClone.querySelectorAll('.marker-dropdown');
+  dropdowns.forEach(el => el.remove());
+  
+  // Stile per il clone della mappa
+  mapClone.style.cssText = `
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  `;
+  
+  // Assicurati che la legenda sia visibile
+  const legend = mapClone.querySelector('#map-legend');
+  if (legend) {
+    legend.classList.remove('hidden');
+    legend.style.display = 'block';
+  }
+  
+  // Statistics
+  const stats = createExportStats();
+  
+  // Assembly
+  exportContainer.appendChild(header);
+  exportContainer.appendChild(mapClone);
+  exportContainer.appendChild(stats);
+  
+  document.body.appendChild(exportContainer);
+  
+  return exportContainer;
+}
+
+// Crea sezione statistiche per export
+function createExportStats() {
+  const t = translations[currentLanguage];
+  
+  const assignedFacilities = facilityData.filter(f => f.Alliance).length;
+  const totalFacilities = facilityData.length;
+  const freeFacilities = totalFacilities - assignedFacilities;
+  const alliancesWithAssignments = alliances.filter(alliance => 
+    facilityData.some(f => f.Alliance === alliance.name)
+  ).length;
+  
+  const statsContainer = document.createElement('div');
+  statsContainer.style.cssText = `
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 12px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  `;
+  
+  statsContainer.innerHTML = `
+    <div style="text-align: center;">
+      <div style="font-size: 24px; font-weight: bold; color: #4facfe; margin-bottom: 5px;">
+        ${alliances.length}
+      </div>
+      <div style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">
+        ${t.alliances}
+      </div>
+    </div>
+    <div style="text-align: center;">
+      <div style="font-size: 24px; font-weight: bold; color: #43e97b; margin-bottom: 5px;">
+        ${assignedFacilities}
+      </div>
+      <div style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">
+        ${t.assigned}
+      </div>
+    </div>
+    <div style="text-align: center;">
+      <div style="font-size: 24px; font-weight: bold; color: #ff6b6b; margin-bottom: 5px;">
+        ${freeFacilities}
+      </div>
+      <div style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">
+        ${t.free || 'Libere'}
+      </div>
+    </div>
+    <div style="text-align: center;">
+      <div style="font-size: 24px; font-weight: bold; color: #ffc107; margin-bottom: 5px;">
+        ${alliancesWithAssignments}
+      </div>
+      <div style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">
+        ${t.active || 'Attive'}
+      </div>
+    </div>
+  `;
+  
+  return statsContainer;
+}
+
+// Funzione principale di export PNG
+async function exportToPNG() {
+  const t = translations[currentLanguage];
+  
+  try {
+    // Mostra loading
+    showStatus(`📸 ${t.preparingExport || 'Preparazione export...'}`, 'info');
+    
+    // Carica html2canvas
+    const html2canvas = await loadHtml2Canvas();
+    
+    // Prepara contenuto
+    const exportContainer = prepareExportContent();
+    
+    // Attendi che le immagini si carichino
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    showStatus(`🎨 ${t.renderingImage || 'Rendering immagine...'}`, 'info');
+    
+    // Genera screenshot
+    const canvas = await html2canvas(exportContainer, {
+      backgroundColor: null,
+      scale: 2, // Alta qualità
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      width: 1200,
+      height: exportContainer.scrollHeight
+    });
+    
+    // Cleanup
+    document.body.removeChild(exportContainer);
+    
+    // Genera filename
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    const filename = `whiteout-survival-map-${timestamp}.png`;
+    
+    // Download
+    canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      const fileSizeMB = (blob.size / (1024 * 1024)).toFixed(1);
+      showStatus(`✅ ${t.pngExported || 'PNG esportato'}: ${filename} (${fileSizeMB}MB)`, 'success', 5000);
+    }, 'image/png', 0.95);
+    
+  } catch (error) {
+    console.error('Errore export PNG:', error);
+    showStatus(`❌ ${t.exportError || 'Errore durante l\'export'}: ${error.message}`, 'error', 5000);
+  }
+}
+
+// Funzione globale per il pulsante
+window.exportPNG = exportToPNG;

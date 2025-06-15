@@ -478,8 +478,13 @@ function exportCSV() {
 }
 
 function exportPNG() {
-  const t = translations[currentLanguage];
-  showStatus(t.pngExportInDevelopment || '🖼️ Funzione esportazione PNG in sviluppo', 'info');
+  // Chiama la nuova implementazione da utilities.js
+  if (typeof exportToPNG === 'function') {
+    exportToPNG();
+  } else {
+    const t = translations[currentLanguage];
+    showStatus(t.pngExportNotAvailable || '❌ Funzione export PNG non disponibile', 'error');
+  }
 }
 
 // === EVENT LISTENERS ===
