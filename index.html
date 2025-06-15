@@ -12,41 +12,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!--Styles-->
   <link href="css/styles.css" rel="stylesheet">
   <link href="css/responsive.css" rel="stylesheet">
-  
-  <style>
-    /* Stili per la status bar */
-    .map-status {
-      background: rgba(79, 172, 254, 0.2);
-      border: 1px solid rgba(79, 172, 254, 0.5);
-      border-radius: 8px;
-      padding: 10px 15px;
-      margin-bottom: 15px;
-      font-size: 14px;
-      line-height: 1.4;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(5px);
-    }
-    
-    .map-status.success {
-      background: rgba(67, 233, 123, 0.2);
-      border-color: rgba(67, 233, 123, 0.5);
-      color: #43e97b;
-    }
-    
-    .map-status.error {
-      background: rgba(220, 53, 69, 0.2);
-      border-color: rgba(220, 53, 69, 0.5);
-      color: #ff6b6b;
-    }
-    
-    .map-status.warning {
-      background: rgba(255, 193, 7, 0.2);
-      border-color: rgba(255, 193, 7, 0.5);
-      color: #ffc107;
-    }
-  </style>
+  <link href="css/admob.css" rel="stylesheet">
+
 </head>
 <body>
   <div class="container">
@@ -54,6 +25,11 @@
     <div class="header">
       <h1 id="main-title">🗺️ Whiteout Survival Companion</h1>
       <p id="main-subtitle">Professional alliance management with map calibration</p>
+    </div>
+
+    <!-- AdMob top banner -->
+    <div id="top-admob-banner" class="admob-banner top-banner">
+      <span>Loading advertisement...</span>
     </div>
 
     <!-- App Layout -->
@@ -219,6 +195,11 @@
     </div>
   </div>
 
+  <!-- AdMob Bottom Banner -->
+  <div id="bottom-admob-banner" class="admob-banner bottom-banner">
+    <span>Loading advertisement...</span>
+  </div>
+
 <!-- Scripts -->
 <script src="js/translations.js"></script>
 <script src="js/data.js"></script>
@@ -229,6 +210,7 @@
 <script src="js/alliances.js"></script>
 <script src="js/app.js"></script>
 <script src="js/mapfallback.js"></script>
+<script src="js/admob.js"></script>
 
 </body>
 </html>
