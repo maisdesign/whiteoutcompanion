@@ -1,102 +1,92 @@
-window.onload = () => {
-  const container = document.querySelector(".container");
-  const map = document.getElementById("map");
-  const title = document.getElementById("title");
-  const controls = document.getElementById("controls");
-  const buffSummary = document.getElementById("buff-summary");
-  const facilitySummary = document.getElementById("facility-summary");
+// === APP.JS PULITO - COMPATIBILE CON LE NUOVE FUNZIONI ===
 
-  title.textContent = t("title");
+// Questo file è ora ridotto al minimo per evitare conflitti
+// Le funzioni principali sono gestite da alliances.js e markers.js
 
-  loadFacilityData();
+// Inizializzazione minimale se necessaria
+console.log('📱 App.js caricato - Modalità compatibilità');
 
-  facilityData.forEach(fac => {
-    const marker = createMarker(fac);
-    map.appendChild(marker);
-  });
-
-  const exportBtn = document.createElement("button");
-  exportBtn.textContent = t("exportCsv");
-  exportBtn.onclick = exportToCSV;
-  controls.appendChild(exportBtn);
-
-  renderBuffSummary(buffSummary);
-  renderFacilitySummary(facilitySummary);
+// Export di funzioni globali se richieste da index.html
+window.exportCSV = function() {
+  if (typeof exportCSV === 'function') {
+    exportCSV();
+  } else {
+    console.error('Funzione exportCSV non trovata');
+  }
 };
 
-function exportToCSV() {
-  const csvRows = [
-    ["Type", "Level", "X", "Y", "Alliance"]
-  ];
-  facilityData.forEach(f => {
-    csvRows.push([f.type, f.level, f.x, f.y, f.alliance || ""]);
-  });
-  const blob = new Blob([csvRows.map(r => r.join(",")).join("\n")], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "facility_export.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-}
+window.exportPNG = function() {
+  if (typeof exportPNG === 'function') {
+    exportPNG();
+  } else {
+    console.error('Funzione exportPNG non trovata');
+  }
+};
 
-function renderBuffSummary(container) {
-  container.innerHTML = "<h2>" + t("buffSummary") + "</h2>";
-  const table = document.createElement("table");
-  const header = document.createElement("tr");
-  header.innerHTML = "<th>Alliance</th><th>Total Buff</th>";
-  table.appendChild(header);
+// Funzioni accordion per fix immediato
+window.toggleSection = function(sectionId) {
+  const content = document.getElementById(`${sectionId}-content`);
+  const toggle = document.getElementById(`${sectionId.replace('-summary', '')}-toggle`);
+  
+  if (!content || !toggle) {
+    console.warn('Elementi accordion non trovati:', sectionId);
+    return;
+  }
+  
+  console.log('🔄 Toggle section:', sectionId);
+  
+  if (content.classList.contains('collapsed-content')) {
+    content.classList.remove('collapsed-content');
+    content.classList.add('expanded-content');
+    toggle.textContent = '▼';
+    toggle.classList.remove('collapsed');
+    console.log('✅ Sezione espansa:', sectionId);
+  } else {
+    content.classList.remove('expanded-content');
+    content.classList.add('collapsed-content');
+    toggle.textContent = '▶';
+    toggle.classList.add('collapsed');
+    console.log('✅ Sezione collassata:', sectionId);
+  }
+};
 
-  const buffMap = {};
-  facilityData.forEach(f => {
-    if (f.alliance) {
-      const val = buffValues[f.type]?.[f.level] || 0;
-      if (!buffMap[f.alliance]) buffMap[f.alliance] = 0;
-      buffMap[f.alliance] += val;
+// Inizializzazione accordion al caricamento
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🔧 Inizializzazione accordion...');
+  
+  // Assicurati che gli accordion siano configurati correttamente
+  const sections = ['facility-summary', 'buff-summary'];
+  
+  sections.forEach(sectionId => {
+    const content = document.getElementById(`${sectionId}-content`);
+    const toggle = document.getElementById(`${sectionId.replace('-summary', '')}-toggle`);
+    
+    if (content && toggle) {
+      // Assicurati che abbiano le classi corrette
+      if (!content.classList.contains('expanded-content') && !content.classList.contains('collapsed-content')) {
+        content.classList.add('expanded-content');
+        toggle.textContent = '▼';
+      }
+      console.log(`✅ Accordion configurato: ${sectionId}`);
+    } else {
+      console.warn(`⚠️ Accordion incompleto: ${sectionId}`);
     }
   });
+});
 
-  Object.entries(buffMap).forEach(([alliance, value]) => {
-    const row = document.createElement("tr");
-    row.innerHTML = "<td>" + alliance + "</td><td>" + value + "</td>";
-    table.appendChild(row);
+// Verifica funzioni disponibili
+window.checkFunctions = function() {
+  const functions = [
+    'exportCSV',
+    'exportPNG', 
+    'toggleSection',
+    'renderFacilitySummary',
+    'renderBuffSummary',
+    'updateAllUI'
+  ];
+  
+  console.log('🔍 Stato funzioni:');
+  functions.forEach(funcName => {
+    console.log(`  ${funcName}:`, typeof window[funcName] === 'function' ? '✅' : '❌');
   });
-
-  container.appendChild(table);
-}
-
-function renderFacilitySummary(container) {
-  container.innerHTML = "<h2>" + t("facilitySummary") + "</h2>";
-  const groups = {};
-
-  facilityData.forEach(f => {
-    if (!groups[f.alliance]) groups[f.alliance] = [];
-    groups[f.alliance].push(f);
-  });
-
-  Object.keys(groups).forEach(alliance => {
-    const section = document.createElement("div");
-    section.className = "accordion";
-
-    const header = document.createElement("button");
-    header.className = "accordion-header";
-    header.textContent = alliance || "Unassigned";
-    header.onclick = () => {
-      content.style.display = content.style.display === "none" ? "block" : "none";
-    };
-
-    const content = document.createElement("div");
-    content.className = "accordion-content";
-    content.style.display = "none";
-
-    groups[alliance].forEach(f => {
-      const p = document.createElement("p");
-      p.textContent = f.type + " " + f.level + " (" + f.x + "," + f.y + ")";
-      content.appendChild(p);
-    });
-
-    section.appendChild(header);
-    section.appendChild(content);
-    container.appendChild(section);
-  });
-}
+};
