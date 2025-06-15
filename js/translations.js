@@ -19,7 +19,7 @@
         facilitySummary: "📋 Riepilogo Strutture",
         buffSummary: "⚡ Riepilogo Buff",
         advancedCalibration: "🔧 Calibrazione Avanzata",
-        unassigned: "❌ Non assegnata",
+        unassigned: "Non assegnata",
         // Colori
         colorCastle: "Castle (Oro)",
         colorConstruction: "Construction (Blu)",
@@ -68,7 +68,7 @@
         facilitySummary: "📋 Facility Summary",
         buffSummary: "⚡ Buff Summary",
         advancedCalibration: "🔧 Advanced Calibration",
-        unassigned: "❌ Unassigned",
+        unassigned: "Unassigned",
         // Colori
         colorCastle: "Castle (Gold)",
         colorConstruction: "Construction (Blue)",
@@ -117,7 +117,7 @@
         facilitySummary: "📋 Resumen de Instalaciones",
         buffSummary: "⚡ Resumen de Buff",
         advancedCalibration: "🔧 Calibración Avanzada",
-        unassigned: "❌ Sin asignar",
+        unassigned: "Sin asignar",
         // Colori
         colorCastle: "Castle (Oro)",
         colorConstruction: "Construction (Azul)",
@@ -166,7 +166,7 @@
         facilitySummary: "📋 Résumé des Installations",
         buffSummary: "⚡ Résumé des Buff",
         advancedCalibration: "🔧 Calibrage Avancé",
-        unassigned: "❌ Non assignée",
+        unassigned: "Non assignée",
         // Colori
         colorCastle: "Castle (Or)",
         colorConstruction: "Construction (Bleu)",
@@ -215,7 +215,7 @@
         facilitySummary: "📋 Anlagen-Zusammenfassung",
         buffSummary: "⚡ Buff-Zusammenfassung",
         advancedCalibration: "🔧 Erweiterte Kalibrierung",
-        unassigned: "❌ Nicht zugewiesen",
+        unassigned: "Nicht zugewiesen",
         // Colori
         colorCastle: "Castle (Gold)",
         colorConstruction: "Construction (Blau)",
@@ -264,7 +264,7 @@
         facilitySummary: "📋 Resumo de Instalações",
         buffSummary: "⚡ Resumo de Buff",
         advancedCalibration: "🔧 Calibração Avançada",
-        unassigned: "❌ Não atribuída",
+        unassigned: "Não atribuída",
         // Colori
         colorCastle: "Castle (Ouro)",
         colorConstruction: "Construction (Azul)",
