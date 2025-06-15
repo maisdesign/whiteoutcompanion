@@ -224,177 +224,163 @@ function createTemporaryStatusElement() {
   return tempStatus;
 }
 
-// Funzione di utilità per verificare se un elemento DOM esiste
-function checkDOMElement(id, context = 'generale') {
-  const element = document.getElementById(id);
-  if (!element) {
-    console.warn(`⚠️ Elemento DOM mancante [${context}]: #${id}`);
-    return false;
-  }
-  return element;
-}
+// === VALIDAZIONE IMMAGINI ===
+const IMAGE_VALIDATION = {
+  maxSizeBytes: 2 * 1024 * 1024, // 2MB
+  maxDimensions: { width: 512, height: 512 },
+  allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
+  allowedExtensions: ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+};
 
-// Funzione per verificare la salute dell'app
-function checkAppHealth() {
-  console.log('🔍 Controllo salute app...');
+// Valida file immagine
+function validateImageFile(file) {
+  const errors = [];
   
-  const requiredElements = [
-    'alliance-list',
-    'total-alliances', 
-    'assigned-facilities',
-    'facility-summary',
-    'buff-summary',
-    'map-wrapper'
-  ];
-  
-  const missingElements = [];
-  const foundElements = [];
-  
-  requiredElements.forEach(id => {
-    if (checkDOMElement(id, 'health-check')) {
-      foundElements.push(id);
-    } else {
-      missingElements.push(id);
-    }
-  });
-  
-  console.log('✅ Elementi trovati:', foundElements);
-  if (missingElements.length > 0) {
-    console.warn('❌ Elementi mancanti:', missingElements);
+  // Verifica tipo file
+  if (!IMAGE_VALIDATION.allowedTypes.includes(file.type)) {
+    errors.push('formatNotSupported');
   }
   
-  console.log('📊 Stato dati:');
-  console.log('  - Alleanze:', alliances.length);
-  console.log('  - Strutture totali:', facilityData.length);
-  console.log('  - Strutture assegnate:', facilityData.filter(f => f.Alliance).length);
-  console.log('  - Lingua corrente:', currentLanguage);
-  console.log('  - Lingua rilevata browser:', detectDeviceLanguage());
-  console.log('  - Calibrazione sbloccata:', calibrationUnlocked);
+  // Verifica dimensione file
+  if (file.size > IMAGE_VALIDATION.maxSizeBytes) {
+    errors.push('fileTooLarge');
+  }
+  
+  // Verifica estensione
+  const extension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+  if (!IMAGE_VALIDATION.allowedExtensions.includes(extension)) {
+    errors.push('invalidExtension');
+  }
   
   return {
-    missingElements,
-    foundElements,
-    dataHealth: {
-      alliances: alliances.length,
-      totalFacilities: facilityData.length,
-      assignedFacilities: facilityData.filter(f => f.Alliance).length,
-      language: currentLanguage,
-      detectedLanguage: detectDeviceLanguage()
-    }
+    isValid: errors.length === 0,
+    errors: errors
   };
 }
 
-// Funzione per forzare il refresh dell'UI
-function forceUIRefresh() {
-  console.log('🔄 Forzando refresh completo UI...');
-  
-  try {
-    // Aggiorna statistiche
-    if (typeof updateStats === 'function') {
-      updateStats();
-    }
+// Processa e ottimizza immagine
+function processImageFile(file, maxWidth = 128, maxHeight = 128, quality = 0.8) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
     
-    // Aggiorna lista alleanze  
-    if (typeof renderAllianceList === 'function') {
-      renderAllianceList();
-    }
+    img.onload = () => {
+      // Calcola dimensioni mantenendo aspect ratio
+      let { width, height } = img;
+      
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width *= ratio;
+        height *= ratio;
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      // Disegna immagine ridimensionata
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Converti a base64 con compressione
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      
+      resolve({
+        dataUrl: dataUrl,
+        originalSize: file.size,
+        processedSize: Math.round(dataUrl.length * 0.75), // Stima dimensione base64
+        dimensions: { width: Math.round(width), height: Math.round(height) }
+      });
+    };
     
-    // Aggiorna riepiloghi
-    if (typeof updateSummaries === 'function') {
-      updateSummaries();
-    }
+    img.onerror = () => {
+      reject(new Error('imageProcessingFailed'));
+    };
     
-    // Aggiorna lingua
-    if (typeof updateUILanguage === 'function') {
-      updateUILanguage();
-    }
-    
-    console.log('✅ Refresh UI completato');
-    showStatus('🔄 Interfaccia aggiornata', 'success', 2000);
-    
-  } catch (error) {
-    console.error('❌ Errore durante refresh UI:', error);
-    showStatus('❌ Errore aggiornamento interfaccia', 'error');
+    // Carica immagine
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      img.src = e.target.result;
+    };
+    reader.onerror = () => {
+      reject(new Error('fileReadFailed'));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// Genera icona alleanza unica
+function generateUniqueAllianceIcon(name, seed = null) {
+  // Usa il nome + seed per generare colori consistenti
+  const hashSeed = seed || name;
+  let hash = 0;
+  for (let i = 0; i < hashSeed.length; i++) {
+    hash = ((hash << 5) - hash + hashSeed.charCodeAt(i)) & 0xffffffff;
   }
+  
+  // Genera colori basati su hash
+  const hue = Math.abs(hash) % 360;
+  const saturation = 60 + (Math.abs(hash >> 8) % 30); // 60-90%
+  const lightness = 45 + (Math.abs(hash >> 16) % 20); // 45-65%
+  
+  const bgColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  const textColor = lightness > 55 ? '#000000' : '#FFFFFF';
+  
+  // Crea SVG icon
+  const svg = `
+    <svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'>
+      <defs>
+        <linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='100%'>
+          <stop offset='0%' style='stop-color:${bgColor};stop-opacity:1' />
+          <stop offset='100%' style='stop-color:hsl(${hue + 20}, ${saturation}%, ${lightness - 10}%);stop-opacity:1' />
+        </linearGradient>
+      </defs>
+      <circle cx='32' cy='32' r='32' fill='url(#grad)'/>
+      <circle cx='32' cy='32' r='28' fill='none' stroke='${textColor}' stroke-width='1' opacity='0.3'/>
+      <text x='32' y='40' text-anchor='middle' fill='${textColor}' font-family='Arial, sans-serif' font-size='24' font-weight='bold'>
+        ${name.charAt(0).toUpperCase()}
+      </text>
+    </svg>
+  `;
+  
+  return "data:image/svg+xml;base64," + btoa(svg);
 }
 
-// Funzione per debug facilitato
-function debugInfo() {
-  console.log('=== DEBUG INFO ===');
-  const health = checkAppHealth();
-  
-  console.log('🔧 Calibrazione:', calibrationSettings);
-  console.log('🌐 Traduzioni disponibili:', Object.keys(translations));
-  console.log('🗣️ Info lingua:');
-  console.log('  - Lingua corrente:', currentLanguage);
-  console.log('  - Lingua rilevata:', detectDeviceLanguage());
-  console.log('  - Lingua utente salvata:', localStorage.getItem('whiteout-language-user-set'));
-  console.log('  - Lingua auto salvata:', localStorage.getItem('whiteout-language'));
-  
-  // Mostra alcune strutture di esempio
-  console.log('📋 Prime 3 strutture:', facilityData.slice(0, 3));
-  
-  // Mostra alleanze
-  console.log('🏰 Alleanze:', alliances.map(a => ({ name: a.name, icon: a.icon.substring(0, 50) + '...' })));
-  
-  // Conta marker sulla pagina
-  const markersOnPage = document.querySelectorAll('.marker').length;
-  console.log('📍 Marker sulla pagina:', markersOnPage);
-  
-  // Verifica dropdown aperti
-  const openDropdowns = document.querySelectorAll('.marker-dropdown').length;
-  console.log('📋 Dropdown aperti:', openDropdowns);
-  
-  return health;
+// Verifica unicità icona alleanza
+function isIconUnique(iconData, excludeIndex = -1) {
+  return !alliances.some((alliance, index) => 
+    index !== excludeIndex && alliance.icon === iconData
+  );
 }
 
-// Funzione per ripulire eventuali stati inconsistenti
-function cleanupInconsistentState() {
-  console.log('🧹 Pulizia stato inconsistente...');
+// Genera icona alleanza con fallback
+function generateFallbackIcon(name, attempt = 0) {
+  const seed = attempt > 0 ? `${name}_${attempt}` : name;
+  const icon = generateUniqueAllianceIcon(name, seed);
   
-  // Rimuovi dropdown orfani
-  document.querySelectorAll('.marker-dropdown').forEach(dropdown => {
-    if (!dropdown.parentNode || !dropdown.closest('.marker')) {
-      dropdown.remove();
-    }
-  });
+  // Se non è unica, prova con seed diverso (max 10 tentativi)
+  if (!isIconUnique(icon) && attempt < 10) {
+    return generateFallbackIcon(name, attempt + 1);
+  }
   
-  // Verifica coerenza dati alleanze
-  facilityData.forEach(facility => {
-    if (facility.Alliance && !alliances.find(a => a.name === facility.Alliance)) {
-      console.warn(`⚠️ Struttura con alleanza inesistente: ${facility.Type} → ${facility.Alliance}`);
-      delete facility.Alliance;
-    }
-  });
-  
-  console.log('✅ Pulizia completata');
+  return icon;
 }
 
-// Inizializza la lingua al caricamento del file
-console.log('🌐 Inizializzazione sistema lingua...');
-initializeAppLanguage();
-
-// Aggiungi funzioni globali per debug (solo in sviluppo)
-if (typeof window !== 'undefined') {
-  window.debugWS = {
-    health: checkAppHealth,
-    refresh: forceUIRefresh,
-    debug: debugInfo,
-    cleanup: cleanupInconsistentState,
-    showStatus: showStatus,
-    setLanguage: setAppLanguage,
-    detectLanguage: detectDeviceLanguage,
-    getLanguageInfo: () => ({
-      current: currentLanguage,
-      detected: detectDeviceLanguage(),
-      userSet: localStorage.getItem('whiteout-language-user-set'),
-      autoSaved: localStorage.getItem('whiteout-language')
-    })
+// Funzione per mostrare errori di validazione
+function showImageValidationErrors(errors) {
+  const t = translations[currentLanguage] || {};
+  const errorMessages = {
+    formatNotSupported: t.formatNotSupported || 'Formato non supportato. Usa JPG, PNG, GIF o WebP.',
+    fileTooLarge: t.fileTooLarge || 'File troppo grande. Massimo 2MB.',
+    invalidExtension: t.invalidExtension || 'Estensione file non valida.',
+    imageProcessingFailed: t.imageProcessingFailed || 'Errore nell\'elaborazione dell\'immagine.',
+    fileReadFailed: t.fileReadFailed || 'Errore nella lettura del file.'
   };
+  
+  const message = errors.map(error => errorMessages[error] || error).join('\n');
+  showStatus(`❌ ${message}`, 'error', 6000);
 }
 
 // === EXPORT PNG ===
-
 // Carica html2canvas dinamicamente se non già presente
 function loadHtml2Canvas() {
   return new Promise((resolve, reject) => {
@@ -419,7 +405,7 @@ function loadHtml2Canvas() {
 
 // Prepara il contenuto per l'export
 function prepareExportContent() {
-  const t = translations[currentLanguage];
+  const t = translations[currentLanguage] || {};
   
   // Crea container temporaneo
   const exportContainer = document.createElement('div');
@@ -451,7 +437,7 @@ function prepareExportContent() {
       🗺️ Whiteout Survival Companion
     </h1>
     <p style="margin: 0; color: rgba(255, 255, 255, 0.9); font-size: 16px;">
-      ${t.subtitle}
+      ${t.subtitle || 'Professional alliance management with map calibration'}
     </p>
     <p style="margin: 10px 0 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.7);">
       ${t.exportedOn || 'Esportato il'}: ${new Date().toLocaleString(currentLanguage)}
@@ -460,6 +446,10 @@ function prepareExportContent() {
   
   // Clona la mappa
   const originalMap = document.querySelector('.map-container');
+  if (!originalMap) {
+    throw new Error('Map container not found');
+  }
+  
   const mapClone = originalMap.cloneNode(true);
   
   // Rimuovi elementi non necessari dal clone
@@ -501,13 +491,13 @@ function prepareExportContent() {
 
 // Crea sezione statistiche per export
 function createExportStats() {
-  const t = translations[currentLanguage];
+  const t = translations[currentLanguage] || {};
   
-  const assignedFacilities = facilityData.filter(f => f.Alliance).length;
-  const totalFacilities = facilityData.length;
+  const assignedFacilities = facilityData ? facilityData.filter(f => f.Alliance).length : 0;
+  const totalFacilities = facilityData ? facilityData.length : 0;
   const freeFacilities = totalFacilities - assignedFacilities;
   const alliancesWithAssignments = alliances.filter(alliance => 
-    facilityData.some(f => f.Alliance === alliance.name)
+    facilityData && facilityData.some(f => f.Alliance === alliance.name)
   ).length;
   
   const statsContainer = document.createElement('div');
@@ -528,7 +518,7 @@ function createExportStats() {
         ${alliances.length}
       </div>
       <div style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">
-        ${t.alliances}
+        ${t.alliances || 'Alleanze'}
       </div>
     </div>
     <div style="text-align: center;">
@@ -536,7 +526,7 @@ function createExportStats() {
         ${assignedFacilities}
       </div>
       <div style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">
-        ${t.assigned}
+        ${t.assigned || 'Assegnate'}
       </div>
     </div>
     <div style="text-align: center;">
@@ -562,7 +552,7 @@ function createExportStats() {
 
 // Funzione principale di export PNG
 async function exportToPNG() {
-  const t = translations[currentLanguage];
+  const t = translations[currentLanguage] || {};
   
   try {
     // Mostra loading
@@ -618,8 +608,145 @@ async function exportToPNG() {
   }
 }
 
-// Funzione globale per il pulsante
-window.exportPNG = exportToPNG;
+// === ALTRE UTILITY FUNCTIONS ===
+function checkDOMElement(id, context = 'generale') {
+  const element = document.getElementById(id);
+  if (!element) {
+    console.warn(`⚠️ Elemento DOM mancante [${context}]: #${id}`);
+    return false;
+  }
+  return element;
+}
+
+function checkAppHealth() {
+  console.log('🔍 Controllo salute app...');
+  
+  const requiredElements = [
+    'alliance-list',
+    'total-alliances', 
+    'assigned-facilities',
+    'facility-summary',
+    'buff-summary',
+    'map-wrapper'
+  ];
+  
+  const missingElements = [];
+  const foundElements = [];
+  
+  requiredElements.forEach(id => {
+    if (checkDOMElement(id, 'health-check')) {
+      foundElements.push(id);
+    } else {
+      missingElements.push(id);
+    }
+  });
+  
+  console.log('✅ Elementi trovati:', foundElements);
+  if (missingElements.length > 0) {
+    console.warn('❌ Elementi mancanti:', missingElements);
+  }
+  
+  console.log('📊 Stato dati:');
+  console.log('  - Alleanze:', alliances.length);
+  console.log('  - Strutture totali:', typeof facilityData !== 'undefined' ? facilityData.length : 'N/A');
+  console.log('  - Strutture assegnate:', typeof facilityData !== 'undefined' ? facilityData.filter(f => f.Alliance).length : 'N/A');
+  console.log('  - Lingua corrente:', currentLanguage);
+  console.log('  - Lingua rilevata browser:', detectDeviceLanguage());
+  console.log('  - Calibrazione sbloccata:', calibrationUnlocked);
+  
+  return {
+    missingElements,
+    foundElements,
+    dataHealth: {
+      alliances: alliances.length,
+      totalFacilities: typeof facilityData !== 'undefined' ? facilityData.length : 0,
+      assignedFacilities: typeof facilityData !== 'undefined' ? facilityData.filter(f => f.Alliance).length : 0,
+      language: currentLanguage,
+      detectedLanguage: detectDeviceLanguage()
+    }
+  };
+}
+
+function forceUIRefresh() {
+  console.log('🔄 Forzando refresh completo UI...');
+  
+  try {
+    if (typeof updateStats === 'function') {
+      updateStats();
+    }
+    
+    if (typeof renderAllianceList === 'function') {
+      renderAllianceList();
+    }
+    
+    if (typeof updateSummaries === 'function') {
+      updateSummaries();
+    }
+    
+    if (typeof updateUILanguage === 'function') {
+      updateUILanguage();
+    }
+    
+    console.log('✅ Refresh UI completato');
+    showStatus('🔄 Interfaccia aggiornata', 'success', 2000);
+    
+  } catch (error) {
+    console.error('❌ Errore durante refresh UI:', error);
+    showStatus('❌ Errore aggiornamento interfaccia', 'error');
+  }
+}
+
+function debugInfo() {
+  console.log('=== DEBUG INFO ===');
+  const health = checkAppHealth();
+  
+  console.log('🔧 Calibrazione:', calibrationSettings);
+  console.log('🌐 Traduzioni disponibili:', typeof translations !== 'undefined' ? Object.keys(translations) : 'N/A');
+  console.log('🗣️ Info lingua:');
+  console.log('  - Lingua corrente:', currentLanguage);
+  console.log('  - Lingua rilevata:', detectDeviceLanguage());
+  console.log('  - Lingua utente salvata:', localStorage.getItem('whiteout-language-user-set'));
+  console.log('  - Lingua auto salvata:', localStorage.getItem('whiteout-language'));
+  
+  if (typeof facilityData !== 'undefined') {
+    console.log('📋 Prime 3 strutture:', facilityData.slice(0, 3));
+  }
+  
+  console.log('🏰 Alleanze:', alliances.map(a => ({ name: a.name, icon: a.icon.substring(0, 50) + '...' })));
+  
+  const markersOnPage = document.querySelectorAll('.marker').length;
+  console.log('📍 Marker sulla pagina:', markersOnPage);
+  
+  const openDropdowns = document.querySelectorAll('.marker-dropdown').length;
+  console.log('📋 Dropdown aperti:', openDropdowns);
+  
+  return health;
+}
+
+function cleanupInconsistentState() {
+  console.log('🧹 Pulizia stato inconsistente...');
+  
+  document.querySelectorAll('.marker-dropdown').forEach(dropdown => {
+    if (!dropdown.parentNode || !dropdown.closest('.marker')) {
+      dropdown.remove();
+    }
+  });
+  
+  if (typeof facilityData !== 'undefined') {
+    facilityData.forEach(facility => {
+      if (facility.Alliance && !alliances.find(a => a.name === facility.Alliance)) {
+        console.warn(`⚠️ Struttura con alleanza inesistente: ${facility.Type} → ${facility.Alliance}`);
+        delete facility.Alliance;
+      }
+    });
+  }
+  
+  console.log('✅ Pulizia completata');
+}
+
+// Inizializza la lingua al caricamento del file
+console.log('🌐 Inizializzazione sistema lingua...');
+initializeAppLanguage();
 
 // === ESPORTAZIONI GLOBALI ===
 // Rendi le funzioni accessibili globalmente per compatibilità
@@ -638,11 +765,40 @@ window.generateFallbackIcon = generateFallbackIcon;
 window.loadHtml2Canvas = loadHtml2Canvas;
 window.exportToPNG = exportToPNG;
 
+// Funzioni utilità
+window.showStatus = showStatus;
+window.getRandomColor = getRandomColor;
+
+// Aggiungi funzioni globali per debug
+if (typeof window !== 'undefined') {
+  window.debugWS = {
+    health: checkAppHealth,
+    refresh: forceUIRefresh,
+    debug: debugInfo,
+    cleanup: cleanupInconsistentState,
+    showStatus: showStatus,
+    setLanguage: setAppLanguage,
+    detectLanguage: detectDeviceLanguage,
+    getLanguageInfo: () => ({
+      current: currentLanguage,
+      detected: detectDeviceLanguage(),
+      userSet: localStorage.getItem('whiteout-language-user-set'),
+      autoSaved: localStorage.getItem('whiteout-language')
+    }),
+    // Funzioni avanzate
+    validateImage: validateImageFile,
+    processImage: processImageFile,
+    generateIcon: generateUniqueAllianceIcon,
+    exportPNG: exportToPNG
+  };
+}
+
 // Log delle funzioni esportate
 console.log('🔧 Funzioni utilities esportate globalmente:', {
   validateImageFile: typeof validateImageFile === 'function',
   processImageFile: typeof processImageFile === 'function',
   generateUniqueAllianceIcon: typeof generateUniqueAllianceIcon === 'function',
   exportToPNG: typeof exportToPNG === 'function',
-  loadHtml2Canvas: typeof loadHtml2Canvas === 'function'
+  loadHtml2Canvas: typeof loadHtml2Canvas === 'function',
+  showStatus: typeof showStatus === 'function'
 });
