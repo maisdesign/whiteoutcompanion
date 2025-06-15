@@ -1,50 +1,51 @@
 // === MARKER ===
-    function createMarker(facility, index) {
-      const mapWrapper = document.getElementById('map-wrapper');
-      if (!mapWrapper) return;
+function createMarker(facility, index) {
+  const mapWrapper = document.getElementById('map-wrapper');
+  if (!mapWrapper) return;
 
-      if (facility.marker) {
-        facility.marker.remove();
-      }
+  if (facility.marker) {
+    facility.marker.remove();
+  }
 
-      const marker = document.createElement('div');
-      marker.className = `marker ${facility.Type.toLowerCase()}`;
-      
-      const pos = applyMarkerPosition(facility);
-      marker.style.left = `calc(${pos.x}% - 6px)`;
-      marker.style.top = `calc(${pos.y}% - 6px)`;
-      
-      marker.title = `${facility.Type} ${facility.Level}${facility.ingameCoords ? ' (' + facility.ingameCoords + ')' : ''}`;
-      marker.onclick = () => showDropdown(facility, marker, index);
-      
-      mapWrapper.appendChild(marker);
-      facility.marker = marker;
+  const marker = document.createElement('div');
+  marker.className = `marker ${facility.Type.toLowerCase()}`;
+  
+  const pos = applyMarkerPosition(facility);
+  marker.style.left = `calc(${pos.x}% - 6px)`;
+  marker.style.top = `calc(${pos.y}% - 6px)`;
+  
+  marker.title = `${facility.Type} ${facility.Level}${facility.ingameCoords ? ' (' + facility.ingameCoords + ')' : ''}`;
+  marker.onclick = () => showDropdown(facility, marker, index);
+  
+  mapWrapper.appendChild(marker);
+  facility.marker = marker;
 
-      if (facility.Alliance) {
-        renderAllianceIcon(facility);
-        marker.classList.add('assigned');
-      }
-      
-      return marker;
-    }
+  if (facility.Alliance) {
+    renderAllianceIcon(facility);
+    marker.classList.add('assigned');
+  }
+  
+  return marker;
+}
 
-    function recreateAllMarkers() {
-      document.querySelectorAll('.marker').forEach(marker => marker.remove());
-      
-      facilityData.forEach(facility => {
-        facility.marker = null;
-      });
-      
-      let createdCount = 0;
-      facilityData.forEach((facility, index) => {
-        const marker = createMarker(facility, index);
-        if (marker) createdCount++;
-      });
-      
-      showStatus(`📍 ${createdCount} marker aggiornati`, 'info');
-    }
+function recreateAllMarkers() {
+  document.querySelectorAll('.marker').forEach(marker => marker.remove());
+  
+  facilityData.forEach(facility => {
+    facility.marker = null;
+  });
+  
+  let createdCount = 0;
+  facilityData.forEach((facility, index) => {
+    const marker = createMarker(facility, index);
+    if (marker) createdCount++;
+  });
+  
+  const t = translations[currentLanguage];
+  showStatus(`📍 ${createdCount} ${t.markersUpdated || 'marker aggiornati'}`, 'info');
+}
 
-    function showDropdown(facility, marker, index) {
+function showDropdown(facility, marker, index) {
   const t = translations[currentLanguage];
   if (alliances.length === 0) {
     showStatus(t.addAtLeastOneAlliance, 'error');
@@ -74,7 +75,7 @@
   header.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <span>${facility.Type} ${facility.Level}${coordsText}</span>
-      <span style="font-size: 11px; opacity: 0.8;">${alliances.length + 1} opzioni</span>
+      <span style="font-size: 11px; opacity: 0.8;">${alliances.length + 1} ${t.options || 'opzioni'}</span>
     </div>
   `;
   dropdown.appendChild(header);
@@ -126,7 +127,7 @@
       <img src="${alliance.icon}" alt="${alliance.name}" class="alliance-icon-small">
       <div style="flex: 1; display: flex; flex-direction: column;">
         <span style="font-weight: 500;">${alliance.name}</span>
-        <span style="font-size: 11px; opacity: 0.7;">${assignedCount} strutture</span>
+        <span style="font-size: 11px; opacity: 0.7;">${assignedCount} ${t.structures || 'strutture'}</span>
       </div>
     `;
     
@@ -151,7 +152,7 @@
     const scrollIndicator = document.createElement('div');
     scrollIndicator.className = 'dropdown-scroll-indicator';
     scrollIndicator.innerHTML = '⬇️';
-    scrollIndicator.title = 'Scrolla per vedere tutte le alleanze';
+    scrollIndicator.title = t.scrollToSeeAll || 'Scrolla per vedere tutte le alleanze';
     dropdown.appendChild(scrollIndicator);
     
     // Nascondi indicatore quando scroll raggiunge il bottom
@@ -225,6 +226,91 @@
   }
 }
 
+// FUNZIONE CHIAVE MIGLIORATA: assignFacilityToAlliance
+function assignFacilityToAlliance(facility, marker, allianceName) {
+  console.log('🔄 Assegnazione struttura:', facility.Type, facility.Level, '→', allianceName || 'RIMOSSA');
+  
+  const t = translations[currentLanguage];
+  const previousAlliance = facility.Alliance;
+  
+  // Aggiorna l'assegnazione
+  facility.Alliance = allianceName;
+  
+  // Aggiorna icona alleanza sul marker
+  renderAllianceIcon(facility);
+  
+  // Aggiorna classe CSS del marker
+  if (allianceName) {
+    marker.classList.add('assigned');
+    showStatus(`✅ ${facility.Type} ${t.assignedTo || 'assegnata a'} ${allianceName}`, 'success');
+  } else {
+    marker.classList.remove('assigned');
+    showStatus(`❌ ${facility.Type} ${t.removed || 'rimossa'}`, 'info');
+  }
+  
+  // AGGIORNAMENTO COMPLETO DELL'UI - QUESTA È LA PARTE CRUCIALE
+  console.log('🔄 Forzando aggiornamento completo UI...');
+  
+  // Usa setTimeout per assicurarsi che l'aggiornamento avvenga dopo che il DOM si è stabilizzato
+  setTimeout(() => {
+    // Aggiorna statistiche
+    updateStats();
+    
+    // Aggiorna lista alleanze con contatori
+    renderAllianceList();
+    
+    // Aggiorna entrambi i riepiloghi
+    renderFacilitySummary();
+    renderBuffSummary();
+    
+    console.log('✅ UI aggiornata completamente dopo assegnazione');
+  }, 50);
+  
+  // Salva i dati
+  saveData();
+  
+  console.log('💾 Dati salvati dopo assegnazione');
+}
+
+function closeAllDropdowns() {
+  document.querySelectorAll('.marker-dropdown').forEach(dropdown => {
+    dropdown.style.animation = 'fadeOut 0.2s ease';
+    setTimeout(() => {
+      if (dropdown.parentNode) {
+        dropdown.remove();
+      }
+    }, 200);
+  });
+}
+
+function renderAllianceIcon(facility) {
+  if (!facility.marker) return;
+  
+  facility.marker.querySelectorAll('img').forEach(e => e.remove());
+  
+  const alliance = alliances.find(a => a.name === facility.Alliance);
+  if (alliance) {
+    const icon = document.createElement('img');
+    icon.src = alliance.icon;
+    icon.alt = `${facility.Alliance} icon`;
+    icon.style.cssText = `
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 20px;
+      height: 20px;
+      transform: translate(-50%, -100%);
+      z-index: 11;
+      pointer-events: none;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.9);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      background: white;
+    `;
+    facility.marker.appendChild(icon);
+  }
+}
+
 // Stile per focus keyboard
 const keyboardFocusStyle = `
   .dropdown-option.keyboard-focus {
@@ -242,46 +328,3 @@ if (!document.getElementById('keyboard-focus-style')) {
   style.textContent = keyboardFocusStyle;
   document.head.appendChild(style);
 }
-
-    function assignFacilityToAlliance(facility, marker, allianceName) {
-      facility.Alliance = allianceName;
-      
-      renderAllianceIcon(facility);
-      
-      if (allianceName) {
-        marker.classList.add('assigned');
-        showStatus(`✅ ${facility.Type} assegnata a ${allianceName}`, 'success');
-      } else {
-        marker.classList.remove('assigned');
-        showStatus(`❌ ${facility.Type} rimossa`, 'info');
-      }
-      
-      updateStats();
-      updateSummaries();
-      saveData();
-    }
-
-    function closeAllDropdowns() {
-      document.querySelectorAll('.marker-dropdown').forEach(dropdown => {
-        dropdown.style.animation = 'fadeOut 0.2s ease';
-        setTimeout(() => {
-          if (dropdown.parentNode) {
-            dropdown.remove();
-          }
-        }, 200);
-      });
-    }
-
-    function renderAllianceIcon(facility) {
-      if (!facility.marker) return;
-      
-      facility.marker.querySelectorAll('img').forEach(e => e.remove());
-      
-      const alliance = alliances.find(a => a.name === facility.Alliance);
-      if (alliance) {
-        const icon = document.createElement('img');
-        icon.src = alliance.icon;
-        icon.alt = `${facility.Alliance} icon`;
-        facility.marker.appendChild(icon);
-      }
-    }
