@@ -31,3 +31,53 @@
     .hidden { display: none; }
     .collapsed-content { max-height: 0; overflow: hidden; }
     .expanded-content { max-height: 2000px; }
+
+    /* Responsive per icone facility */
+@media (max-width: 1024px) {
+  .facility-icon {
+    font-size: 9px;
+  }
+  
+  .marker:hover .facility-icon {
+    font-size: 11px;
+  }
+  
+  .marker.castle .facility-icon {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 768px) {
+  .facility-icon {
+    font-size: 10px;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.9);
+  }
+  
+  .marker:hover .facility-icon {
+    font-size: 12px;
+  }
+  
+  .marker.castle .facility-icon {
+    font-size: 12px;
+  }
+  
+  .marker.castle:hover .facility-icon {
+    font-size: 14px;
+  }
+}
+
+/* Migliora visibilità su touch devices */
+@media (pointer: coarse) {
+  .marker {
+    min-width: 16px;
+    min-height: 16px;
+  }
+  
+  .facility-icon {
+    font-size: 11px;
+  }
+  
+  .marker.castle .facility-icon {
+    font-size: 13px;
+  }
+}

@@ -1,4 +1,19 @@
-// === MARKER ===
+// === ICONE FACILITY ===
+const facilityIcons = {
+  'Castle': '🏰',
+  'Construction': '🔨',
+  'Production': '🏭',
+  'Defense': '🛡️',
+  'Gathering': '⛏️',
+  'Tech': '🔬',
+  'Weapons': '⚔️',
+  'Training': '🎯',
+  'Expedition': '🚁',
+  'Stronghold': '🏛️',
+  'Fortress': '🏯'
+};
+
+// === MARKER AGGIORNATO ===
 function createMarker(facility, index) {
   const mapWrapper = document.getElementById('map-wrapper');
   if (!mapWrapper) return;
@@ -16,6 +31,12 @@ function createMarker(facility, index) {
   
   marker.title = `${facility.Type} ${facility.Level}${facility.ingameCoords ? ' (' + facility.ingameCoords + ')' : ''}`;
   marker.onclick = () => showDropdown(facility, marker, index);
+  
+  // Aggiungi icona facility
+  const facilityIcon = document.createElement('span');
+  facilityIcon.className = 'facility-icon';
+  facilityIcon.textContent = facilityIcons[facility.Type] || '📍';
+  marker.appendChild(facilityIcon);
   
   mapWrapper.appendChild(marker);
   facility.marker = marker;

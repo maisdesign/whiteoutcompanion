@@ -28,21 +28,153 @@ function renderAllianceList() {
 
 function editAlliance(index) {
   const alliance = alliances[index];
-  const newName = prompt('Nuovo nome alleanza:', alliance.name);
-  if (newName && newName.trim()) {
-    const oldName = alliance.name;
-    alliance.name = newName.trim();
+  const t = translations[currentLanguage];
+  
+  // Crea un modal per la modifica
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(10px);
+  `;
+  
+  const modalContent = document.createElement('div');
+  modalContent.style.cssText = `
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  `;
+  
+  modalContent.innerHTML = `
+    <h3 style="color: #4facfe; margin-bottom: 20px; text-align: center;">
+      ✏️ ${t.editAlliance || 'Modifica Alleanza'}
+    </h3>
     
-    facilityData.forEach(f => {
-      if (f.Alliance === oldName) {
-        f.Alliance = newName.trim();
+    <div style="margin-bottom: 15px;">
+      <label style="display: block; margin-bottom: 5px; font-size: 14px; color: var(--text-secondary);">
+        ${t.allianceName || 'Nome alleanza'}:
+      </label>
+      <input type="text" id="edit-alliance-name" value="${alliance.name}" 
+             style="width: 100%; padding: 12px; border: 2px solid var(--glass-border); border-radius: 8px; 
+                    background: var(--glass-bg); color: var(--text-primary); backdrop-filter: blur(10px);"
+             maxlength="30" required>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 5px; font-size: 14px; color: var(--text-secondary);">
+        ${t.allianceIcon || 'Icona alleanza'} (${t.optional || 'opzionale'}):
+      </label>
+      <input type="file" id="edit-alliance-icon" accept="image/*"
+             style="width: 100%; padding: 8px; border: 2px dashed var(--glass-border); border-radius: 8px; 
+                    background: var(--glass-bg); color: var(--text-primary); backdrop-filter: blur(10px);">
+      <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+        <img src="${alliance.icon}" alt="${alliance.name}" style="width: 32px; height: 32px; border-radius: 50%;">
+        <span style="font-size: 12px; color: var(--text-secondary);">${t.currentIcon || 'Icona attuale'}</span>
+      </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px; justify-content: center;">
+      <button id="save-alliance-edit" class="btn btn-success" style="flex: 1;">
+        ✅ ${t.save || 'Salva'}
+      </button>
+      <button id="cancel-alliance-edit" class="btn btn-warning" style="flex: 1;">
+        ❌ ${t.cancel || 'Annulla'}
+      </button>
+    </div>
+  `;
+  
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+  
+  // Focus sul campo nome
+  const nameInput = document.getElementById('edit-alliance-name');
+  nameInput.focus();
+  nameInput.select();
+  
+  // Event listeners
+  document.getElementById('save-alliance-edit').onclick = () => {
+    const newName = nameInput.value.trim();
+    
+    if (!newName) {
+      alert(t.enterAllianceName || 'Inserisci un nome per l\'alleanza');
+      return;
+    }
+    
+    // Verifica nome duplicato (escluso quello corrente)
+    if (alliances.find((a, i) => i !== index && a.name.toLowerCase() === newName.toLowerCase())) {
+      alert(t.allianceExists || 'Alleanza già esistente');
+      return;
+    }
+    
+    const fileInput = document.getElementById('edit-alliance-icon');
+    const file = fileInput.files[0];
+    
+    const saveChanges = (newIcon = null) => {
+      const oldName = alliance.name;
+      alliance.name = newName;
+      
+      if (newIcon) {
+        alliance.icon = newIcon;
       }
-    });
+      
+      // Aggiorna il nome nelle facility assegnate
+      facilityData.forEach(f => {
+        if (f.Alliance === oldName) {
+          f.Alliance = newName;
+        }
+      });
+      
+      // Aggiorna tutte le icone sui marker
+      facilityData.forEach(f => {
+        if (f.Alliance === newName && f.marker) {
+          renderAllianceIcon(f);
+        }
+      });
+      
+      updateAllUI();
+      saveData();
+      modal.remove();
+      
+      showStatus(`✅ ${t.allianceUpdated || 'Alleanza aggiornata'}: "${newName}"!`, 'success');
+    };
     
-    // Forza aggiornamento completo
-    updateAllUI();
-    saveData();
-  }
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => saveChanges(evt.target.result);
+      reader.readAsDataURL(file);
+    } else {
+      saveChanges();
+    }
+  };
+  
+  document.getElementById('cancel-alliance-edit').onclick = () => {
+    modal.remove();
+  };
+  
+  // Chiudi con ESC o click fuori
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.remove();
+  };
+  
+  document.addEventListener('keydown', function escHandler(e) {
+    if (e.key === 'Escape') {
+      modal.remove();
+      document.removeEventListener('keydown', escHandler);
+    }
+  });
 }
 
 function deleteAlliance(index) {
@@ -106,6 +238,9 @@ function updateAllUI() {
   // Aggiorna riepiloghi
   updateSummaries();
   
+  // NUOVO: Controlla se aprire automaticamente gli accordion
+  setTimeout(checkAndOpenAccordions, 100);
+  
   console.log('✅ UI aggiornata completamente');
 }
 
@@ -129,11 +264,15 @@ function renderFacilitySummary() {
   Object.entries(grouped).forEach(([type, facilities]) => {
     const assigned = facilities.filter(f => f.Alliance).length;
     const total = facilities.length;
+    const typeIcon = facilityIcons[type] || '📍';
     
     html += `
       <div style="margin-bottom: 15px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 4px solid #4facfe;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <strong style="color: #4facfe; font-size: 14px;">${type}</strong>
+          <strong style="color: #4facfe; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 16px;">${typeIcon}</span>
+            ${type}
+          </strong>
           <span style="background: rgba(67, 233, 123, 0.2); padding: 2px 8px; border-radius: 12px; font-size: 12px;">
             ${assigned}/${total} ${t.assigned}
           </span>
@@ -146,7 +285,11 @@ function renderFacilitySummary() {
               background: ${f.Alliance ? 'rgba(67, 233, 123, 0.2)' : 'rgba(255,255,255,0.05)'}; 
               color: ${f.Alliance ? '#43e97b' : 'var(--text-secondary)'};
               border: 1px solid ${f.Alliance ? 'rgba(67, 233, 123, 0.3)' : 'rgba(255,255,255,0.1)'};
+              display: flex;
+              align-items: center;
+              gap: 4px;
             ">
+              <span style="font-size: 10px;">${typeIcon}</span>
               ${f.Level}${f.Alliance ? ' → ' + f.Alliance : ''}
             </span>`
           ).join('')}
@@ -589,3 +732,42 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('  - Lingua rilevata browser:', detectDeviceLanguage());
   }
 });
+
+// === AUTO-APERTURA ACCORDION ===
+function checkAndOpenAccordions() {
+  // Apri facility summary se ci sono strutture assegnate
+  const assignedFacilities = facilityData.filter(f => f.Alliance).length;
+  if (assignedFacilities > 0) {
+    const facilityContent = document.getElementById('facility-summary-content');
+    const facilityToggle = document.getElementById('facility-toggle');
+    if (facilityContent && facilityToggle && facilityContent.classList.contains('collapsed-content')) {
+      facilityContent.classList.remove('collapsed-content');
+      facilityContent.classList.add('expanded-content');
+      facilityToggle.textContent = '▼';
+      facilityToggle.classList.remove('collapsed');
+      console.log('📋 Auto-apertura facility summary per dati presenti');
+    }
+  }
+  
+  // Apri buff summary se ci sono alleanze con assegnazioni
+  const alliancesWithAssignments = alliances.filter(alliance => 
+    facilityData.some(f => f.Alliance === alliance.name)
+  ).length;
+  if (alliancesWithAssignments > 0) {
+    const buffContent = document.getElementById('buff-summary-content');
+    const buffToggle = document.getElementById('buff-toggle');
+    if (buffContent && buffToggle && buffContent.classList.contains('collapsed-content')) {
+      buffContent.classList.remove('collapsed-content');
+      buffContent.classList.add('expanded-content');
+      buffToggle.textContent = '▼';
+      buffToggle.classList.remove('collapsed');
+      console.log('⚡ Auto-apertura buff summary per dati presenti');
+    }
+  }
+}
+
+// Modifica la funzione updateAllUI esistente per includere il check accordion:
+// Trova la funzione updateAllUI e aggiungi questa riga alla fine:
+
+// Nella funzione updateAllUI esistente, aggiungi questa riga dopo updateSummaries():
+// setTimeout(checkAndOpenAccordions, 100);

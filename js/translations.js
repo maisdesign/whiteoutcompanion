@@ -20,6 +20,13 @@ const translations = {
     buffSummary: "⚡ Riepilogo Buff",
     advancedCalibration: "🔧 Calibrazione Avanzata",
     unassigned: "Non assegnata",
+    editAlliance: "Modifica Alleanza",
+    allianceIcon: "Icona alleanza",
+    optional: "opzionale",
+    currentIcon: "Icona attuale",
+    save: "Salva",
+    cancel: "Annulla",
+    allianceUpdated: "Alleanza aggiornata",
     
     // Colori
     colorCastle: "Castle (Oro)",
@@ -82,6 +89,13 @@ const translations = {
     buffSummary: "⚡ Buff Summary",
     advancedCalibration: "🔧 Advanced Calibration",
     unassigned: "Unassigned",
+    editAlliance: "Edit Alliance",
+    allianceIcon: "Alliance icon",
+    optional: "optional",
+    currentIcon: "Current icon",
+    save: "Save",
+    cancel: "Cancel",
+    allianceUpdated: "Alliance updated",
     
     // Colors
     colorCastle: "Castle (Gold)",
@@ -144,6 +158,13 @@ const translations = {
     buffSummary: "⚡ Resumen de Buff",
     advancedCalibration: "🔧 Calibración Avanzada",
     unassigned: "Sin asignar",
+    editAlliance: "Editar Alianza",
+    allianceIcon: "Icono de alianza",
+    optional: "opcional", 
+    currentIcon: "Icono actual",
+    save: "Guardar",
+    cancel: "Cancelar",
+    
     
     // Colores
     colorCastle: "Castle (Oro)",
@@ -206,6 +227,13 @@ const translations = {
     buffSummary: "⚡ Résumé des Buff",
     advancedCalibration: "🔧 Calibrage Avancé",
     unassigned: "Non assignée",
+    editAlliance: "Modifier Alliance",
+    allianceIcon: "Icône d'alliance",
+    optional: "optionnel",
+    currentIcon: "Icône actuelle",
+    save: "Sauvegarder",
+    cancel: "Annuler",
+    allianceUpdated: "Alliance mise à jour",
     
     // Couleurs
     colorCastle: "Castle (Or)",
@@ -268,6 +296,13 @@ const translations = {
     buffSummary: "⚡ Buff-Zusammenfassung",
     advancedCalibration: "🔧 Erweiterte Kalibrierung",
     unassigned: "Nicht zugewiesen",
+    editAlliance: "Allianz Bearbeiten",
+    allianceIcon: "Allianz-Symbol",
+    optional: "optional",
+    currentIcon: "Aktuelles Symbol",
+    save: "Speichern",
+    cancel: "Abbrechen",
+    allianceUpdated: "Allianz aktualisiert",
     
     // Farben
     colorCastle: "Castle (Gold)",
@@ -330,6 +365,13 @@ const translations = {
     buffSummary: "⚡ Resumo de Buff",
     advancedCalibration: "🔧 Calibração Avançada",
     unassigned: "Não atribuída",
+    editAlliance: "Editar Aliança",
+    allianceIcon: "Ícone da aliança",
+    optional: "opcional",
+    currentIcon: "Ícone atual",
+    save: "Salvar",
+    cancel: "Cancelar",
+    allianceUpdated: "Aliança atualizada",
     
     // Cores
     colorCastle: "Castle (Ouro)",
