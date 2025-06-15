@@ -290,16 +290,20 @@ function loadData() {
       if (data.calibration) {
         calibrationSettings = data.calibration;
         if (calibrationUnlocked) {
-          document.getElementById('offsetX').value = calibrationSettings.offsetX;
-          document.getElementById('offsetY').value = calibrationSettings.offsetY;
-          document.getElementById('scaleX').value = calibrationSettings.scaleX;
-          document.getElementById('scaleY').value = calibrationSettings.scaleY;
+          const offsetX = document.getElementById('offsetX');
+          const offsetY = document.getElementById('offsetY');
+          const scaleX = document.getElementById('scaleX');
+          const scaleY = document.getElementById('scaleY');
+          
+          if (offsetX) offsetX.value = calibrationSettings.offsetX;
+          if (offsetY) offsetY.value = calibrationSettings.offsetY;
+          if (scaleX) scaleX.value = calibrationSettings.scaleX;
+          if (scaleY) scaleY.value = calibrationSettings.scaleY;
         }
       }
       
-      if (data.language && translations[data.language]) {
-        currentLanguage = data.language;
-      }
+      // RIMOSSO: Non gestiamo più la lingua qui, è gestita in utilities.js
+      // La lingua viene inizializzata automaticamente all'avvio
       
       console.log('📂 Dati caricati:', data);
     } catch (error) {
@@ -307,10 +311,8 @@ function loadData() {
     }
   }
   
-  const savedLanguage = localStorage.getItem('whiteout-language');
-  if (savedLanguage && translations[savedLanguage]) {
-    currentLanguage = savedLanguage;
-  }
+  // RIMOSSO: Non serve più questo fallback
+  // La lingua è già stata inizializzata in utilities.js
 }
 
 // === FUNZIONI EXPORT ===
@@ -520,6 +522,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
   console.log('=== WHITEOUT COMPANION INIT ===');
   
+  // Carica i dati salvati
   loadData();
   
   const mapImg = document.getElementById('map');
@@ -554,16 +557,35 @@ document.addEventListener('DOMContentLoaded', () => {
     // Aggiornamento completo UI
     updateAllUI();
     
-    // Setup language
-    updateUILanguage();
-    setLanguage(currentLanguage);
+    // NUOVO: Inizializza il sistema lingua
+    if (typeof initializeLanguageSystem === 'function') {
+      initializeLanguageSystem();
+    } else {
+      // Fallback se la funzione non è ancora caricata
+      setTimeout(() => {
+        if (typeof initializeLanguageSystem === 'function') {
+          initializeLanguageSystem();
+        } else {
+          // Fallback finale
+          updateUILanguage();
+          updateLanguageButtons();
+        }
+      }, 100);
+    }
     
-    const t = translations[currentLanguage];
-    showStatus(t.appLoaded.replace('{count}', createdCount), 'success');
+    // Messaggio di caricamento completato (ora localizzato)
+    setTimeout(() => {
+      const t = translations[currentLanguage] || translations['en'];
+      const message = t.appLoaded ? t.appLoaded.replace('{count}', createdCount) : `🎯 App loaded! ${createdCount} structures.`;
+      showStatus(message, 'success');
+    }, 500);
     
-    console.log('Calibrazione caricata:', calibrationSettings);
-    console.log('Alleanze caricate:', alliances.length);
-    console.log('Strutture totali:', facilityData.length);
-    console.log('Marker creati:', createdCount);
+    console.log('📊 Stato finale inizializzazione:');
+    console.log('  - Calibrazione caricata:', calibrationSettings);
+    console.log('  - Alleanze caricate:', alliances.length);
+    console.log('  - Strutture totali:', facilityData.length);
+    console.log('  - Marker creati:', createdCount);
+    console.log('  - Lingua attiva:', currentLanguage);
+    console.log('  - Lingua rilevata browser:', detectDeviceLanguage());
   }
 });

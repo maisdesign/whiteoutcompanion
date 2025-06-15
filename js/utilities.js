@@ -2,9 +2,136 @@
 const alliances = [];
 let calibrationSettings = { offsetX: 0, offsetY: 0.7, scaleX: 1.0, scaleY: 1.0 };
 let calibrationUnlocked = false;
-let currentLanguage = 'it';
 
-// === FUNZIONI UTILITIES ===
+// === SISTEMA DI RILEVAMENTO LINGUA AUTOMATICO ===
+
+// Lingue supportate dall'app
+const SUPPORTED_LANGUAGES = ['it', 'en', 'es', 'fr', 'de', 'pt'];
+const DEFAULT_LANGUAGE = 'en'; // Inglese come fallback
+
+// Variabile lingua corrente (inizializzata dinamicamente)
+let currentLanguage = DEFAULT_LANGUAGE;
+
+// Funzione per rilevare la lingua del dispositivo
+function detectDeviceLanguage() {
+  console.log('🌐 Rilevamento lingua dispositivo...');
+  
+  // Ottieni le lingue preferite del browser
+  const browserLanguages = [
+    navigator.language,           // Lingua principale (es: "en-US", "it-IT")
+    ...(navigator.languages || []), // Array di lingue preferite
+    navigator.userLanguage        // Fallback per IE
+  ].filter(Boolean); // Rimuovi valori null/undefined
+  
+  console.log('📱 Lingue browser rilevate:', browserLanguages);
+  
+  // Cerca la prima lingua supportata
+  for (const browserLang of browserLanguages) {
+    // Estrai il codice lingua (es: "en-US" → "en")
+    const langCode = browserLang.toLowerCase().split('-')[0];
+    
+    if (SUPPORTED_LANGUAGES.includes(langCode)) {
+      console.log(`✅ Lingua supportata trovata: ${langCode} (da ${browserLang})`);
+      return langCode;
+    }
+  }
+  
+  console.log(`⚠️ Nessuna lingua supportata trovata, uso default: ${DEFAULT_LANGUAGE}`);
+  return DEFAULT_LANGUAGE;
+}
+
+// Funzione per inizializzare la lingua dell'app
+function initializeAppLanguage() {
+  console.log('🔧 Inizializzazione lingua app...');
+  
+  // 1. Controlla se c'è una lingua salvata dall'utente (priorità massima)
+  const userSetLanguage = localStorage.getItem('whiteout-language-user-set');
+  if (userSetLanguage && SUPPORTED_LANGUAGES.includes(userSetLanguage)) {
+    console.log(`👤 Lingua scelta dall'utente: ${userSetLanguage}`);
+    currentLanguage = userSetLanguage;
+    return userSetLanguage;
+  }
+  
+  // 2. Controlla lingua salvata automaticamente
+  const savedLanguage = localStorage.getItem('whiteout-language');
+  if (savedLanguage && SUPPORTED_LANGUAGES.includes(savedLanguage)) {
+    console.log(`💾 Lingua salvata trovata: ${savedLanguage}`);
+    currentLanguage = savedLanguage;
+    return savedLanguage;
+  }
+  
+  // 3. Se non c'è lingua salvata, rileva automaticamente
+  const detectedLanguage = detectDeviceLanguage();
+  
+  // 4. Salva la lingua rilevata per la prossima volta
+  localStorage.setItem('whiteout-language', detectedLanguage);
+  currentLanguage = detectedLanguage;
+  console.log(`🎯 Lingua inizializzata: ${detectedLanguage}`);
+  
+  return detectedLanguage;
+}
+
+// Funzione per ottenere il nome della lingua in formato leggibile
+function getLanguageDisplayName(langCode) {
+  const languageNames = {
+    'en': '🇺🇸 English',
+    'it': '🇮🇹 Italiano', 
+    'es': '🇪🇸 Español',
+    'fr': '🇫🇷 Français',
+    'de': '🇩🇪 Deutsch',
+    'pt': '🇵🇹 Português'
+  };
+  
+  return languageNames[langCode] || `${langCode.toUpperCase()}`;
+}
+
+// Funzione per forzare una lingua specifica
+function setAppLanguage(langCode, userChoice = false) {
+  if (!SUPPORTED_LANGUAGES.includes(langCode)) {
+    console.warn(`⚠️ Lingua non supportata: ${langCode}, uso ${DEFAULT_LANGUAGE}`);
+    langCode = DEFAULT_LANGUAGE;
+  }
+  
+  currentLanguage = langCode;
+  
+  // Salva sempre in localStorage normale
+  localStorage.setItem('whiteout-language', langCode);
+  
+  // Se è una scelta dell'utente, salvala separatamente con priorità
+  if (userChoice) {
+    localStorage.setItem('whiteout-language-user-set', langCode);
+    console.log(`👤 Lingua scelta dall'utente: ${langCode}`);
+  }
+  
+  console.log(`🌐 Lingua impostata: ${langCode} (${getLanguageDisplayName(langCode)})`);
+  return langCode;
+}
+
+// Funzione per mostrare un messaggio di benvenuto localizzato
+function showWelcomeMessage() {
+  const langName = getLanguageDisplayName(currentLanguage);
+  
+  const welcomeMessages = {
+    'en': `🌍 Language auto-detected: ${langName}`,
+    'it': `🌍 Lingua rilevata automaticamente: ${langName}`,
+    'es': `🌍 Idioma detectado automáticamente: ${langName}`,
+    'fr': `🌍 Langue détectée automatiquement: ${langName}`,
+    'de': `🌍 Sprache automatisch erkannt: ${langName}`,
+    'pt': `🌍 Idioma detectado automaticamente: ${langName}`
+  };
+  
+  const message = welcomeMessages[currentLanguage] || welcomeMessages['en'];
+  
+  // Mostra il messaggio solo se la lingua è stata rilevata automaticamente
+  const userSetLanguage = localStorage.getItem('whiteout-language-user-set');
+  if (!userSetLanguage) {
+    setTimeout(() => {
+      showStatus(message, 'info', 5000);
+    }, 2000);
+  }
+}
+
+// === FUNZIONI UTILITIES ESISTENTI ===
 function getRandomColor() {
   const colors = ['#d7263d', '#0074d9', '#2ecc71', '#ff851b', '#7fdbff', '#b10dc9'];
   return colors[Math.floor(Math.random() * colors.length)];
@@ -141,6 +268,7 @@ function checkAppHealth() {
   console.log('  - Strutture totali:', facilityData.length);
   console.log('  - Strutture assegnate:', facilityData.filter(f => f.Alliance).length);
   console.log('  - Lingua corrente:', currentLanguage);
+  console.log('  - Lingua rilevata browser:', detectDeviceLanguage());
   console.log('  - Calibrazione sbloccata:', calibrationUnlocked);
   
   return {
@@ -150,7 +278,8 @@ function checkAppHealth() {
       alliances: alliances.length,
       totalFacilities: facilityData.length,
       assignedFacilities: facilityData.filter(f => f.Alliance).length,
-      language: currentLanguage
+      language: currentLanguage,
+      detectedLanguage: detectDeviceLanguage()
     }
   };
 }
@@ -196,6 +325,11 @@ function debugInfo() {
   
   console.log('🔧 Calibrazione:', calibrationSettings);
   console.log('🌐 Traduzioni disponibili:', Object.keys(translations));
+  console.log('🗣️ Info lingua:');
+  console.log('  - Lingua corrente:', currentLanguage);
+  console.log('  - Lingua rilevata:', detectDeviceLanguage());
+  console.log('  - Lingua utente salvata:', localStorage.getItem('whiteout-language-user-set'));
+  console.log('  - Lingua auto salvata:', localStorage.getItem('whiteout-language'));
   
   // Mostra alcune strutture di esempio
   console.log('📋 Prime 3 strutture:', facilityData.slice(0, 3));
@@ -236,6 +370,10 @@ function cleanupInconsistentState() {
   console.log('✅ Pulizia completata');
 }
 
+// Inizializza la lingua al caricamento del file
+console.log('🌐 Inizializzazione sistema lingua...');
+initializeAppLanguage();
+
 // Aggiungi funzioni globali per debug (solo in sviluppo)
 if (typeof window !== 'undefined') {
   window.debugWS = {
@@ -243,6 +381,14 @@ if (typeof window !== 'undefined') {
     refresh: forceUIRefresh,
     debug: debugInfo,
     cleanup: cleanupInconsistentState,
-    showStatus: showStatus
+    showStatus: showStatus,
+    setLanguage: setAppLanguage,
+    detectLanguage: detectDeviceLanguage,
+    getLanguageInfo: () => ({
+      current: currentLanguage,
+      detected: detectDeviceLanguage(),
+      userSet: localStorage.getItem('whiteout-language-user-set'),
+      autoSaved: localStorage.getItem('whiteout-language')
+    })
   };
 }
