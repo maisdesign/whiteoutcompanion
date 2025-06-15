@@ -15,11 +15,19 @@ window.exportCSV = function() {
   }
 };
 
+// FIX: Rimuovi la ricorsione infinita
 window.exportPNG = function() {
-  if (typeof exportPNG === 'function') {
-    exportPNG();
+  // Chiama direttamente la funzione da utilities.js
+  if (typeof exportToPNG === 'function') {
+    exportToPNG();
   } else {
-    console.error('Funzione exportPNG non trovata');
+    const t = translations[currentLanguage] || { pngExportNotAvailable: 'PNG export not available' };
+    console.warn('exportToPNG function not available');
+    if (typeof showStatus === 'function') {
+      showStatus(t.pngExportNotAvailable || '❌ PNG export not available', 'error');
+    } else {
+      alert('PNG export not available');
+    }
   }
 };
 
@@ -76,6 +84,13 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Funzione per aprire automaticamente gli accordion quando ci sono dati
   function checkAndOpenAccordions() {
+    // Verifica che le variabili necessarie esistano
+    if (typeof facilityData === 'undefined' || typeof alliances === 'undefined') {
+      console.warn('⚠️ Dati non ancora caricati, rimando controllo accordion');
+      setTimeout(checkAndOpenAccordions, 500);
+      return;
+    }
+    
     // Apri facility summary se ci sono strutture assegnate
     const assignedFacilities = facilityData.filter(f => f.Alliance).length;
     if (assignedFacilities > 0) {
@@ -109,38 +124,33 @@ document.addEventListener('DOMContentLoaded', function() {
   setTimeout(checkAndOpenAccordions, 1000);
 });
 
-// Verifica funzioni disponibili
-window.checkFunctions = function() {
-  const functions = [
-    'exportCSV',
-    'exportPNG', 
-    'toggleSection',
-    'renderFacilitySummary',
-    'renderBuffSummary',
-    'updateAllUI'
-  ];
-  
-  console.log('🔍 Stato funzioni:');
-  functions.forEach(funcName => {
-    console.log(`  ${funcName}:`, typeof window[funcName] === 'function' ? '✅' : '❌');
-  });
-};
-
-// === INIZIALIZZAZIONE FUNZIONALITÀ AVANZATE ===
+// === INIZIALIZZAZIONE FUNZIONALITÀ AVANZATE (CON CONTROLLI) ===
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🚀 Inizializzazione funzionalità avanzate...');
   
-  // Aggiungi validazione file in tempo reale
-  initializeFileValidation();
-  
-  // Aggiungi tooltip informativi
-  initializeTooltips();
-  
-  // Verifica dipendenze export PNG
-  checkExportDependencies();
+  // Ritarda l'inizializzazione per assicurarsi che utilities.js sia caricato
+  setTimeout(() => {
+    // Aggiungi validazione file in tempo reale (solo se disponibile)
+    if (typeof validateImageFile === 'function') {
+      initializeFileValidation();
+    } else {
+      console.warn('⚠️ validateImageFile non disponibile, validazione file disabilitata');
+    }
+    
+    // Aggiungi tooltip informativi
+    initializeTooltips();
+    
+    // Verifica dipendenze export PNG
+    checkExportDependencies();
+  }, 100);
 });
 
 function initializeFileValidation() {
+  if (typeof validateImageFile !== 'function') {
+    console.warn('⚠️ validateImageFile non disponibile');
+    return;
+  }
+  
   const fileInputs = document.querySelectorAll('input[type="file"]');
   
   fileInputs.forEach(input => {
@@ -148,48 +158,52 @@ function initializeFileValidation() {
       const file = e.target.files[0];
       if (!file) return;
       
-      const validation = validateImageFile(file);
-      const parent = input.parentElement;
-      
-      // Rimuovi messaggi precedenti
-      const existingMessage = parent.querySelector('.validation-message');
-      if (existingMessage) {
-        existingMessage.remove();
+      try {
+        const validation = validateImageFile(file);
+        const parent = input.parentElement;
+        
+        // Rimuovi messaggi precedenti
+        const existingMessage = parent.querySelector('.validation-message');
+        if (existingMessage) {
+          existingMessage.remove();
+        }
+        
+        // Crea messaggio di validazione
+        const message = document.createElement('div');
+        message.className = 'validation-message';
+        
+        if (validation.isValid) {
+          message.classList.add('success');
+          const sizeKB = Math.round(file.size / 1024);
+          message.textContent = `✅ File valido (${sizeKB}KB)`;
+          input.classList.add('file-input-valid');
+          input.classList.remove('file-input-invalid');
+        } else {
+          message.classList.add('error');
+          const t = translations[currentLanguage] || {};
+          const errorMessages = validation.errors.map(error => {
+            switch(error) {
+              case 'formatNotSupported': return t.formatNotSupported || 'Formato non supportato';
+              case 'fileTooLarge': return t.fileTooLarge || 'File troppo grande';
+              case 'invalidExtension': return t.invalidExtension || 'Estensione non valida';
+              default: return error;
+            }
+          }).join(', ');
+          message.textContent = `❌ ${errorMessages}`;
+          input.classList.add('file-input-invalid');
+          input.classList.remove('file-input-valid');
+        }
+        
+        parent.appendChild(message);
+      } catch (error) {
+        console.error('Errore validazione file:', error);
       }
-      
-      // Crea messaggio di validazione
-      const message = document.createElement('div');
-      message.className = 'validation-message';
-      
-      if (validation.isValid) {
-        message.classList.add('success');
-        const sizeKB = Math.round(file.size / 1024);
-        message.textContent = `✅ File valido (${sizeKB}KB)`;
-        input.classList.add('file-input-valid');
-        input.classList.remove('file-input-invalid');
-      } else {
-        message.classList.add('error');
-        const t = translations[currentLanguage];
-        const errorMessages = validation.errors.map(error => {
-          switch(error) {
-            case 'formatNotSupported': return t.formatNotSupported;
-            case 'fileTooLarge': return t.fileTooLarge;
-            case 'invalidExtension': return t.invalidExtension;
-            default: return error;
-          }
-        }).join(', ');
-        message.textContent = `❌ ${errorMessages}`;
-        input.classList.add('file-input-invalid');
-        input.classList.remove('file-input-valid');
-      }
-      
-      parent.appendChild(message);
     });
   });
 }
 
 function initializeTooltips() {
-  const t = translations[currentLanguage];
+  const t = translations[currentLanguage] || {};
   
   // Tooltip per file input
   const fileInputs = document.querySelectorAll('input[type="file"]');
@@ -205,8 +219,8 @@ function initializeTooltips() {
 }
 
 function checkExportDependencies() {
-  // Precarica html2canvas se non presente
-  if (!window.html2canvas) {
+  // Precarica html2canvas se non presente e loadHtml2Canvas è disponibile
+  if (!window.html2canvas && typeof loadHtml2Canvas === 'function') {
     console.log('📦 Precaricamento html2canvas...');
     loadHtml2Canvas().then(() => {
       console.log('✅ html2canvas caricato');
@@ -216,7 +230,27 @@ function checkExportDependencies() {
   }
 }
 
-// Funzione di verifica health per le nuove funzionalità
+// Verifica funzioni disponibili
+window.checkFunctions = function() {
+  const functions = [
+    'exportCSV',
+    'exportPNG', 
+    'toggleSection',
+    'renderFacilitySummary',
+    'renderBuffSummary',
+    'updateAllUI',
+    'validateImageFile',
+    'exportToPNG'
+  ];
+  
+  console.log('🔍 Stato funzioni:');
+  functions.forEach(funcName => {
+    const exists = typeof window[funcName] === 'function';
+    console.log(`  ${funcName}:`, exists ? '✅' : '❌');
+  });
+};
+
+// Funzione di verifica health per le nuove funzionalità (con controlli sicurezza)
 function checkAdvancedFeaturesHealth() {
   const features = {
     imageValidation: typeof validateImageFile === 'function',
@@ -236,14 +270,14 @@ function checkAdvancedFeaturesHealth() {
   return features;
 }
 
-// Aggiungi al debugger globale
+// Aggiungi al debugger globale (con controlli)
 if (typeof window.debugWS !== 'undefined') {
   window.debugWS.advanced = {
     health: checkAdvancedFeaturesHealth,
-    validateImage: validateImageFile,
-    processImage: processImageFile,
-    generateIcon: generateUniqueAllianceIcon,
-    exportPNG: exportToPNG
+    validateImage: typeof validateImageFile === 'function' ? validateImageFile : null,
+    processImage: typeof processImageFile === 'function' ? processImageFile : null,
+    generateIcon: typeof generateUniqueAllianceIcon === 'function' ? generateUniqueAllianceIcon : null,
+    exportPNG: typeof exportToPNG === 'function' ? exportToPNG : null
   };
 }
 

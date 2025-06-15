@@ -620,3 +620,29 @@ async function exportToPNG() {
 
 // Funzione globale per il pulsante
 window.exportPNG = exportToPNG;
+
+// === ESPORTAZIONI GLOBALI ===
+// Rendi le funzioni accessibili globalmente per compatibilità
+
+// Funzioni di validazione
+window.validateImageFile = validateImageFile;
+window.processImageFile = processImageFile;
+window.showImageValidationErrors = showImageValidationErrors;
+
+// Funzioni icone
+window.generateUniqueAllianceIcon = generateUniqueAllianceIcon;
+window.isIconUnique = isIconUnique;
+window.generateFallbackIcon = generateFallbackIcon;
+
+// Funzioni export
+window.loadHtml2Canvas = loadHtml2Canvas;
+window.exportToPNG = exportToPNG;
+
+// Log delle funzioni esportate
+console.log('🔧 Funzioni utilities esportate globalmente:', {
+  validateImageFile: typeof validateImageFile === 'function',
+  processImageFile: typeof processImageFile === 'function',
+  generateUniqueAllianceIcon: typeof generateUniqueAllianceIcon === 'function',
+  exportToPNG: typeof exportToPNG === 'function',
+  loadHtml2Canvas: typeof loadHtml2Canvas === 'function'
+});

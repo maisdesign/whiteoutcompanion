@@ -104,6 +104,7 @@ const translations = {
     pngExported: "PNG esportato",
     exportError: "Errore durante l'export",
     pngExportNotAvailable: "Funzione export PNG non disponibile",
+    fileTooltip: "JPG, PNG, GIF, WebP - Max 2MB",
   },
   
   en: {
@@ -210,6 +211,7 @@ const translations = {
     pngExported: "PNG exported",
     exportError: "Export error",
     pngExportNotAvailable: "PNG export function not available",
+    fileTooltip: "JPG, PNG, GIF, WebP - Max 2MB",
   },
   
   es: {
@@ -316,6 +318,7 @@ const translations = {
     pngExported: "PNG exportado",
     exportError: "Error de exportación",
     pngExportNotAvailable: "Función de exportación PNG no disponible",
+    fileTooltip: "JPG, PNG, GIF, WebP - Máx 2MB",
   },
   
   fr: {
@@ -422,6 +425,7 @@ const translations = {
     pngExported: "PNG exporté",
     exportError: "Erreur d'export",
     pngExportNotAvailable: "Fonction d'export PNG non disponible",
+    fileTooltip: "JPG, PNG, GIF, WebP - Max 2MB",
   },
   
   de: {
@@ -528,6 +532,7 @@ const translations = {
     pngExported: "PNG exportiert",
     exportError: "Export-Fehler",
     pngExportNotAvailable: "PNG-Export-Funktion nicht verfügbar",
+    fileTooltip: "JPG, PNG, GIF, WebP - Max 2MB",
   },
   
   pt: {
@@ -634,5 +639,6 @@ const translations = {
     pngExported: "PNG exportado",
     exportError: "Erro de exportação",
     pngExportNotAvailable: "Função de exportação PNG não disponível",
+    fileTooltip: "JPG, PNG, GIF, WebP - Máx 2MB",
   }
 };

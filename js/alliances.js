@@ -477,6 +477,8 @@ function exportCSV() {
   showStatus(t.csvExported || '📊 CSV esportato con successo!', 'success');
 }
 
+/* NON PIÙ NECESSARIO: Ora gestito in app.js
+
 function exportPNG() {
   // Chiama la nuova implementazione da utilities.js
   if (typeof exportToPNG === 'function') {
@@ -486,9 +488,10 @@ function exportPNG() {
     showStatus(t.pngExportNotAvailable || '❌ Funzione export PNG non disponibile', 'error');
   }
 }
+  */
 
 // === EVENT LISTENERS ===
-document.getElementById('alliance-form')?.addEventListener('submit', (e) => {
+document.getElementById('alliance-form')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const t = translations[currentLanguage];
   
@@ -501,6 +504,7 @@ document.getElementById('alliance-form')?.addEventListener('submit', (e) => {
     return;
   }
   
+  // Verifica unicità nome
   if (alliances.find(a => a.name.toLowerCase() === name.toLowerCase())) {
     alert(t.allianceExists);
     return;
@@ -511,34 +515,96 @@ document.getElementById('alliance-form')?.addEventListener('submit', (e) => {
     return;
   }
   
-  const processIcon = (iconData) => {
-    alliances.push({ name, icon: iconData });
+  // Disabilita form durante processamento
+  const submitBtn = document.getElementById('add-alliance-btn');
+  const originalText = submitBtn.innerHTML;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = `⏳ ${t.processing || 'Elaborazione...'}`;
+  
+  try {
+    let finalIcon;
+    
+    if (file && typeof validateImageFile === 'function' && typeof processImageFile === 'function') {
+      // Valida file solo se le funzioni sono disponibili
+      const validation = validateImageFile(file);
+      if (!validation.isValid) {
+        if (typeof showImageValidationErrors === 'function') {
+          showImageValidationErrors(validation.errors);
+        } else {
+          alert('File non valido: ' + validation.errors.join(', '));
+        }
+        return;
+      }
+      
+      // Mostra progress
+      showStatus(`🔄 ${t.processingImage || 'Elaborazione immagine...'}`, 'info', 2000);
+      
+      // Processa immagine
+      const processed = await processImageFile(file, 128, 128, 0.85);
+      finalIcon = processed.dataUrl;
+      
+      // Verifica unicità icona
+      if (typeof isIconUnique === 'function' && !isIconUnique(finalIcon)) {
+        showStatus(`⚠️ ${t.iconAlreadyUsed || 'Icona già utilizzata, generazione automatica...'}`, 'warning', 3000);
+        finalIcon = typeof generateFallbackIcon === 'function' ? generateFallbackIcon(name) : generateDefaultIcon(name);
+      }
+      
+      // Mostra info ottimizzazione
+      if (processed.originalSize > processed.processedSize) {
+        const savedKB = Math.round((processed.originalSize - processed.processedSize) / 1024);
+        showStatus(`✨ ${t.imageOptimized || 'Immagine ottimizzata'}: -${savedKB}KB`, 'success', 3000);
+      }
+      
+    } else {
+      // Genera icona automatica (fallback se funzioni avanzate non disponibili)
+      finalIcon = typeof generateFallbackIcon === 'function' 
+        ? generateFallbackIcon(name) 
+        : generateDefaultIcon(name);
+    }
+    
+    // Crea alleanza
+    alliances.push({ name, icon: finalIcon });
     
     // Aggiornamento completo UI
     updateAllUI();
     saveData();
     
+    // Reset form
     nameInput.value = '';
     document.getElementById('alliance-icon').value = '';
+    
     showStatus(`✅ ${t.allianceCreated || 'Alleanza creata'}: "${name}"!`, 'success');
-  };
-  
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (evt) => processIcon(evt.target.result);
-    reader.readAsDataURL(file);
-  } else {
-    const defaultIcon = "data:image/svg+xml;base64," + btoa(`
-      <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'>
-        <circle cx='12' cy='12' r='12' fill='${getRandomColor()}'/>
-        <text x='12' y='16' text-anchor='middle' fill='white' font-family='Arial' font-size='14' font-weight='bold'>
-          ${name.charAt(0).toUpperCase()}
-        </text>
-      </svg>
-    `);
-    processIcon(defaultIcon);
+    
+  } catch (error) {
+    console.error('Errore creazione alleanza:', error);
+    if (typeof showImageValidationErrors === 'function') {
+      showImageValidationErrors([error.message]);
+    } else {
+      showStatus(`❌ Errore: ${error.message}`, 'error');
+    }
+  } finally {
+    // Riabilita form
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalText;
   }
 });
+
+// Funzione fallback per generare icona di default (semplice)
+function generateDefaultIcon(name) {
+  const colors = ['#d7263d', '#0074d9', '#2ecc71', '#ff851b', '#7fdbff', '#b10dc9'];
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  
+  const svg = `
+    <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'>
+      <circle cx='12' cy='12' r='12' fill='${color}'/>
+      <text x='12' y='16' text-anchor='middle' fill='white' font-family='Arial' font-size='14' font-weight='bold'>
+        ${name.charAt(0).toUpperCase()}
+      </text>
+    </svg>
+  `;
+  
+  return "data:image/svg+xml;base64," + btoa(svg);
+};
 
 // Import CSV
 document.getElementById('import-file')?.addEventListener('change', (e) => {
