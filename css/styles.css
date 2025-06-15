@@ -947,19 +947,93 @@
     }
 
     .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 13px;
-    }
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid transparent;
+}
 
-    .legend-marker {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      border: 2px solid white;
-      flex-shrink: 0;
-    }
+.legend-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateX(2px);
+}
+
+.legend-marker {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid white;
+  flex-shrink: 0;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.legend-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+  position: relative;
+}
+
+/* Effetto speciale per il castello nella legenda */
+.legend-item:hover .legend-marker.castle {
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+.legend-item:hover .legend-icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7));
+}
+
+/* Miglior allineamento su schermi piccoli */
+@media (max-width: 768px) {
+  .legend-item {
+    font-size: 12px;
+    gap: 6px;
+    padding: 5px 6px;
+  }
+  
+  .legend-marker {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .legend-icon {
+    font-size: 13px;
+    width: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .legend-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 6px;
+  }
+  
+  .legend-item {
+    font-size: 11px;
+    gap: 5px;
+    padding: 4px 5px;
+  }
+  
+  .legend-marker {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .legend-icon {
+    font-size: 12px;
+    width: 16px;
+  }
+}
 
     .legend-marker.castle { background: #FFD700; border-color: #FF4500; }
     .legend-marker.construction { background: #1274e2; border-color: #0d5bb8; }
