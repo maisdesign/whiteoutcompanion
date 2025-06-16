@@ -1677,3 +1677,154 @@ function testAllPositions() {
 }
 
 // Chiama dalla console: testAllPositions()
+
+// =====================================================================
+// FIX TEMPORANEO - APPLICAZIONE AUTOMATICA CLASSI DROPDOWN
+// =====================================================================
+// Aggiungi questo codice alla fine del tuo markers.js per applicare 
+// automaticamente le classi corrette ai dropdown quando vengono creati
+
+// Observer per intercettare i dropdown appena creati
+const dropdownObserver = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    mutation.addedNodes.forEach((node) => {
+      if (node.nodeType === Node.ELEMENT_NODE && 
+          node.classList && 
+          node.classList.contains('marker-dropdown')) {
+        
+        console.log('🔧 Dropdown rilevato senza classi, applicando fix...');
+        
+        // Trova il marker parent
+        const marker = node.closest('.marker');
+        if (marker) {
+          // Applica il posizionamento corretto
+          const positioning = calculateOptimalDropdownPosition(marker);
+          applyDropdownPositioning(node, positioning);
+          
+          console.log('✅ Fix applicato:', {
+            classi: node.className,
+            dimensioni: {
+              width: node.offsetWidth + 'px',
+              height: node.offsetHeight + 'px',
+              maxHeight: node.style.maxHeight
+            }
+          });
+        }
+      }
+    });
+  });
+});
+
+// Attiva l'observer
+dropdownObserver.observe(document.body, {
+  childList: true,
+  subtree: true
+});
+
+console.log('🛠️ Fix automatico dropdown attivato - i dropdown verranno corretti automaticamente');
+
+// =====================================================================
+// FUNZIONE DI TEST MIGLIORATA
+// =====================================================================
+
+window.testDropdownFix = function() {
+  console.log('🧪 Test fix dropdown...');
+  
+  // Trova un marker e simula click
+  const marker = document.querySelector('.marker');
+  if (marker) {
+    console.log('📍 Testando marker:', marker.title);
+    
+    // Simula click
+    marker.click();
+    
+    // Attendi che il dropdown appaia
+    setTimeout(() => {
+      const dropdown = document.querySelector('.marker-dropdown');
+      if (dropdown) {
+        console.log('✅ Dropdown trovato:');
+        console.log('  - Classi:', dropdown.className);
+        console.log('  - Width:', dropdown.offsetWidth + 'px');
+        console.log('  - Height:', dropdown.offsetHeight + 'px');
+        console.log('  - MaxHeight:', dropdown.style.maxHeight);
+        
+        // Verifica se le classi corrette sono applicate
+        const hasDeviceClass = dropdown.classList.contains('dropdown-mobile') || 
+                             dropdown.classList.contains('dropdown-small-mobile') ||
+                             dropdown.classList.contains('dropdown-desktop');
+        
+        const hasPositionClass = dropdown.classList.contains('dropdown-above') || 
+                                dropdown.classList.contains('dropdown-below');
+        
+        const hasAlignClass = dropdown.classList.contains('dropdown-align-left') || 
+                            dropdown.classList.contains('dropdown-align-center') ||
+                            dropdown.classList.contains('dropdown-align-right');
+        
+        console.log('🔍 Verifica classi:');
+        console.log('  - Device class:', hasDeviceClass ? '✅' : '❌');
+        console.log('  - Position class:', hasPositionClass ? '✅' : '❌');
+        console.log('  - Align class:', hasAlignClass ? '✅' : '❌');
+        
+        if (!hasDeviceClass || !hasPositionClass || !hasAlignClass) {
+          console.log('🔧 Classi mancanti rilevate, applicando fix manuale...');
+          const marker = dropdown.closest('.marker');
+          if (marker) {
+            const positioning = calculateOptimalDropdownPosition(marker);
+            applyDropdownPositioning(dropdown, positioning);
+            console.log('✅ Fix manuale applicato');
+          }
+        }
+        
+      } else {
+        console.log('❌ Dropdown non trovato');
+      }
+    }, 500);
+  }
+};
+
+// =====================================================================
+// FUNZIONE PER FORZARE APPLICAZIONE CLASSI AI DROPDOWN ESISTENTI
+// =====================================================================
+
+window.forceFixAllDropdowns = function() {
+  console.log('🔧 Forzando fix su tutti i dropdown esistenti...');
+  
+  const dropdowns = document.querySelectorAll('.marker-dropdown');
+  let fixedCount = 0;
+  
+  dropdowns.forEach((dropdown) => {
+    const marker = dropdown.closest('.marker');
+    if (marker) {
+      const positioning = calculateOptimalDropdownPosition(marker);
+      applyDropdownPositioning(dropdown, positioning);
+      fixedCount++;
+    }
+  });
+  
+  console.log(`✅ Fix applicato a ${fixedCount} dropdown`);
+  
+  // Test dimensioni dopo fix
+  setTimeout(() => {
+    const testDropdown = document.querySelector('.marker-dropdown');
+    if (testDropdown) {
+      console.log('📏 Nuove dimensioni:', {
+        width: testDropdown.offsetWidth + 'px',
+        height: testDropdown.offsetHeight + 'px',
+        classi: testDropdown.className
+      });
+    }
+  }, 100);
+};
+
+// =====================================================================
+// AUTO-FIX PER DROPDOWN ESISTENTI AL CARICAMENTO
+// =====================================================================
+
+// Applica fix automaticamente dopo 2 secondi
+setTimeout(() => {
+  const existingDropdowns = document.querySelectorAll('.marker-dropdown');
+  if (existingDropdowns.length > 0) {
+    console.log('🔧 Dropdown esistenti rilevati, applicando auto-fix...');
+    window.forceFixAllDropdowns();
+  }
+}, 2000);

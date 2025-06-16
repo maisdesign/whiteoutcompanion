@@ -117,10 +117,10 @@
 .marker-dropdown.dropdown-landscape {
   max-height: 250px;
 }
-
+/* Mantieni altezza normale 
 .marker-dropdown.dropdown-portrait {
-  /* Mantieni altezza normale */
-}
+  
+}*/
 
 /* =================================================================== */
 /* 7. HEADER DROPDOWN RESPONSIVE                                      */
