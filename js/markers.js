@@ -470,28 +470,319 @@ function displayFacilityAssignmentDropdown(facility, marker, index) {
 }
 
 /**
- * Calcola la posizione ottimale per il dropdown
- * Considera spazio disponibile per evitare che esca dai bordi
+ * Calcola il posizionamento ottimale per il dropdown considerando
+ * TUTTI gli aspetti: verticale (sopra/sotto) + orizzontale (sinistra/destra) + mobile
  * 
  * @param {HTMLElement} marker - Elemento marker di riferimento
- * @returns {Object} Informazioni sul posizionamento ottimale
+ * @returns {Object} Informazioni complete sul posizionamento ottimale
  */
 function calculateOptimalDropdownPosition(marker) {
   const mapWrapper = document.getElementById('map-wrapper');
   const markerRect = marker.getBoundingClientRect();
   const mapRect = mapWrapper.getBoundingClientRect();
   
+  // ===================================================================
+  // 1. CALCOLO POSIZIONAMENTO VERTICALE (LA TUA LOGICA ESISTENTE)
+  // ===================================================================
+  
   const markerTopRelative = markerRect.top - mapRect.top;
   const mapHeight = mapRect.height;
   
   // Se il marker è nella parte bassa della mappa, mostra dropdown sopra
   const showAbove = markerTopRelative > mapHeight * 0.6;
+  const availableSpaceVertical = showAbove ? markerTopRelative : (mapHeight - markerTopRelative);
   
-  return {
-    showAbove: showAbove,
-    availableSpace: showAbove ? markerTopRelative : (mapHeight - markerTopRelative)
+  // ===================================================================
+  // 2. CALCOLO POSIZIONAMENTO ORIZZONTALE (NUOVA LOGICA)
+  // ===================================================================
+  
+  const markerLeftRelative = markerRect.left - mapRect.left;
+  const markerCenterRelative = markerLeftRelative + (markerRect.width / 2);
+  const mapWidth = mapRect.width;
+  
+  // Calcola percentuale posizione orizzontale del marker
+  const horizontalPosition = (markerCenterRelative / mapWidth) * 100;
+  
+  let horizontalAlignment = 'center'; // default
+  let availableSpaceHorizontal = {
+    left: markerLeftRelative,
+    right: mapWidth - (markerLeftRelative + markerRect.width),
+    center: Math.min(markerLeftRelative, mapWidth - (markerLeftRelative + markerRect.width))
   };
+  
+  // ===================================================================
+  // 3. DECISIONI INTELLIGENTI BASATE SU DISPOSITIVO
+  // ===================================================================
+  
+  const isMobile = window.innerWidth <= 768;
+  const isSmallMobile = window.innerWidth <= 480;
+  
+  // Dimensioni stimate del dropdown (basate sui breakpoint CSS)
+  let estimatedDropdownWidth;
+  if (isSmallMobile) {
+    estimatedDropdownWidth = 170; // Media tra 140-200px
+  } else if (isMobile) {
+    estimatedDropdownWidth = 200; // Media tra 160-240px  
+  } else {
+    estimatedDropdownWidth = 240; // Media tra 200-280px
+  }
+  
+  // Margine di sicurezza
+  const safetyMargin = isMobile ? 20 : 10;
+  const requiredSpace = (estimatedDropdownWidth / 2) + safetyMargin;
+  
+  // ===================================================================
+  // 4. LOGICA POSIZIONAMENTO ORIZZONTALE INTELLIGENTE
+  // ===================================================================
+  
+  if (horizontalPosition < 15) {
+    // Marker molto a sinistra - allinea dropdown a sinistra
+    horizontalAlignment = 'left';
+  } else if (horizontalPosition > 85) {
+    // Marker molto a destra - allinea dropdown a destra  
+    horizontalAlignment = 'right';
+  } else if (availableSpaceHorizontal.left < requiredSpace) {
+    // Poco spazio a sinistra - allinea a sinistra
+    horizontalAlignment = 'left';
+  } else if (availableSpaceHorizontal.right < requiredSpace) {
+    // Poco spazio a destra - allinea a destra
+    horizontalAlignment = 'right';
+  } else {
+    // Spazio sufficiente da entrambi i lati - mantieni centrato
+    horizontalAlignment = 'center';
+  }
+  
+  // ===================================================================
+  // 5. CALCOLO ALTEZZA MASSIMA DINAMICA
+  // ===================================================================
+  
+  let maxHeight;
+  
+  if (isMobile) {
+    // Su mobile, considera anche l'orientamento
+    const isLandscape = window.innerWidth > window.innerHeight;
+    
+    if (isLandscape) {
+      // In landscape mobile, spazio limitato verticalmente
+      maxHeight = Math.min(250, availableSpaceVertical - 20);
+    } else {
+      // In portrait mobile, più spazio verticale disponibile
+      maxHeight = Math.min(
+        isSmallMobile ? 280 : 350, 
+        availableSpaceVertical - 30
+      );
+    }
+  } else {
+    // Desktop - usa spazio disponibile con generoso buffer
+    maxHeight = Math.min(400, availableSpaceVertical - 40);
+  }
+  
+  // ===================================================================
+  // 6. ADJUSTMENTS PER NOTCH E SAFE AREAS (iPhone X+)
+  // ===================================================================
+  
+  let safeAreaAdjustments = {
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0
+  };
+  
+  if (isMobile && CSS.supports('padding', 'env(safe-area-inset-top)')) {
+    // Stima safe area (valori tipici iPhone X+)
+    const estimatedNotchHeight = 44; // iPhone notch tipico
+    const estimatedHomeIndicator = 34; // iPhone home indicator
+    
+    if (showAbove) {
+      safeAreaAdjustments.top = estimatedNotchHeight;
+    } else {
+      safeAreaAdjustments.bottom = estimatedHomeIndicator;
+    }
+    
+    safeAreaAdjustments.left = 10; // Bordi curvi laterali
+    safeAreaAdjustments.right = 10;
+  }
+  
+  // ===================================================================
+  // 7. RISULTATO FINALE COMPRENSIVO
+  // ===================================================================
+  
+  const result = {
+    // Posizionamento verticale (la tua logica esistente)
+    showAbove: showAbove,
+    availableSpace: availableSpaceVertical,
+    
+    // Nuovo: Posizionamento orizzontale
+    horizontalAlignment: horizontalAlignment,
+    horizontalPosition: horizontalPosition,
+    availableSpaceHorizontal: availableSpaceHorizontal,
+    
+    // Nuovo: Ottimizzazioni dispositivo
+    isMobile: isMobile,
+    isSmallMobile: isSmallMobile,
+    isLandscape: window.innerWidth > window.innerHeight,
+    
+    // Nuovo: Dimensioni calcolate
+    estimatedDropdownWidth: estimatedDropdownWidth,
+    maxHeight: maxHeight,
+    
+    // Nuovo: Safe area adjustments
+    safeAreaAdjustments: safeAreaAdjustments,
+    
+    // Nuovo: CSS classes da applicare
+    cssClasses: {
+      vertical: showAbove ? 'dropdown-above' : 'dropdown-below',
+      horizontal: `dropdown-align-${horizontalAlignment}`,
+      device: isMobile ? (isSmallMobile ? 'dropdown-small-mobile' : 'dropdown-mobile') : 'dropdown-desktop',
+      orientation: window.innerWidth > window.innerHeight ? 'dropdown-landscape' : 'dropdown-portrait'
+    },
+    
+    // Debug info (utile per troubleshooting)
+    debug: {
+      markerPosition: {
+        x: horizontalPosition.toFixed(1) + '%',
+        y: ((markerTopRelative / mapHeight) * 100).toFixed(1) + '%'
+      },
+      spacesAvailable: {
+        top: markerTopRelative,
+        bottom: mapHeight - markerTopRelative,
+        left: availableSpaceHorizontal.left,
+        right: availableSpaceHorizontal.right
+      },
+      dropdownWillFit: {
+        vertically: availableSpaceVertical >= maxHeight,
+        horizontally: availableSpaceHorizontal[horizontalAlignment] >= (estimatedDropdownWidth / 2)
+      }
+    }
+  };
+  
+  console.log('📍 Calcolo posizione dropdown:', {
+    marker: marker.title || 'Unknown',
+    position: result.debug.markerPosition,
+    vertical: showAbove ? 'sopra' : 'sotto',
+    horizontal: horizontalAlignment,
+    device: result.cssClasses.device
+  });
+  
+  return result;
 }
+
+/**
+ * Applica il posizionamento calcolato al dropdown
+ * Questa funzione utilizza il risultato di calculateOptimalDropdownPosition
+ * 
+ * @param {HTMLElement} dropdown - Elemento dropdown da posizionare
+ * @param {Object} positioning - Risultato di calculateOptimalDropdownPosition
+ */
+function applyDropdownPositioning(dropdown, positioning) {
+  if (!dropdown || !positioning) return;
+  
+  // ===================================================================
+  // 1. APPLICA CLASSI CSS
+  // ===================================================================
+  
+  // Rimuovi classi precedenti
+  dropdown.classList.remove(
+    'dropdown-above', 'dropdown-below',
+    'dropdown-align-left', 'dropdown-align-center', 'dropdown-align-right',
+    'dropdown-mobile', 'dropdown-small-mobile', 'dropdown-desktop',
+    'dropdown-landscape', 'dropdown-portrait'
+  );
+  
+  // Aggiungi nuove classi
+  Object.values(positioning.cssClasses).forEach(cssClass => {
+    dropdown.classList.add(cssClass);
+  });
+  
+  // ===================================================================
+  // 2. APPLICA STILI INLINE PER OTTIMIZZAZIONI SPECIFICHE
+  // ===================================================================
+  
+  // Altezza massima dinamica
+  dropdown.style.maxHeight = `${positioning.maxHeight}px`;
+  
+  // Larghezza su mobile
+  if (positioning.isMobile) {
+    dropdown.style.maxWidth = `${positioning.estimatedDropdownWidth}px`;
+    
+    // Safe area adjustments
+    if (positioning.safeAreaAdjustments.left > 0) {
+      dropdown.style.marginLeft = `${positioning.safeAreaAdjustments.left}px`;
+    }
+    if (positioning.safeAreaAdjustments.right > 0) {
+      dropdown.style.marginRight = `${positioning.safeAreaAdjustments.right}px`;
+    }
+  }
+  
+  // ===================================================================
+  // 3. POSIZIONAMENTO PRECISION ADJUSTMENTS
+  // ===================================================================
+  
+  if (positioning.horizontalAlignment === 'left') {
+    dropdown.style.left = '0';
+    dropdown.style.right = 'auto';
+    dropdown.style.transform = 'none';
+  } else if (positioning.horizontalAlignment === 'right') {
+    dropdown.style.right = '0';
+    dropdown.style.left = 'auto';
+    dropdown.style.transform = 'none';
+  } else {
+    // center - mantieni il comportamento di default del CSS
+    dropdown.style.left = '50%';
+    dropdown.style.right = 'auto';
+    dropdown.style.transform = 'translateX(-50%)';
+  }
+  
+  // ===================================================================
+  // 4. AGGIORNAMENTO CONTAINER OPZIONI SE NECESSARIO
+  // ===================================================================
+  
+  const optionsContainer = dropdown.querySelector('.dropdown-options');
+  if (optionsContainer && positioning.isMobile) {
+    // Altezza massima per il container scrollabile
+    const headerHeight = 60; // Stima altezza header
+    const maxOptionsHeight = positioning.maxHeight - headerHeight;
+    optionsContainer.style.maxHeight = `${maxOptionsHeight}px`;
+    
+    // Ottimizzazioni scroll per dispositivo
+    if (positioning.isSmallMobile) {
+      optionsContainer.style.overflowY = 'auto';
+      optionsContainer.style.webkitOverflowScrolling = 'touch';
+    }
+  }
+  
+  console.log('✅ Posizionamento dropdown applicato:', positioning.cssClasses);
+}
+
+/**
+ * Funzione helper per debug del posizionamento
+ * Utile durante lo sviluppo per verificare i calcoli
+ * 
+ * @param {HTMLElement} marker - Marker da analizzare
+ */
+function debugDropdownPositioning(marker) {
+  const positioning = calculateOptimalDropdownPosition(marker);
+  
+  console.log('🔍 === DEBUG POSIZIONAMENTO DROPDOWN ===');
+  console.log('Marker:', marker.title || marker.className);
+  console.log('Posizione:', positioning.debug.markerPosition);
+  console.log('Spazi disponibili:', positioning.debug.spacesAvailable);
+  console.log('Dropdown fit check:', positioning.debug.dropdownWillFit);
+  console.log('Decisioni:', {
+    vertical: positioning.showAbove ? 'SOPRA' : 'SOTTO',
+    horizontal: positioning.horizontalAlignment.toUpperCase(),
+    device: positioning.cssClasses.device
+  });
+  console.log('Classi CSS:', positioning.cssClasses);
+  console.log('===========================================');
+  
+  return positioning;
+}
+
+// Esporta le funzioni per uso globale
+window.calculateOptimalDropdownPosition = calculateOptimalDropdownPosition;
+window.applyDropdownPositioning = applyDropdownPositioning;
+window.debugDropdownPositioning = debugDropdownPositioning;
 
 /**
  * Crea l'header informativo del dropdown

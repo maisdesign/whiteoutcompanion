@@ -1,38 +1,51 @@
-/* Responsive */
-    @media (max-width: 1024px) {
-      .app-layout { grid-template-columns: 1fr; }
-      .calibration-controls { grid-template-columns: repeat(2, 1fr); }
-    }
+/* =====================================================================
+   RESPONSIVE.CSS - AGGIORNATO CON OTTIMIZZAZIONI DROPDOWN MOBILE
+   =====================================================================
+   Questo file integra le tue regole responsive esistenti con le nuove
+   ottimizzazioni per dropdown mobile-friendly.
+*/
 
-    @media (max-width: 768px) {
-      .container { padding: 10px; }
-      .header h1 { font-size: 2rem; }
-      .calibration-controls { grid-template-columns: 1fr; }
-      .calibration-buttons { flex-direction: column; }
-      .controls { flex-direction: column; }
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    }
+/* =================================================================== */
+/* 1. REGOLE RESPONSIVE ESISTENTI (MANTENUTE)                         */
+/* =================================================================== */
 
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(255,255,255,0.1);
-      border-left: 4px solid #4facfe;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 20px auto;
-    }
+@media (max-width: 1024px) {
+  .app-layout { grid-template-columns: 1fr; }
+  .calibration-controls { grid-template-columns: repeat(2, 1fr); }
+}
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+@media (max-width: 768px) {
+  .container { padding: 10px; }
+  .header h1 { font-size: 2rem; }
+  .calibration-controls { grid-template-columns: 1fr; }
+  .calibration-buttons { flex-direction: column; }
+  .controls { flex-direction: column; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
 
-    .hidden { display: none; }
-    .collapsed-content { max-height: 0; overflow: hidden; }
-    .expanded-content { max-height: 2000px; }
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255,255,255,0.1);
+  border-left: 4px solid #4facfe;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
 
-    /* Responsive per icone facility */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.hidden { display: none; }
+.collapsed-content { max-height: 0; overflow: hidden; }
+.expanded-content { max-height: 2000px; }
+
+/* =================================================================== */
+/* 2. RESPONSIVE ICONE FACILITY (AGGIORNATO)                          */
+/* =================================================================== */
+
 @media (max-width: 1024px) {
   .facility-icon {
     font-size: 9px;
@@ -82,7 +95,234 @@
   }
 }
 
-/* Responsive per pulsante reset e modal */
+/* =================================================================== */
+/* 3. NUOVE OTTIMIZZAZIONI DROPDOWN MOBILE                            */
+/* =================================================================== */
+
+/* Tablet ottimizzazioni */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .marker-dropdown {
+    min-width: 180px;
+    max-width: 260px;
+    max-height: 380px;
+  }
+  
+  .dropdown-options {
+    max-height: 300px;
+  }
+}
+
+/* Mobile large ottimizzazioni */
+@media (max-width: 768px) {
+  .marker-dropdown {
+    min-width: 160px;
+    max-width: 240px;
+    max-height: 350px;
+    border-radius: 16px;
+    box-shadow: 
+      0 12px 40px rgba(0, 0, 0, 0.7),
+      0 0 0 1px rgba(79, 172, 254, 0.4);
+  }
+  
+  .dropdown-header {
+    padding: 14px 16px;
+    font-size: 14px;
+    border-radius: 14px 14px 0 0;
+  }
+  
+  .dropdown-options {
+    max-height: 280px;
+    padding: 10px;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+  }
+  
+  .dropdown-option {
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 15px;
+    margin-bottom: 4px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .alliance-icon-small {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Mobile small ottimizzazioni */
+@media (max-width: 480px) {
+  .marker-dropdown {
+    min-width: 140px;
+    max-width: 200px;
+    max-height: 300px;
+    border-width: 1.5px;
+    border-radius: 12px;
+  }
+  
+  .dropdown-header {
+    padding: 12px 14px;
+    font-size: 13px;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .dropdown-options {
+    max-height: 230px;
+    padding: 8px;
+  }
+  
+  .dropdown-option {
+    padding: 12px 14px;
+    font-size: 14px;
+    margin-bottom: 3px;
+    border-radius: 8px;
+    gap: 10px;
+    line-height: 1.3;
+  }
+  
+  .alliance-icon-small {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .dropdown-option span {
+    font-size: 11px;
+  }
+}
+
+/* Mobile extra small */
+@media (max-width: 360px) {
+  .marker-dropdown {
+    min-width: 130px;
+    max-width: 180px;
+    max-height: 280px;
+    border-radius: 10px;
+  }
+  
+  .dropdown-header {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+  
+  .dropdown-options {
+    max-height: 200px;
+    padding: 6px;
+  }
+  
+  .dropdown-option {
+    padding: 10px 12px;
+    font-size: 13px;
+    margin-bottom: 2px;
+    border-radius: 6px;
+    gap: 8px;
+    min-height: 40px;
+  }
+  
+  .alliance-icon-small {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* =================================================================== */
+/* 4. OTTIMIZZAZIONI TOUCH SPECIFICHE                                 */
+/* =================================================================== */
+
+@media (pointer: coarse) {
+  .dropdown-option {
+    min-height: 44px;
+    padding: 12px 16px;
+    transition: all 0.2s ease;
+  }
+  
+  .dropdown-option:active {
+    background: rgba(79, 172, 254, 0.4);
+    transform: scale(0.98);
+  }
+  
+  .dropdown-options::-webkit-scrollbar {
+    width: 12px;
+  }
+  
+  .dropdown-options::-webkit-scrollbar-thumb {
+    background: rgba(79, 172, 254, 0.8);
+    border-radius: 6px;
+    min-height: 40px;
+  }
+  
+  .dropdown-options::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+  }
+}
+
+/* =================================================================== */
+/* 5. POSIZIONAMENTO INTELLIGENTE DROPDOWN                            */
+/* =================================================================== */
+
+@media (max-width: 768px) {
+  /* Previene overflow sui bordi */
+  .marker-dropdown {
+    /* Assicura che non esca mai dai bordi */
+    max-width: calc(100vw - 40px);
+  }
+  
+  /* Posizionamento dinamico in base alla posizione del marker */
+  .marker[style*="left: 0%"] .marker-dropdown,
+  .marker[style*="left: 1%"] .marker-dropdown,
+  .marker[style*="left: 2%"] .marker-dropdown,
+  .marker[style*="left: 3%"] .marker-dropdown,
+  .marker[style*="left: 4%"] .marker-dropdown,
+  .marker[style*="left: 5%"] .marker-dropdown {
+    left: 0;
+    right: auto;
+    transform: none;
+  }
+  
+  .marker[style*="left: 95%"] .marker-dropdown,
+  .marker[style*="left: 96%"] .marker-dropdown,
+  .marker[style*="left: 97%"] .marker-dropdown,
+  .marker[style*="left: 98%"] .marker-dropdown,
+  .marker[style*="left: 99%"] .marker-dropdown,
+  .marker[style*="left: 100%"] .marker-dropdown {
+    right: 0;
+    left: auto;
+    transform: none;
+  }
+}
+
+/* =================================================================== */
+/* 6. ORIENTAZIONE LANDSCAPE MOBILE                                   */
+/* =================================================================== */
+
+@media (max-width: 768px) and (orientation: landscape) {
+  .marker-dropdown {
+    max-height: 250px;
+  }
+  
+  .dropdown-options {
+    max-height: 180px;
+  }
+  
+  .dropdown-option {
+    padding: 10px 14px;
+    min-height: 40px;
+  }
+  
+  .dropdown-header {
+    padding: 10px 14px;
+  }
+}
+
+/* =================================================================== */
+/* 7. REGOLE RESET E MODAL ESISTENTI (MANTENUTE)                      */
+/* =================================================================== */
+
 @media (max-width: 768px) {
   .reset-modal-content {
     padding: 20px;
@@ -149,7 +389,10 @@
   }
 }
 
-/* Miglioramento per touch devices */
+/* =================================================================== */
+/* 8. MIGLIORAMENTI TOUCH DEVICES ESISTENTI (MANTENUTI)               */
+/* =================================================================== */
+
 @media (pointer: coarse) {
   .btn-danger {
     min-height: 44px;
@@ -163,11 +406,14 @@
   
   .reset-confirmation-input {
     min-height: 44px;
-    font-size: 16px; /* Previene zoom su iOS */
+    font-size: 16px;
   }
 }
 
-/* Dark mode enhancements per reset modal */
+/* =================================================================== */
+/* 9. DARK MODE ENHANCEMENTS ESISTENTI (MANTENUTI)                    */
+/* =================================================================== */
+
 @media (prefers-color-scheme: dark) {
   .reset-modal {
     background: rgba(0, 0, 0, 0.95);
@@ -177,9 +423,18 @@
     background: linear-gradient(135deg, rgba(220, 53, 69, 0.15), rgba(255, 107, 107, 0.08));
     border-color: rgba(220, 53, 69, 0.6);
   }
+  
+  /* Nuove regole dark mode per dropdown */
+  .marker-dropdown {
+    background: rgba(10, 15, 25, 0.98);
+    border-color: #4facfe;
+  }
 }
 
-/* Responsive per legenda con icone */
+/* =================================================================== */
+/* 10. LEGENDA RESPONSIVE ESISTENTE (MANTENUTA E MIGLIORATA)          */
+/* =================================================================== */
+
 @media (max-width: 1024px) {
   .legend-grid {
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -248,7 +503,10 @@
   }
 }
 
-/* Touch device optimizations */
+/* =================================================================== */
+/* 11. OTTIMIZZAZIONI TOUCH DEVICES LEGENDA                           */
+/* =================================================================== */
+
 @media (pointer: coarse) {
   .legend-item {
     padding: 10px 8px;
@@ -261,7 +519,10 @@
   }
 }
 
-/* High density displays */
+/* =================================================================== */
+/* 12. HIGH DENSITY DISPLAYS                                          */
+/* =================================================================== */
+
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   .legend-icon {
     filter: drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.8));
@@ -269,5 +530,75 @@
   
   .legend-marker {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  }
+  
+  /* Miglioramenti per dropdown su schermi high-DPI */
+  .marker-dropdown {
+    backdrop-filter: blur(25px);
+  }
+  
+  .alliance-icon-small {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* =================================================================== */
+/* 13. ANIMAZIONI OTTIMIZZATE PER MOBILE                              */
+/* =================================================================== */
+
+@media (max-width: 768px) {
+  @keyframes dropdownOpen {
+    from { 
+      opacity: 0; 
+      transform: translateX(-50%) scale(0.9) translateY(-10px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateX(-50%) scale(1) translateY(0); 
+    }
+  }
+  
+  .marker-dropdown {
+    animation-duration: 0.25s;
+  }
+  
+  .dropdown-option {
+    transition: all 0.15s ease;
+  }
+}
+
+/* Riduce animazioni per utenti che preferiscono meno movimento */
+@media (prefers-reduced-motion: reduce) {
+  .marker-dropdown {
+    animation: none;
+  }
+  
+  .dropdown-option {
+    transition: none;
+  }
+  
+  .legend-item {
+    transition: none;
+  }
+}
+
+/* =================================================================== */
+/* 14. SAFE AREA SUPPORT (iPhone X+, Android con notch)              */
+/* =================================================================== */
+
+@supports (padding: max(0px)) {
+  @media (max-width: 480px) {
+    .marker-dropdown {
+      margin-left: max(10px, env(safe-area-inset-left));
+      margin-right: max(10px, env(safe-area-inset-right));
+      margin-top: max(10px, env(safe-area-inset-top));
+      margin-bottom: max(10px, env(safe-area-inset-bottom));
+    }
+    
+    .undo-notification {
+      right: max(20px, env(safe-area-inset-right));
+      bottom: max(20px, env(safe-area-inset-bottom));
+    }
   }
 }
