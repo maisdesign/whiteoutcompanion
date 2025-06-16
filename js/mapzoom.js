@@ -175,7 +175,8 @@ function applyZoom(newZoom, centerPoint = null, animate = true) {
   zoomState.currentZoom = clampedZoom;
   zoomState.isZooming = true;
   
-  // Calcola le trasformazioni CSS
+  /* Legacy code for CSS transformations
+  //  Calcola le trasformazioni CSS
   const scale = clampedZoom;
   const translateX = (50 - zoomState.centerPoint.x) * (scale - 1);
   const translateY = (50 - zoomState.centerPoint.y) * (scale - 1);
@@ -189,7 +190,24 @@ function applyZoom(newZoom, centerPoint = null, animate = true) {
   
   mapImage.style.transform = `scale(${scale}) translate(${translateX}%, ${translateY}%)`;
   mapImage.style.transformOrigin = `${zoomState.centerPoint.x}% ${zoomState.centerPoint.y}%`;
+  */
+
   
+// Applica le trasformazioni al contenitore invece che solo all'immagine
+if (animate) {
+  mapContainer.style.transition = `transform ${ZOOM_CONFIG.animationDuration}ms ${ZOOM_CONFIG.easeFunction}`;
+} else {
+  mapContainer.style.transition = 'none';
+}
+
+// Applica la trasformazione al contenitore che include sia mappa che marker
+mapContainer.style.transform = `scale(${scale}) translate(${translateX}%, ${translateY}%)`;
+mapContainer.style.transformOrigin = `${zoomState.centerPoint.x}% ${zoomState.centerPoint.y}%`;
+
+// Reset della trasformazione dell'immagine se era stata applicata precedentemente
+mapImage.style.transform = 'none';
+mapImage.style.transformOrigin = 'initial';
+
   // Aggiorna i marker per mantenere la precisione
   updateMarkersForZoom(clampedZoom, previousZoom);
   
@@ -227,31 +245,22 @@ function applyZoom(newZoom, centerPoint = null, animate = true) {
  * @param {number} newZoom - Nuovo livello di zoom
  * @param {number} previousZoom - Livello di zoom precedente
  */
+
 function updateMarkersForZoom(newZoom, previousZoom) {
+  // Con la trasformazione applicata al contenitore, i marker si ridimensionano
+  // automaticamente. Non è più necessario aggiustare manualmente le dimensioni.
+  
   const markers = document.querySelectorAll('.marker');
+  console.log(`📍 Marker automaticamente aggiornati per zoom ${Math.round(newZoom * 100)}%: ${markers.length} marker`);
   
+  // Opzionalmente, possiamo ancora aggiustare alcuni aspetti per migliorare la visibilità
   markers.forEach(marker => {
-    // I marker mantengono automaticamente la posizione corretta
-    // grazie al transform CSS della mappa padre, ma potremmo
-    // voler aggiustare la dimensione per migliorare la visibilità
-    
-    const baseSize = 12; // Dimensione base del marker in pixel
-    const scaleFactor = Math.sqrt(newZoom); // Ridimensionamento non lineare
-    const newSize = Math.max(8, Math.min(20, baseSize * scaleFactor));
-    
-    marker.style.width = `${newSize}px`;
-    marker.style.height = `${newSize}px`;
-    
-    // Aggiusta la dimensione dell'icona facility
-    const facilityIcon = marker.querySelector('.facility-icon');
-    if (facilityIcon) {
-      const baseFontSize = 8;
-      const newFontSize = Math.max(6, Math.min(12, baseFontSize * scaleFactor));
-      facilityIcon.style.fontSize = `${newFontSize}px`;
-    }
+    // Per esempio, potremmo volere che i border dei marker rimangano costanti
+    // indipendentemente dal zoom, per migliore leggibilità
+    const baseBorderWidth = 2;
+    const adjustedBorderWidth = baseBorderWidth / newZoom;
+    marker.style.borderWidth = `${adjustedBorderWidth}px`;
   });
-  
-  console.log(`📍 Aggiornati ${markers.length} marker per zoom ${Math.round(newZoom * 100)}%`);
 }
 
 /**
