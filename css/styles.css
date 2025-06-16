@@ -636,7 +636,38 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 8px;
+  /* Miglioramento scrolling touch */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
 }
+
+/* Scrollbar più ampia su dispositivi touch */
+@media (pointer: coarse) {
+  .dropdown-options::-webkit-scrollbar {
+    width: 12px; /* Più ampia per touch */
+  }
+  
+  .dropdown-options::-webkit-scrollbar-thumb {
+    background: rgba(79, 172, 254, 0.8);
+    border-radius: 6px;
+    min-height: 40px; /* Altezza minima per touch */
+  }
+  
+  .dropdown-options::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+  }
+}
+
+/* Fallback per dispositivi che non supportano scrollbar personalizzate */
+@supports not (-webkit-appearance: none) {
+  .dropdown-options {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(79, 172, 254, 0.6) rgba(255, 255, 255, 0.1);
+  }
+}
+
 /* Scrollbar personalizzata */
 .dropdown-options::-webkit-scrollbar {
   width: 6px;
@@ -1248,5 +1279,40 @@
   .file-info-tooltip {
     font-size: 10px;
     padding: 6px 10px;
+  }
+}
+
+/* Feedback visivo durante lo scrolling */
+.dropdown-options.scrolling {
+  background: rgba(20, 25, 40, 0.99);
+}
+
+.dropdown-options.touch-active {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Miglioramento responsive per dropdown più piccoli */
+@media (max-width: 480px) {
+  .dropdown-options {
+    max-height: 250px; /* Più piccolo su schermi piccoli */
+  }
+  
+  .marker-dropdown {
+    min-width: 180px;
+    max-width: 280px;
+  }
+}
+
+/* Miglioramento per schermi molto piccoli */
+@media (max-width: 360px) {
+  .dropdown-options {
+    max-height: 200px;
+    padding: 6px;
+  }
+  
+  .dropdown-option {
+    padding: 10px 12px;
+    margin-bottom: 2px;
   }
 }

@@ -13,6 +13,24 @@ const facilityIcons = {
   'Fortress': '🏯'
 };
 
+// === UTILITY FUNCTIONS PER DISPOSITIVI TOUCH ===
+
+// Verifica se siamo su un dispositivo touch con potenziali problemi di scroll
+function isTouchDeviceWithScrollIssues() {
+  return (
+    'ontouchstart' in window &&
+    /Android/i.test(navigator.userAgent) &&
+    window.innerWidth < 768
+  );
+}
+
+// Verifica se il dispositivo supporta scrollbar personalizzate
+function supportsCustomScrollbars() {
+  const testElement = document.createElement('div');
+  testElement.style.cssText = '-webkit-overflow-scrolling: touch';
+  return testElement.style.webkitOverflowScrolling === 'touch';
+}
+
 // === MARKER AGGIORNATO ===
 function createMarker(facility, index) {
   const mapWrapper = document.getElementById('map-wrapper');
@@ -101,9 +119,19 @@ function showDropdown(facility, marker, index) {
   `;
   dropdown.appendChild(header);
   
-  // Container scrollabile per le opzioni
+  // Container scrollabile per le opzioni - MIGLIORATO PER TOUCH
   const optionsContainer = document.createElement('div');
   optionsContainer.className = 'dropdown-options';
+  
+  // Aggiungi attributi per migliorare l'esperienza touch
+  if (isTouchDeviceWithScrollIssues()) {
+    optionsContainer.style.cssText += `
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
+    `;
+  }
   
   // Opzione per rimuovere assegnazione
   const unassignOption = document.createElement('div');
@@ -133,8 +161,12 @@ function showDropdown(facility, marker, index) {
     optionsContainer.appendChild(separator);
   }
   
+  // Determina quante alleanze mostrare per ottimizzare l'esperienza touch
+  const maxVisibleAlliances = isTouchDeviceWithScrollIssues() ? 
+    Math.min(alliances.length, 8) : alliances.length;
+  
   // Opzioni per le alleanze
-  alliances.forEach((alliance, idx) => {
+  alliances.slice(0, maxVisibleAlliances).forEach((alliance, idx) => {
     const option = document.createElement('div');
     option.className = 'dropdown-option';
     if (facility.Alliance === alliance.name) {
@@ -166,36 +198,50 @@ function showDropdown(facility, marker, index) {
     optionsContainer.appendChild(option);
   });
   
+  // Se ci sono più alleanze di quelle mostrate, aggiungi opzione "Mostra tutte"
+  if (alliances.length > maxVisibleAlliances) {
+    const showAllOption = document.createElement('div');
+    showAllOption.className = 'dropdown-option show-all-option';
+    showAllOption.style.cssText = `
+      border-top: 1px solid rgba(79, 172, 254, 0.3);
+      margin-top: 5px;
+      padding-top: 8px;
+      color: #4facfe;
+      font-style: italic;
+    `;
+    showAllOption.innerHTML = `
+      <span style="font-size: 16px;">👁️</span>
+      <span>${t.showAll || `Mostra tutte (${alliances.length - maxVisibleAlliances} in più)`}</span>
+    `;
+    showAllOption.onclick = (e) => {
+      e.stopPropagation();
+      // Ricrea il dropdown con tutte le alleanze
+      dropdown.remove();
+      showDropdownComplete(facility, marker, index);
+    };
+    optionsContainer.appendChild(showAllOption);
+  }
+  
   dropdown.appendChild(optionsContainer);
   
-  // Indicatore scroll se necessario
-  if (alliances.length > 6) {
-    const scrollIndicator = document.createElement('div');
-    scrollIndicator.className = 'dropdown-scroll-indicator';
-    scrollIndicator.innerHTML = '⬇️';
-    scrollIndicator.title = t.scrollToSeeAll || 'Scrolla per vedere tutte le alleanze';
-    dropdown.appendChild(scrollIndicator);
-    
-    // Nascondi indicatore quando scroll raggiunge il bottom
-    optionsContainer.addEventListener('scroll', () => {
-      const isAtBottom = optionsContainer.scrollTop + optionsContainer.clientHeight >= optionsContainer.scrollHeight - 5;
-      scrollIndicator.style.display = isAtBottom ? 'none' : 'block';
-    });
-  }
+  // Gestione scroll migliorata con indicatori visivi
+  setupScrollHandling(dropdown, optionsContainer, alliances.length, t);
   
   marker.appendChild(dropdown);
   
-  // Auto-chiusura dopo 12 secondi
+  // Auto-chiusura dopo 15 secondi (più tempo per dispositivi touch)
+  const autoCloseTime = isTouchDeviceWithScrollIssues() ? 15000 : 12000;
   setTimeout(() => {
     if (dropdown.parentNode) {
       dropdown.style.animation = 'fadeOut 0.3s ease';
       setTimeout(() => dropdown.remove(), 300);
     }
-  }, 12000);
+  }, autoCloseTime);
   
-  // Gestione click fuori
+  // Gestione click fuori migliorata
   setTimeout(() => {
     document.addEventListener('click', handleOutsideClick, { once: true });
+    document.addEventListener('touchstart', handleOutsideClick, { once: true });
   }, 100);
   
   function handleOutsideClick(e) {
@@ -205,6 +251,221 @@ function showDropdown(facility, marker, index) {
     }
   }
   
+  // Focus migliorato per accessibilità
+  setupKeyboardNavigation(optionsContainer);
+}
+
+// Funzione separata per mostrare dropdown completo (quando utente clicca "Mostra tutte")
+function showDropdownComplete(facility, marker, index) {
+  const t = translations[currentLanguage];
+  
+  closeAllDropdowns();
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'marker-dropdown dropdown-complete';
+  
+  const mapWrapper = document.getElementById('map-wrapper');
+  const markerRect = marker.getBoundingClientRect();
+  const mapRect = mapWrapper.getBoundingClientRect();
+  
+  const markerTopRelative = markerRect.top - mapRect.top;
+  const mapHeight = mapRect.height;
+  
+  if (markerTopRelative > mapHeight * 0.6) {
+    dropdown.classList.add('dropdown-above');
+  }
+  
+  // Header
+  const header = document.createElement('div');
+  header.className = 'dropdown-header';
+  const coordsText = facility.ingameCoords ? ` - ${facility.ingameCoords}` : '';
+  header.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span>${facility.Type} ${facility.Level}${coordsText}</span>
+      <span style="font-size: 11px; opacity: 0.8;">${alliances.length + 1} ${t.options || 'opzioni'}</span>
+    </div>
+  `;
+  dropdown.appendChild(header);
+  
+  // Container scrollabile con tutte le alleanze
+  const optionsContainer = document.createElement('div');
+  optionsContainer.className = 'dropdown-options dropdown-options-complete';
+  
+  // Opzione rimuovi assegnazione
+  const unassignOption = document.createElement('div');
+  unassignOption.className = 'dropdown-option unassign';
+  unassignOption.innerHTML = `
+    <span style="font-size: 16px;">❌</span>
+    <span>${t.unassigned}</span>
+  `;
+  if (!facility.Alliance) {
+    unassignOption.classList.add('selected');
+  }
+  unassignOption.onclick = (e) => {
+    e.stopPropagation();
+    assignFacilityToAlliance(facility, marker, null);
+    dropdown.remove();
+  };
+  optionsContainer.appendChild(unassignOption);
+  
+  // Separatore
+  const separator = document.createElement('div');
+  separator.style.cssText = `
+    height: 1px;
+    background: rgba(79, 172, 254, 0.3);
+    margin: 5px 0;
+  `;
+  optionsContainer.appendChild(separator);
+  
+  // Tutte le alleanze
+  alliances.forEach((alliance, idx) => {
+    const option = document.createElement('div');
+    option.className = 'dropdown-option';
+    if (facility.Alliance === alliance.name) {
+      option.classList.add('selected');
+    }
+    
+    const assignedCount = facilityData.filter(f => f.Alliance === alliance.name).length;
+    
+    option.innerHTML = `
+      <img src="${alliance.icon}" alt="${alliance.name}" class="alliance-icon-small">
+      <div style="flex: 1; display: flex; flex-direction: column;">
+        <span style="font-weight: 500;">${alliance.name}</span>
+        <span style="font-size: 11px; opacity: 0.7;">${assignedCount} ${t.structures || 'strutture'}</span>
+      </div>
+    `;
+    
+    option.onclick = (e) => {
+      e.stopPropagation();
+      assignFacilityToAlliance(facility, marker, alliance.name);
+      dropdown.remove();
+    };
+    
+    if (facility.Alliance === alliance.name) {
+      option.style.background = 'linear-gradient(135deg, rgba(67, 233, 123, 0.3), rgba(67, 233, 123, 0.2))';
+    }
+    
+    optionsContainer.appendChild(option);
+  });
+  
+  dropdown.appendChild(optionsContainer);
+  
+  // Setup scroll handling per versione completa
+  setupScrollHandling(dropdown, optionsContainer, alliances.length, t, true);
+  
+  marker.appendChild(dropdown);
+  
+  // Auto-chiusura
+  setTimeout(() => {
+    if (dropdown.parentNode) {
+      dropdown.style.animation = 'fadeOut 0.3s ease';
+      setTimeout(() => dropdown.remove(), 300);
+    }
+  }, 15000);
+  
+  // Gestione click fuori
+  setTimeout(() => {
+    document.addEventListener('click', handleOutsideClick, { once: true });
+    document.addEventListener('touchstart', handleOutsideClick, { once: true });
+  }, 100);
+  
+  function handleOutsideClick(e) {
+    if (!dropdown.contains(e.target) && dropdown.parentNode) {
+      dropdown.style.animation = 'fadeOut 0.3s ease';
+      setTimeout(() => dropdown.remove(), 300);
+    }
+  }
+  
+  setupKeyboardNavigation(optionsContainer);
+}
+
+// Funzione per configurare la gestione dello scroll migliorata
+function setupScrollHandling(dropdown, optionsContainer, totalAlliances, translations, isComplete = false) {
+  const t = translations;
+  const isTouch = isTouchDeviceWithScrollIssues();
+  const needsScrollIndicator = totalAlliances > (isComplete ? 6 : 4);
+  
+  if (needsScrollIndicator) {
+    // Indicatore scroll migliorato
+    const scrollIndicator = document.createElement('div');
+    scrollIndicator.className = 'dropdown-scroll-indicator';
+    scrollIndicator.innerHTML = isTouch ? '⬇️ Scorri' : '⬇️';
+    scrollIndicator.title = t.scrollToSeeAll || 'Scrolla per vedere tutte le alleanze';
+    
+    // Stile migliorato per dispositivi touch
+    if (isTouch) {
+      scrollIndicator.style.cssText += `
+        font-size: 10px;
+        padding: 4px 8px;
+        background: rgba(79, 172, 254, 0.8);
+        border-radius: 12px;
+        color: white;
+        bottom: 4px;
+        right: 4px;
+        z-index: 1000;
+      `;
+    }
+    
+    dropdown.appendChild(scrollIndicator);
+    
+    // Gestione scroll migliorata
+    let scrollTimeout;
+    let isScrolling = false;
+    
+    optionsContainer.addEventListener('scroll', () => {
+      const isAtBottom = optionsContainer.scrollTop + optionsContainer.clientHeight >= 
+                        optionsContainer.scrollHeight - 10; // Margine più ampio
+      
+      // Mostra/nascondi indicatore
+      scrollIndicator.style.display = isAtBottom ? 'none' : 'block';
+      
+      // Feedback visivo durante scroll
+      if (!isScrolling) {
+        isScrolling = true;
+        optionsContainer.classList.add('scrolling');
+        
+        // Clear timeout precedente
+        if (scrollTimeout) clearTimeout(scrollTimeout);
+        
+        // Rimuovi classe dopo scroll
+        scrollTimeout = setTimeout(() => {
+          isScrolling = false;
+          optionsContainer.classList.remove('scrolling');
+        }, 200);
+      }
+    });
+    
+    // Touch feedback per dispositivi touch
+    if (isTouch) {
+      optionsContainer.addEventListener('touchstart', (e) => {
+        optionsContainer.classList.add('touch-active');
+        // Previeni scroll della pagina principale quando si tocca il dropdown
+        e.stopPropagation();
+      }, { passive: false });
+      
+      optionsContainer.addEventListener('touchend', () => {
+        setTimeout(() => {
+          optionsContainer.classList.remove('touch-active');
+        }, 150);
+      });
+      
+      // Gestione migliorata del momentum scrolling
+      optionsContainer.addEventListener('touchmove', (e) => {
+        e.stopPropagation();
+      }, { passive: true });
+    }
+    
+    // Nascondi indicatore automaticamente dopo qualche secondo
+    setTimeout(() => {
+      if (scrollIndicator && scrollIndicator.parentNode) {
+        scrollIndicator.style.opacity = '0.6';
+      }
+    }, 3000);
+  }
+}
+
+// Funzione per configurare la navigazione da tastiera
+function setupKeyboardNavigation(optionsContainer) {
   // Focus sul container per permettere navigazione con tastiera
   optionsContainer.tabIndex = 0;
   optionsContainer.focus();
@@ -220,7 +481,7 @@ function showDropdown(facility, marker, index) {
         if (currentIndex < options.length - 1) {
           options[currentIndex]?.classList.remove('keyboard-focus');
           options[currentIndex + 1]?.classList.add('keyboard-focus');
-          options[currentIndex + 1]?.scrollIntoView({ block: 'nearest' });
+          options[currentIndex + 1]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
         }
         break;
       case 'ArrowUp':
@@ -228,7 +489,7 @@ function showDropdown(facility, marker, index) {
         if (currentIndex > 0) {
           options[currentIndex]?.classList.remove('keyboard-focus');
           options[currentIndex - 1]?.classList.add('keyboard-focus');
-          options[currentIndex - 1]?.scrollIntoView({ block: 'nearest' });
+          options[currentIndex - 1]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
         }
         break;
       case 'Enter':
@@ -236,14 +497,18 @@ function showDropdown(facility, marker, index) {
         options[currentIndex]?.click();
         break;
       case 'Escape':
-        dropdown.remove();
+        document.querySelector('.marker-dropdown')?.remove();
         break;
     }
   });
   
   // Evidenzia prima opzione per navigazione keyboard
-  if (optionsContainer.firstElementChild) {
-    optionsContainer.firstElementChild.classList.add('keyboard-focus');
+  if (optionsContainer.firstElementChild?.nextElementSibling) {
+    // Salta il separatore e vai alla prima alleanza
+    const firstAllianceOption = optionsContainer.querySelector('.dropdown-option:not(.unassign)');
+    if (firstAllianceOption) {
+      firstAllianceOption.classList.add('keyboard-focus');
+    }
   }
 }
 
@@ -340,9 +605,62 @@ const keyboardFocusStyle = `
     outline: 2px solid rgba(79, 172, 254, 0.6);
     outline-offset: -2px;
   }
+  
+  /* Stili aggiuntivi per migliorare l'esperienza touch */
+  .dropdown-options.scrolling {
+    background: rgba(20, 25, 40, 0.99);
+  }
+  
+  .dropdown-options.touch-active {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  
+  .dropdown-options.touch-active .dropdown-option {
+    pointer-events: none;
+  }
+  
+  .dropdown-options.touch-active .dropdown-option:hover {
+    background: rgba(255, 255, 255, 0.02);
+    transform: none;
+  }
+  
+  /* Miglioramenti per scorrimento fluido su touch */
+  @media (pointer: coarse) {
+    .dropdown-options {
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+      overscroll-behavior: contain;
+    }
+    
+    .dropdown-scroll-indicator {
+      font-size: 10px !important;
+      padding: 4px 8px !important;
+      background: rgba(79, 172, 254, 0.8) !important;
+      border-radius: 12px !important;
+      color: white !important;
+      animation: pulseGently 2s infinite;
+    }
+    
+    @keyframes pulseGently {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+  }
+  
+  /* Opzione "Mostra tutte" */
+  .show-all-option {
+    background: rgba(79, 172, 254, 0.1) !important;
+    border-color: rgba(79, 172, 254, 0.3) !important;
+  }
+  
+  .show-all-option:hover {
+    background: rgba(79, 172, 254, 0.2) !important;
+    border-color: rgba(79, 172, 254, 0.5) !important;
+  }
 `;
 
-// Aggiungi lo stile al documento
+// Aggiungi lo stile al documento se non esiste già
 if (!document.getElementById('keyboard-focus-style')) {
   const style = document.createElement('style');
   style.id = 'keyboard-focus-style';
