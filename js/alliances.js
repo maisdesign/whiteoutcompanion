@@ -1130,3 +1130,100 @@ function clearUndoState() {
 // Funzione globale per il pulsante HTML
 window.showResetConfirmation = showResetConfirmation;
 window.undoReset = undoReset;
+
+// Esponi la funzione exportCSV globalmente
+window.exportCSVFunction = exportCSV;
+
+// Esponi altre funzioni chiave che potrebbero essere necessarie
+window.importCSVFunction = function(file) {
+  // Usa il codice esistente dell'event listener per import
+  const reader = new FileReader();
+  const t = translations[currentLanguage];
+  
+  reader.onload = (evt) => {
+    try {
+      const csv = evt.target.result;
+      const lines = csv.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        alert(t.emptyCsv || 'CSV vuoto o non valido');
+        return;
+      }
+      
+      // Reset assegnazioni
+      facilityData.forEach(f => delete f.Alliance);
+      
+      let importedCount = 0;
+      const newAlliances = new Set();
+      
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim());
+        
+        if (values.length >= 5) {
+          const [type, level, x, y, alliance] = values;
+          
+          if (alliance.trim()) {
+            newAlliances.add(alliance.trim());
+          }
+          
+          const facility = facilityData.find(f => 
+            f.Type === type && 
+            f.Level === level && 
+            Math.abs(f.x - parseFloat(x)) < 0.1 && 
+            Math.abs(f.y - parseFloat(y)) < 0.1
+          );
+          
+          if (facility && alliance.trim()) {
+            facility.Alliance = alliance.trim();
+            importedCount++;
+          }
+        }
+      }
+      
+      // Crea nuove alleanze
+      newAlliances.forEach(allianceName => {
+        if (!alliances.find(a => a.name.toLowerCase() === allianceName.toLowerCase())) {
+          const defaultIcon = "data:image/svg+xml;base64," + btoa(`
+            <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'>
+              <circle cx='12' cy='12' r='12' fill='${getRandomColor()}'/>
+              <text x='12' y='16' text-anchor='middle' fill='white' font-family='Arial' font-size='14' font-weight='bold'>
+                ${allianceName.charAt(0).toUpperCase()}
+              </text>
+            </svg>
+          `);
+          alliances.push({ name: allianceName, icon: defaultIcon });
+        }
+      });
+      
+      // Aggiorna tutti i marker
+      facilityData.forEach(f => {
+        if (f.marker) {
+          renderAllianceIcon(f);
+          if (f.Alliance) {
+            f.marker.classList.add('assigned');
+          } else {
+            f.marker.classList.remove('assigned');
+          }
+        }
+      });
+      
+      // Aggiornamento completo UI
+      updateAllUI();
+      saveData();
+      
+      showStatus(`✅ ${t.importSuccess || 'Importazione completata'}: ${importedCount} assegnazioni!`, 'success');
+      
+    } catch (error) {
+      console.error("Import error:", error);
+      alert(t.importError || 'Errore nell\'importazione del CSV');
+    }
+  };
+  
+  reader.readAsText(file);
+};
+
+// Debug: verifica che le funzioni siano esposte
+console.log('✅ Funzioni CSV esposte globalmente:', {
+  exportCSV: typeof window.exportCSVFunction === 'function',
+  importCSV: typeof window.importCSVFunction === 'function'
+});
