@@ -733,25 +733,63 @@ document.addEventListener('click', (e) => {
 });
 
 // === INIZIALIZZAZIONE ===
+// Funzione helper per inizializzazione marker con piccolo ritardo
+function initializeMarkersWithDelay() {
+  // Piccolo ritardo per assicurarsi che la mappa sia completamente renderizzata
+  setTimeout(() => {
+    console.log('🎯 Avvio inizializzazione marker...');
+    
+    let createdCount = 0;
+    facilityData.forEach((facility, index) => {
+      try {
+        const marker = createMarker(facility, index);
+        if (marker) createdCount++;
+      } catch (error) {
+        console.error(`Errore creando marker per facility ${index}:`, error, facility);
+      }
+    });
+    
+    console.log(`✅ Inizializzazione marker completata: ${createdCount}/${facilityData.length} marker creati`);
+    
+    // Aggiorna l'interfaccia
+    updateAllUI();
+    
+    // Mostra messaggio di successo
+    const t = translations[currentLanguage] || translations['en'];
+    const message = t.appLoaded ? t.appLoaded.replace('{count}', createdCount) : `🎯 App loaded! ${createdCount} structures.`;
+    if (typeof showStatus === 'function') {
+      showStatus(message, 'success');
+    }
+    
+  }, 100); // 100ms di ritardo
+};
+// Inizializza al caricamento del DOM
+
 document.addEventListener('DOMContentLoaded', () => {
   console.log('=== WHITEOUT COMPANION INIT ===');
   
   // Carica i dati salvati
   loadData();
   
-  const mapImg = document.getElementById('map');
-  if (mapImg && mapImg.complete) {
-    initializeMarkers();
-  } else if (mapImg) {
-    mapImg.onload = initializeMarkers;
-    mapImg.onerror = () => {
-      console.warn('Map image failed to load, proceeding anyway...');
-      initializeMarkers();
-    };
-  } else {
-    console.warn('Map element not found');
-    initializeMarkers();
-  }
+  // NUOVO: Ascolta gli eventi del sistema mappa moderno
+  document.addEventListener('mapLoaded', () => {
+    console.log('📍 Evento mapLoaded ricevuto - inizializzazione marker...');
+    initializeMarkersWithDelay();
+  });
+  
+  document.addEventListener('mapFallback', () => {
+    console.log('📍 Evento mapFallback ricevuto - inizializzazione marker...');
+    initializeMarkersWithDelay();
+  });
+  
+  // Fallback robusto: se dopo 5 secondi non abbiamo marker, forza l'inizializzazione
+  setTimeout(() => {
+    const existingMarkers = document.querySelectorAll('.marker').length;
+    if (existingMarkers === 0) {
+      console.log('⏰ Timeout fallback - inizializzazione marker di emergenza...');
+      initializeMarkersWithDelay();
+    }
+  }, 5000);
   
   function initializeMarkers() {
     console.log('Initializing markers...');
