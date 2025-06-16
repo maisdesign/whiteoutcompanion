@@ -1664,3 +1664,16 @@ console.log('✅ Sistema marker caricato completamente - Pronto per inizializzaz
 // =====================================================================
 // FINE MARKERS.JS
 // =====================================================================
+
+// SOLO PER TEST - aggiungi al tuo markers.js
+function testAllPositions() {
+  const markers = document.querySelectorAll('.marker');
+  markers.forEach((marker, i) => {
+    setTimeout(() => {
+      console.log(`Testing marker ${i + 1}/${markers.length}`);
+      const result = debugDropdownPositioning(marker);
+    }, i * 1000);
+  });
+}
+
+// Chiama dalla console: testAllPositions()
