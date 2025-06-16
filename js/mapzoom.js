@@ -175,40 +175,28 @@ function applyZoom(newZoom, centerPoint = null, animate = true) {
   zoomState.currentZoom = clampedZoom;
   zoomState.isZooming = true;
   
-  /* Legacy code for CSS transformations
-  //  Calcola le trasformazioni CSS
+  // CORREZIONE CRITICA: Calcola le trasformazioni CSS (ora ATTIVO)
   const scale = clampedZoom;
   const translateX = (50 - zoomState.centerPoint.x) * (scale - 1);
   const translateY = (50 - zoomState.centerPoint.y) * (scale - 1);
   
-  // Applica le trasformazioni con o senza animazione
+  // Applica le trasformazioni al contenitore invece che solo all'immagine
+  // Questo approccio mantiene sincronizzati mappa e marker automaticamente
   if (animate) {
-    mapImage.style.transition = `transform ${ZOOM_CONFIG.animationDuration}ms ${ZOOM_CONFIG.easeFunction}`;
+    mapContainer.style.transition = `transform ${ZOOM_CONFIG.animationDuration}ms ${ZOOM_CONFIG.easeFunction}`;
   } else {
-    mapImage.style.transition = 'none';
+    mapContainer.style.transition = 'none';
   }
-  
-  mapImage.style.transform = `scale(${scale}) translate(${translateX}%, ${translateY}%)`;
-  mapImage.style.transformOrigin = `${zoomState.centerPoint.x}% ${zoomState.centerPoint.y}%`;
-  */
 
-  
-// Applica le trasformazioni al contenitore invece che solo all'immagine
-if (animate) {
-  mapContainer.style.transition = `transform ${ZOOM_CONFIG.animationDuration}ms ${ZOOM_CONFIG.easeFunction}`;
-} else {
-  mapContainer.style.transition = 'none';
-}
+  // Applica la trasformazione al contenitore che include sia mappa che marker
+  mapContainer.style.transform = `scale(${scale}) translate(${translateX}%, ${translateY}%)`;
+  mapContainer.style.transformOrigin = `${zoomState.centerPoint.x}% ${zoomState.centerPoint.y}%`;
 
-// Applica la trasformazione al contenitore che include sia mappa che marker
-mapContainer.style.transform = `scale(${scale}) translate(${translateX}%, ${translateY}%)`;
-mapContainer.style.transformOrigin = `${zoomState.centerPoint.x}% ${zoomState.centerPoint.y}%`;
+  // Reset della trasformazione dell'immagine se era stata applicata precedentemente
+  mapImage.style.transform = 'none';
+  mapImage.style.transformOrigin = 'initial';
 
-// Reset della trasformazione dell'immagine se era stata applicata precedentemente
-mapImage.style.transform = 'none';
-mapImage.style.transformOrigin = 'initial';
-
-  // Aggiorna i marker per mantenere la precisione
+  // Aggiorna i marker per mantenere la precisione visiva
   updateMarkersForZoom(clampedZoom, previousZoom);
   
   // Aggiorna i controlli UI
@@ -245,22 +233,30 @@ mapImage.style.transformOrigin = 'initial';
  * @param {number} newZoom - Nuovo livello di zoom
  * @param {number} previousZoom - Livello di zoom precedente
  */
-
 function updateMarkersForZoom(newZoom, previousZoom) {
   // Con la trasformazione applicata al contenitore, i marker si ridimensionano
-  // automaticamente. Non è più necessario aggiustare manualmente le dimensioni.
+  // automaticamente. Applichiamo solo aggiustamenti per migliorare la leggibilità
   
   const markers = document.querySelectorAll('.marker');
-  console.log(`📍 Marker automaticamente aggiornati per zoom ${Math.round(newZoom * 100)}%: ${markers.length} marker`);
   
-  // Opzionalmente, possiamo ancora aggiustare alcuni aspetti per migliorare la visibilità
   markers.forEach(marker => {
-    // Per esempio, potremmo volere che i border dei marker rimangano costanti
-    // indipendentemente dal zoom, per migliore leggibilità
+    // Mantieni i border dei marker costanti indipendentemente dal zoom
+    // per migliore leggibilità e precisione visiva
     const baseBorderWidth = 2;
     const adjustedBorderWidth = baseBorderWidth / newZoom;
     marker.style.borderWidth = `${adjustedBorderWidth}px`;
+    
+    // Opzionalmente, mantieni anche le icone facility leggibili
+    const facilityIcon = marker.querySelector('.facility-icon');
+    if (facilityIcon) {
+      // Le icone si ridimensionano automaticamente, ma possiamo aggiustare la leggibilità
+      const baseFontSize = 8; // Dimensione base dell'icona
+      const adjustedFontSize = Math.max(baseFontSize / newZoom, 6); // Minimo 6px
+      facilityIcon.style.fontSize = `${adjustedFontSize}px`;
+    }
   });
+  
+  console.log(`📍 Marker aggiornati per zoom ${Math.round(newZoom * 100)}%: ${markers.length} marker`);
 }
 
 /**
@@ -310,7 +306,8 @@ function createZoomControls() {
   
   // Controlla se i controlli esistono già
   if (document.getElementById('zoom-controls')) {
-    console.log('🔍 Controlli zoom già esistenti, skip creazione');
+    console.log('🔍 Controlli zoom già esistenti, aggiorno stato');
+    updateZoomControls();
     return;
   }
   
@@ -372,6 +369,7 @@ function addZoomControlsStyles() {
         border-radius: 20px;
         padding: 8px 12px;
         margin-left: auto;
+        z-index: 1000;
       }
       
       .zoom-btn {
@@ -713,13 +711,17 @@ function setupSystemIntegration() {
   // Ascolta eventi di caricamento mappa
   document.addEventListener('mapLoaded', () => {
     console.log('🗺️ Mappa caricata - inizializzando zoom...');
-    initializeZoomSystem();
+    setTimeout(() => {
+      initializeZoomSystem();
+    }, 500);
   });
   
   // Ascolta eventi di fallback mappa
   document.addEventListener('mapFallback', () => {
     console.log('🗺️ Mappa fallback - inizializzando zoom...');
-    initializeZoomSystem();
+    setTimeout(() => {
+      initializeZoomSystem();
+    }, 500);
   });
   
   // Integrazione con sistema calibrazione
@@ -743,8 +745,10 @@ function initializeZoomSystem() {
   
   // Verifica prerequisiti
   const mapImage = document.getElementById('map');
-  if (!mapImage) {
-    console.warn('⚠️ Immagine mappa non trovata per inizializzazione zoom');
+  const mapWrapper = document.getElementById('map-wrapper');
+  
+  if (!mapImage || !mapWrapper) {
+    console.warn('⚠️ Elementi mappa non trovati per inizializzazione zoom');
     return false;
   }
   
@@ -765,6 +769,12 @@ function initializeZoomSystem() {
   applyZoom(ZOOM_CONFIG.defaultZoom, null, false);
   
   console.log('✅ Sistema zoom inizializzato con successo');
+  
+  // Notifica successo con sistema di status se disponibile
+  if (typeof showStatus === 'function') {
+    showStatus('🔍 Sistema zoom attivato', 'success', 3000);
+  }
+  
   return true;
 }
 
@@ -814,14 +824,17 @@ setupSystemIntegration();
 
 // Auto-inizializzazione quando DOM è pronto
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('🔍 DOM pronto per sistema zoom');
+  
   setTimeout(() => {
     // Controlla se la mappa è già caricata
     const mapImage = document.getElementById('map');
     if (mapImage && (mapImage.complete || mapImage.naturalWidth > 0)) {
+      console.log('🗺️ Mappa già disponibile - inizializzazione immediata zoom');
       initializeZoomSystem();
+    } else {
+      console.log('⏳ In attesa degli eventi di caricamento mappa...');
     }
-    // Altrimenti il sistema si inizializzerà automaticamente 
-    // quando riceverà l'evento mapLoaded
   }, 200);
 });
 
