@@ -1,5 +1,5 @@
 // =====================================================================
-// MAPZOOM.JS - SISTEMA DI ZOOM INTELLIGENTE PER DISPOSITIVI MOBILE
+// MAPZOOM.JS - SISTEMA DI ZOOM INTELLIGENTE CON GESTIONE TOUCH COOPERATIVA
 // =====================================================================
 // Questo modulo implementa un sistema di zoom completo per la mappa
 // interattiva, ottimizzato per dispositivi touch e compatibile con
@@ -11,6 +11,7 @@
 // - Supporto per gesture touch native (pinch-to-zoom)
 // - Controlli accessibili per utenti con diverse abilità
 // - Performance ottimizzate per dispositivi con risorse limitate
+// - GESTIONE COOPERATIVA degli eventi touch per evitare conflitti con i marker
 
 console.log('🔍 Caricamento sistema zoom intelligente...');
 
@@ -33,9 +34,11 @@ const ZOOM_CONFIG = {
   animationDuration: 300, // Durata animazioni in milliseconi
   easeFunction: 'cubic-bezier(0.4, 0.0, 0.2, 1)', // Funzione di easing
   
-  // Touch e gesture
+  // Touch e gesture - OTTIMIZZATI PER COESISTENZA CON MARKER
   pinchSensitivity: 0.005, // Sensibilità del pinch-to-zoom
-  doubleTapThreshold: 300, // Tempo massimo tra due tap per considerarli doppi
+  doubleTapThreshold: 250, // Ridotto da 300ms per essere più preciso
+  markerHitRadius: 25,     // Area intorno ai marker dove NON fare zoom
+  minPinchDistance: 50,    // Distanza minima per attivare pinch (evita tocchi accidentali)
   
   // Performance
   throttleDelay: 16, // Throttling per eventi ad alta frequenza (60fps)
@@ -54,8 +57,11 @@ let zoomState = {
   isZooming: false,
   lastTouchDistance: 0,
   lastTapTime: 0,
+  lastTapPosition: { x: 0, y: 0 }, // Posizione dell'ultimo tap
   centerPoint: { x: 50, y: 50 }, // Centro dello zoom in percentuale
-  initialMapSize: { width: 0, height: 0 }
+  initialMapSize: { width: 0, height: 0 },
+  touchStartTarget: null, // Elemento che ha ricevuto il touchstart
+  isPinching: false // Flag per distinguere pinch da tap
 };
 
 // =====================================================================
@@ -93,6 +99,53 @@ function getTouchCenter(touch1, touch2, containerRect) {
     x: ((centerX - containerRect.left) / containerRect.width) * 100,
     y: ((centerY - containerRect.top) / containerRect.height) * 100
   };
+}
+
+/**
+ * Verifica se un tocco è avvenuto vicino a un marker
+ * Questa funzione è CRITICA per la coesistenza con i marker
+ * 
+ * @param {number} x - Coordinata X del tocco
+ * @param {number} y - Coordinata Y del tocco
+ * @returns {boolean} True se il tocco è vicino a un marker
+ */
+function isTouchNearMarker(x, y) {
+  const markers = document.querySelectorAll('.marker');
+  const hitRadius = ZOOM_CONFIG.markerHitRadius;
+  
+  for (let marker of markers) {
+    const rect = marker.getBoundingClientRect();
+    const markerCenterX = rect.left + rect.width / 2;
+    const markerCenterY = rect.top + rect.height / 2;
+    
+    const distance = Math.sqrt(
+      Math.pow(x - markerCenterX, 2) + Math.pow(y - markerCenterY, 2)
+    );
+    
+    if (distance <= hitRadius) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+/**
+ * Verifica se l'elemento target è un marker o è contenuto in un marker
+ * 
+ * @param {Element} element - Elemento da verificare
+ * @returns {boolean} True se l'elemento è relativo a un marker
+ */
+function isMarkerRelatedElement(element) {
+  if (!element) return false;
+  
+  // Verifica se l'elemento stesso è un marker
+  if (element.classList && element.classList.contains('marker')) {
+    return true;
+  }
+  
+  // Verifica se l'elemento è contenuto in un marker
+  return element.closest && element.closest('.marker') !== null;
 }
 
 /**
@@ -175,13 +228,12 @@ function applyZoom(newZoom, centerPoint = null, animate = true) {
   zoomState.currentZoom = clampedZoom;
   zoomState.isZooming = true;
   
-  // CORREZIONE CRITICA: Calcola le trasformazioni CSS (ora ATTIVO)
+  // Calcola le trasformazioni CSS
   const scale = clampedZoom;
   const translateX = (50 - zoomState.centerPoint.x) * (scale - 1);
   const translateY = (50 - zoomState.centerPoint.y) * (scale - 1);
   
-  // Applica le trasformazioni al contenitore invece che solo all'immagine
-  // Questo approccio mantiene sincronizzati mappa e marker automaticamente
+  // Applica le trasformazioni al contenitore
   if (animate) {
     mapContainer.style.transition = `transform ${ZOOM_CONFIG.animationDuration}ms ${ZOOM_CONFIG.easeFunction}`;
   } else {
@@ -234,24 +286,19 @@ function applyZoom(newZoom, centerPoint = null, animate = true) {
  * @param {number} previousZoom - Livello di zoom precedente
  */
 function updateMarkersForZoom(newZoom, previousZoom) {
-  // Con la trasformazione applicata al contenitore, i marker si ridimensionano
-  // automaticamente. Applichiamo solo aggiustamenti per migliorare la leggibilità
-  
   const markers = document.querySelectorAll('.marker');
   
   markers.forEach(marker => {
-    // Mantieni i border dei marker costanti indipendentemente dal zoom
-    // per migliore leggibilità e precisione visiva
+    // Mantieni i border dei marker costanti per migliore leggibilità
     const baseBorderWidth = 2;
     const adjustedBorderWidth = baseBorderWidth / newZoom;
     marker.style.borderWidth = `${adjustedBorderWidth}px`;
     
-    // Opzionalmente, mantieni anche le icone facility leggibili
+    // Mantieni le icone facility leggibili
     const facilityIcon = marker.querySelector('.facility-icon');
     if (facilityIcon) {
-      // Le icone si ridimensionano automaticamente, ma possiamo aggiustare la leggibilità
-      const baseFontSize = 8; // Dimensione base dell'icona
-      const adjustedFontSize = Math.max(baseFontSize / newZoom, 6); // Minimo 6px
+      const baseFontSize = 8;
+      const adjustedFontSize = Math.max(baseFontSize / newZoom, 6);
       facilityIcon.style.fontSize = `${adjustedFontSize}px`;
     }
   });
@@ -533,12 +580,12 @@ function getCurrentZoom() {
 }
 
 // =====================================================================
-// SEZIONE 6: GESTURE TOUCH E PINCH-TO-ZOOM
+// SEZIONE 6: GESTURE TOUCH COOPERATIVE (VERSIONE CORRETTA)
 // =====================================================================
 
 /**
- * Configura la gestione delle gesture touch per pinch-to-zoom
- * Abilita il controllo intuitivo su dispositivi touch
+ * Configura la gestione delle gesture touch con COOPERAZIONE intelligente
+ * Questa versione evita conflitti con i marker implementando logica cooperativa
  */
 function setupTouchGestures() {
   const mapWrapper = document.getElementById('map-wrapper');
@@ -547,29 +594,58 @@ function setupTouchGestures() {
     return;
   }
   
-  let isPreventingScroll = false;
-  
-  // Gestione touch start
+  // Gestione touch start - LOGICA COOPERATIVA
   const handleTouchStart = (e) => {
+    // Salva il target iniziale per decisioni successive
+    zoomState.touchStartTarget = e.target;
+    
     if (e.touches.length === 2) {
-      e.preventDefault();
-      isPreventingScroll = true;
+      // PINCH TO ZOOM: Due diti - questa è chiaramente un'intenzione di zoom
+      e.preventDefault(); // Sicuro prevenire qui perché è chiaramente zoom
+      zoomState.isPinching = true;
       
       const distance = getTouchDistance(e.touches[0], e.touches[1]);
-      zoomState.lastTouchDistance = distance;
       
-      const rect = mapWrapper.getBoundingClientRect();
-      zoomState.centerPoint = getTouchCenter(e.touches[0], e.touches[1], rect);
+      // Verifica che la distanza iniziale sia sufficiente per evitare attivazioni accidentali
+      if (distance >= ZOOM_CONFIG.minPinchDistance) {
+        zoomState.lastTouchDistance = distance;
+        
+        const rect = mapWrapper.getBoundingClientRect();
+        zoomState.centerPoint = getTouchCenter(e.touches[0], e.touches[1], rect);
+      }
     } else if (e.touches.length === 1) {
-      // Gestione doppio tap
+      // SINGLE TOUCH: Potrebbe essere marker click o doppio tap zoom
+      zoomState.isPinching = false;
+      
+      const touch = e.touches[0];
       const now = Date.now();
-      if (now - zoomState.lastTapTime < ZOOM_CONFIG.doubleTapThreshold) {
-        e.preventDefault();
+      
+      // Salva posizione del tocco per confronti successivi
+      zoomState.lastTapPosition = { x: touch.clientX, y: touch.clientY };
+      
+      // LOGICA COOPERATIVA CRITICA:
+      // Se il tocco è su un marker, NON interferiamo con la sua gestione
+      const touchingMarker = isMarkerRelatedElement(zoomState.touchStartTarget) || 
+                            isTouchNearMarker(touch.clientX, touch.clientY);
+      
+      if (touchingMarker) {
+        console.log('👆 Touch su marker rilevato, permettendo gestione click normale');
+        // NON chiamiamo preventDefault() - lasciamo che il marker gestisca l'evento
+        // Non registriamo nemmeno il timestamp per evitare false detection di doppio tap
+        return;
+      }
+      
+      // Se non è su un marker, procediamo con la logica del doppio tap
+      const timeSinceLastTap = now - zoomState.lastTapTime;
+      
+      if (timeSinceLastTap < ZOOM_CONFIG.doubleTapThreshold) {
+        // DOPPIO TAP RILEVATO su area libera (non marker)
+        e.preventDefault(); // Ora è sicuro prevenire perché sappiamo che non è un marker
         
         const rect = mapWrapper.getBoundingClientRect();
         const centerPoint = {
-          x: ((e.touches[0].clientX - rect.left) / rect.width) * 100,
-          y: ((e.touches[0].clientY - rect.top) / rect.height) * 100
+          x: ((touch.clientX - rect.left) / rect.width) * 100,
+          y: ((touch.clientY - rect.top) / rect.height) * 100
         };
         
         // Doppio tap: zoom in se non al massimo, altrimenti reset
@@ -578,41 +654,52 @@ function setupTouchGestures() {
           : ZOOM_CONFIG.defaultZoom;
           
         applyZoom(targetZoom, centerPoint);
+        
+        console.log('🔍 Doppio tap zoom applicato');
       }
+      
+      // Aggiorna timestamp solo se non era su un marker
       zoomState.lastTapTime = now;
     }
   };
   
-  // Gestione touch move (pinch-to-zoom)
+  // Gestione touch move - COOPERATIVA
   const handleTouchMove = throttle((e) => {
-    if (e.touches.length === 2 && zoomState.lastTouchDistance > 0) {
-      e.preventDefault();
+    // Solo processa se stiamo effettivamente facendo pinch-to-zoom
+    if (e.touches.length === 2 && zoomState.isPinching && zoomState.lastTouchDistance > 0) {
+      e.preventDefault(); // Sicuro prevenire durante pinch attivo
       
       const currentDistance = getTouchDistance(e.touches[0], e.touches[1]);
-      const deltaDistance = currentDistance - zoomState.lastTouchDistance;
-      const zoomDelta = deltaDistance * ZOOM_CONFIG.pinchSensitivity;
       
-      const newZoom = zoomState.currentZoom + zoomDelta;
-      applyZoom(newZoom, null, false); // Senza animazione per fluidità
-      
-      zoomState.lastTouchDistance = currentDistance;
+      // Verifica che ci sia stato un movimento significativo
+      if (Math.abs(currentDistance - zoomState.lastTouchDistance) > 5) {
+        const deltaDistance = currentDistance - zoomState.lastTouchDistance;
+        const zoomDelta = deltaDistance * ZOOM_CONFIG.pinchSensitivity;
+        
+        const newZoom = zoomState.currentZoom + zoomDelta;
+        applyZoom(newZoom, null, false); // Senza animazione per fluidità
+        
+        zoomState.lastTouchDistance = currentDistance;
+      }
     }
   }, ZOOM_CONFIG.throttleDelay);
   
-  // Gestione touch end
+  // Gestione touch end - COOPERATIVA
   const handleTouchEnd = (e) => {
     if (e.touches.length < 2) {
+      // Fine del pinch o del touch singolo
       zoomState.lastTouchDistance = 0;
-      isPreventingScroll = false;
+      zoomState.isPinching = false;
+      zoomState.touchStartTarget = null;
     }
   };
   
-  // Aggiungi event listener
+  // Aggiungi event listener con gestione cooperativa
   mapWrapper.addEventListener('touchstart', handleTouchStart, { passive: false });
   mapWrapper.addEventListener('touchmove', handleTouchMove, { passive: false });
   mapWrapper.addEventListener('touchend', handleTouchEnd, { passive: false });
   
-  console.log('👆 Gesture touch configurate per pinch-to-zoom');
+  console.log('👆 Gesture touch COOPERATIVE configurate per coesistenza con marker');
 }
 
 // =====================================================================
@@ -727,7 +814,6 @@ function setupSystemIntegration() {
   // Integrazione con sistema calibrazione
   document.addEventListener('calibrationChanged', (e) => {
     console.log('🔧 Calibrazione cambiata - aggiornando zoom...');
-    // Il zoom si adatta automaticamente alle modifiche di calibrazione
     updateMarkersForZoom(zoomState.currentZoom, zoomState.currentZoom);
   });
 }
@@ -741,7 +827,7 @@ function setupSystemIntegration() {
  * Configura tutti i componenti e le integrazioni
  */
 function initializeZoomSystem() {
-  console.log('🔍 Inizializzazione sistema zoom...');
+  console.log('🔍 Inizializzazione sistema zoom cooperativo...');
   
   // Verifica prerequisiti
   const mapImage = document.getElementById('map');
@@ -761,18 +847,18 @@ function initializeZoomSystem() {
   // Crea controlli UI
   createZoomControls();
   
-  // Configura gesture e input
+  // Configura gesture cooperative e input
   setupTouchGestures();
   setupKeyboardControls();
   
   // Applica zoom iniziale
   applyZoom(ZOOM_CONFIG.defaultZoom, null, false);
   
-  console.log('✅ Sistema zoom inizializzato con successo');
+  console.log('✅ Sistema zoom cooperativo inizializzato con successo');
   
-  // Notifica successo con sistema di status se disponibile
+  // Notifica successo
   if (typeof showStatus === 'function') {
-    showStatus('🔍 Sistema zoom attivato', 'success', 3000);
+    showStatus('🔍 Sistema zoom cooperativo attivato', 'success', 3000);
   }
   
   return true;
@@ -786,10 +872,12 @@ function getZoomSystemStatus() {
   return {
     currentZoom: zoomState.currentZoom,
     isZooming: zoomState.isZooming,
+    isPinching: zoomState.isPinching,
     centerPoint: { ...zoomState.centerPoint },
     config: { ...ZOOM_CONFIG },
     mapSize: { ...zoomState.initialMapSize },
-    controlsPresent: !!document.getElementById('zoom-controls')
+    controlsPresent: !!document.getElementById('zoom-controls'),
+    cooperativeMode: true // Indica che questo è il sistema cooperativo
   };
 }
 
@@ -815,7 +903,8 @@ if (typeof window.debugWS !== 'undefined') {
     reset: resetZoom,
     setZoom: setZoom,
     getCurrentZoom: getCurrentZoom,
-    config: ZOOM_CONFIG
+    config: ZOOM_CONFIG,
+    isCooperative: true
   };
 }
 
@@ -824,13 +913,12 @@ setupSystemIntegration();
 
 // Auto-inizializzazione quando DOM è pronto
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🔍 DOM pronto per sistema zoom');
+  console.log('🔍 DOM pronto per sistema zoom cooperativo');
   
   setTimeout(() => {
-    // Controlla se la mappa è già caricata
     const mapImage = document.getElementById('map');
     if (mapImage && (mapImage.complete || mapImage.naturalWidth > 0)) {
-      console.log('🗺️ Mappa già disponibile - inizializzazione immediata zoom');
+      console.log('🗺️ Mappa già disponibile - inizializzazione immediata zoom cooperativo');
       initializeZoomSystem();
     } else {
       console.log('⏳ In attesa degli eventi di caricamento mappa...');
@@ -838,8 +926,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }, 200);
 });
 
-console.log('✅ MapZoom.js caricato - Sistema zoom pronto per inizializzazione');
+console.log('✅ MapZoom.js COOPERATIVO caricato - Sistema zoom pronto per coesistenza con marker');
 
 // =====================================================================
-// FINE MAPZOOM.JS
+// FINE MAPZOOM.JS COOPERATIVO
 // =====================================================================
