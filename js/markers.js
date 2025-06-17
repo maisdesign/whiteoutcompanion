@@ -325,9 +325,16 @@ function createInteractiveFacilityMarker(facility, index) {
   
   // Configura evento click per apertura dropdown
   marker.onclick = (event) => {
-    event.stopPropagation(); // Previene chiusura accidentale
+  event.stopPropagation();
+  
+  // Usa il nuovo sistema barra controllo fissa
+  if (typeof handleMarkerClick === 'function') {
+    handleMarkerClick(facility, marker);
+  } else {
+    // Fallback al sistema vecchio se non disponibile
     displayFacilityAssignmentDropdown(facility, marker, index);
-  };
+  }
+};
   
   // Aggiungi icona rappresentativa della facility
   const facilityIcon = document.createElement('span');

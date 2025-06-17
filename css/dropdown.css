@@ -903,3 +903,8 @@
     max-height: 280px;
   }
 }
+
+/* DISABILITA SISTEMA DROPDOWN VECCHIO */
+.marker-dropdown {
+  display: none !important;
+}

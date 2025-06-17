@@ -1,0 +1,534 @@
+/* =====================================================================
+   CSS BARRA CONTROLLO FISSA - INTEGRAZIONE CON DESIGN ESISTENTE
+   =====================================================================
+   Stili per il nuovo sistema di barra controllo fissa che sostituisce
+   i dropdown sui marker. Design coerente con il glass-card theme.
+*/
+
+/* =================================================================== */
+/* 1. CONTAINER PRINCIPALE BARRA CONTROLLO                            */
+/* =================================================================== */
+
+.fixed-control-bar {
+  /* Layout e posizionamento */
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 20px;
+  
+  /* Glass card design come gli altri elementi */
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  
+  /* Stato di visibilità */
+  transition: all 0.4s ease;
+  transform-origin: top center;
+}
+
+/* Stati di visibilità */
+.fixed-control-bar.hidden {
+  display: none;
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+}
+
+.fixed-control-bar.visible {
+  display: block;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  animation: controlBarSlideIn 0.4s ease;
+}
+
+@keyframes controlBarSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =================================================================== */
+/* 2. HEADER BARRA CONTROLLO                                          */
+/* =================================================================== */
+
+.control-bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.control-bar-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.facility-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.facility-info .facility-icon {
+  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(79, 172, 254, 0.2);
+  border-radius: 50%;
+  border: 1px solid rgba(79, 172, 254, 0.4);
+}
+
+.facility-details {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.control-bar-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.control-bar-close:hover {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff6b6b;
+  transform: scale(1.1);
+}
+
+/* =================================================================== */
+/* 3. CONTENUTO PRINCIPALE BARRA                                      */
+/* =================================================================== */
+
+.control-bar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.control-dropdowns {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 20px;
+  align-items: end;
+}
+
+/* =================================================================== */
+/* 4. GRUPPI DROPDOWN                                                 */
+/* =================================================================== */
+
+.control-dropdown-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-dropdown-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.control-select,
+.control-input {
+  padding: 12px 16px;
+  border: 2px solid var(--glass-border);
+  border-radius: 8px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  min-height: 44px; /* Touch-friendly */
+}
+
+.control-select:focus,
+.control-input:focus {
+  outline: none;
+  border-color: #4facfe;
+  box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.3);
+  background: rgba(79, 172, 254, 0.1);
+}
+
+.control-select:hover,
+.control-input:hover {
+  border-color: rgba(79, 172, 254, 0.6);
+}
+
+/* Dropdown specifico per alleanze */
+.control-select option {
+  background: rgba(20, 25, 40, 0.95);
+  color: var(--text-primary);
+  padding: 8px;
+}
+
+/* Input readonly per Type e Level */
+.control-input.readonly {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  font-style: italic;
+}
+
+.control-input.readonly:focus {
+  box-shadow: none;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* =================================================================== */
+/* 5. AZIONI BARRA CONTROLLO                                          */
+/* =================================================================== */
+
+.control-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.control-actions .btn {
+  min-width: 140px;
+  min-height: 44px;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.control-actions .btn:disabled,
+.control-actions .btn.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--text-secondary) !important;
+}
+
+.control-actions .btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Pulsante piccolo per i warning */
+.btn-small {
+  min-width: 100px !important;
+  min-height: 36px !important;
+  font-size: 13px !important;
+  padding: 8px 16px !important;
+}
+
+/* =================================================================== */
+/* 6. AREA WARNING VALIDAZIONE                                        */
+/* =================================================================== */
+
+.control-validation-warning {
+  margin-top: 15px;
+  padding: 0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.15), rgba(220, 53, 69, 0.1));
+  border: 2px solid rgba(255, 107, 107, 0.4);
+  backdrop-filter: blur(15px);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  transform-origin: top center;
+}
+
+.control-validation-warning.hidden {
+  display: none;
+  opacity: 0;
+  transform: scaleY(0);
+}
+
+.control-validation-warning.visible {
+  display: block;
+  opacity: 1;
+  transform: scaleY(1);
+  animation: warningSlideDown 0.3s ease;
+}
+
+@keyframes warningSlideDown {
+  from {
+    opacity: 0;
+    transform: scaleY(0) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1) translateY(0);
+  }
+}
+
+.warning-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.warning-icon {
+  font-size: 24px;
+  text-align: center;
+  animation: warningPulse 2s infinite;
+}
+
+@keyframes warningPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.warning-text {
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.warning-text strong {
+  color: #ff6b6b;
+}
+
+.warning-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+/* =================================================================== */
+/* 7. RESPONSIVE DESIGN                                               */
+/* =================================================================== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .control-dropdowns {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .control-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .control-actions .btn {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .fixed-control-bar {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .control-bar-header {
+    margin-bottom: 15px;
+    padding-bottom: 12px;
+  }
+  
+  .facility-info {
+    font-size: 14px;
+  }
+  
+  .facility-info .facility-icon {
+    font-size: 18px;
+    width: 28px;
+    height: 28px;
+  }
+  
+  .control-dropdowns {
+    gap: 12px;
+  }
+  
+  .control-select,
+  .control-input {
+    padding: 10px 14px;
+    font-size: 16px; /* Previene zoom su iOS */
+  }
+  
+  .control-actions {
+    gap: 10px;
+  }
+  
+  .warning-content {
+    padding: 15px;
+    gap: 12px;
+  }
+  
+  .warning-text {
+    font-size: 13px;
+  }
+  
+  .warning-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .warning-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Mobile piccolo */
+@media (max-width: 480px) {
+  .fixed-control-bar {
+    padding: 12px;
+  }
+  
+  .control-bar-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .control-bar-close {
+    align-self: flex-end;
+    margin-top: -10px;
+  }
+  
+  .facility-info {
+    font-size: 13px;
+    width: 100%;
+  }
+  
+  .control-dropdown-group label {
+    font-size: 13px;
+  }
+  
+  .control-select,
+  .control-input {
+    padding: 12px;
+    font-size: 16px;
+  }
+}
+
+/* =================================================================== */
+/* 8. EFFETTI SPECIALI E ACCESSIBILITÀ                                */
+/* =================================================================== */
+
+/* Focus visibile per navigazione keyboard */
+.control-select:focus-visible,
+.control-input:focus-visible,
+.control-actions .btn:focus-visible {
+  outline: 2px solid #4facfe;
+  outline-offset: 2px;
+}
+
+/* Evidenziazione quando facility selezionata */
+.fixed-control-bar.active .facility-info {
+  animation: facilitySelected 0.5s ease;
+}
+
+@keyframes facilitySelected {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+/* Stati hover migliorati */
+.control-dropdown-group:hover .control-select,
+.control-dropdown-group:hover .control-input:not(.readonly) {
+  border-color: rgba(79, 172, 254, 0.7);
+  background: rgba(79, 172, 254, 0.05);
+}
+
+/* Animazione sui pulsanti */
+.control-actions .btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.control-actions .btn:hover::before {
+  left: 100%;
+}
+
+/* =================================================================== */
+/* 9. DARK MODE E HIGH CONTRAST                                       */
+/* =================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  .fixed-control-bar {
+    background: rgba(10, 15, 25, 0.95);
+    border-color: rgba(79, 172, 254, 0.3);
+  }
+  
+  .control-validation-warning {
+    background: linear-gradient(135deg, rgba(255, 0, 0, 0.2), rgba(139, 0, 0, 0.15));
+    border-color: rgba(255, 0, 0, 0.5);
+  }
+}
+
+@media (prefers-contrast: high) {
+  .fixed-control-bar {
+    border-width: 3px;
+    border-color: #4facfe;
+  }
+  
+  .control-select,
+  .control-input {
+    border-width: 2px;
+    border-color: rgba(79, 172, 254, 0.8);
+  }
+  
+  .control-validation-warning {
+    border-width: 3px;
+    border-color: #ff0000;
+  }
+}
+
+/* =================================================================== */
+/* 10. ANIMAZIONI RIDOTTE PER ACCESSIBILITÀ                           */
+/* =================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .fixed-control-bar,
+  .control-validation-warning,
+  .control-actions .btn,
+  .facility-info,
+  .warning-icon {
+    animation: none !important;
+    transition: opacity 0.2s ease, visibility 0.2s ease !important;
+  }
+  
+  .control-actions .btn:hover {
+    transform: none !important;
+  }
+}
+
+/* =================================================================== */
+/* 11. PRINT STYLES                                                   */
+/* =================================================================== */
+
+@media print {
+  .fixed-control-bar {
+    display: none !important;
+  }
+}
