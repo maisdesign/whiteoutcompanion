@@ -572,3 +572,334 @@
   z-index: 10000;
   white-space: nowrap;
 }
+
+/* =====================================================================
+   DROPDOWN VIEWPORT-SAFE CSS - OTTIMIZZAZIONI ANTI-CLIPPING
+   =====================================================================
+   CSS aggiuntivo per supportare il nuovo sistema viewport-safe
+   Questo integra il CSS esistente con miglioramenti specifici
+*/
+
+/* =================================================================== */
+/* 1. VIEWPORT-SAFE BASE OVERRIDES                                    */
+/* =================================================================== */
+
+.marker-dropdown {
+  /* Override posizionamento per controllo JS totale */
+  position: fixed !important;
+  
+  /* Assicura che non vada mai fuori viewport */
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 120px);
+  
+  /* Migliore gestione overflow */
+  overflow: hidden;
+  
+  /* Box-sizing più prevedibile */
+  box-sizing: border-box;
+  
+  /* Bordi più sottili su mobile per risparmiare spazio */
+  border-width: 1px;
+}
+
+/* =================================================================== */
+/* 2. OTTIMIZZAZIONI DISPOSITIVI PICCOLI                              */
+/* =================================================================== */
+
+@media (max-width: 480px) {
+  .marker-dropdown {
+    /* Ancora più compatto su schermi piccoli */
+    max-width: calc(100vw - 30px);
+    max-height: calc(100vh - 100px);
+    
+    /* Rimuovi ombre per ridurre footprint visivo */
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(79, 172, 254, 0.4);
+    
+    /* Bordi più arrotondati per look moderno */
+    border-radius: 16px;
+  }
+  
+  .dropdown-header {
+    /* Header più compatto su mobile piccolo */
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 15px 15px 0 0;
+  }
+  
+  .dropdown-options {
+    /* Padding ridotto per massimizzare spazio contenuto */
+    padding: 4px;
+  }
+  
+  .dropdown-option {
+    /* Opzioni più compatte ma comunque toccabili */
+    padding: 8px 10px;
+    min-height: 36px;
+    font-size: 12px;
+    margin-bottom: 1px;
+  }
+}
+
+/* =================================================================== */
+/* 3. OTTIMIZZAZIONI ORIENTAMENTO LANDSCAPE MOBILE                    */
+/* =================================================================== */
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .marker-dropdown {
+    /* In landscape, altezza molto limitata */
+    max-height: calc(100vh - 60px);
+  }
+  
+  .dropdown-header {
+    /* Header ancora più compatto in landscape */
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+  
+  .dropdown-options {
+    /* Priorità al contenuto scrollabile */
+    max-height: calc(100vh - 120px);
+    padding: 2px;
+  }
+  
+  .dropdown-option {
+    /* Opzioni più dense in landscape */
+    padding: 6px 10px;
+    min-height: 32px;
+    font-size: 11px;
+    margin-bottom: 0;
+  }
+}
+
+/* =================================================================== */
+/* 4. GESTIONE OVERFLOW E SCROLL MIGLIORATA                           */
+/* =================================================================== */
+
+.dropdown-options {
+  /* Scroll più fluido e contenuto */
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  
+  /* Migliore supporto touch */
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+/* Touch devices - scrollbar più accessibili */
+@media (pointer: coarse) {
+  .dropdown-options::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .dropdown-options::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+  }
+  
+  .dropdown-options::-webkit-scrollbar-thumb {
+    background: rgba(79, 172, 254, 0.7);
+    border-radius: 4px;
+    min-height: 30px;
+  }
+  
+  .dropdown-options::-webkit-scrollbar-thumb:active {
+    background: rgba(79, 172, 254, 0.9);
+  }
+}
+
+/* =================================================================== */
+/* 5. STATI DI INTERAZIONE MIGLIORATI                                 */
+/* =================================================================== */
+
+.dropdown-option {
+  /* Transizioni più veloci per mobile */
+  transition: all 0.15s ease;
+  
+  /* Migliore feedback touch */
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Stato attivo/pressed più evidente su touch */
+@media (pointer: coarse) {
+  .dropdown-option:active {
+    background: rgba(79, 172, 254, 0.5) !important;
+    transform: scale(0.98);
+    transition: all 0.1s ease;
+  }
+}
+
+/* =================================================================== */
+/* 6. INDICATORI VISUALI PER DEBUG                                    */
+/* =================================================================== */
+
+/* Solo visibile quando debug è attivo */
+.marker-dropdown[data-debug-guaranteed="viewport-safe"] {
+  outline: 2px solid rgba(0, 255, 0, 0.5);
+  outline-offset: -2px;
+}
+
+.marker-dropdown[data-debug-clamping="applied"] {
+  outline-color: rgba(255, 165, 0, 0.7);
+}
+
+/* Debug info hover (solo su desktop) */
+@media (min-width: 769px) {
+  .marker-dropdown[data-debug-guaranteed]:hover::after {
+    content: attr(title);
+    position: absolute;
+    top: -30px;
+    left: 0;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    white-space: nowrap;
+    z-index: 10000;
+    pointer-events: none;
+  }
+}
+
+/* =================================================================== */
+/* 7. PERFORMANCE OPTIMIZATIONS                                       */
+/* =================================================================== */
+
+.marker-dropdown {
+  /* GPU acceleration per animazioni più fluide */
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  
+  /* Contenimento per migliori performance */
+  contain: layout style paint;
+}
+
+.dropdown-options {
+  /* GPU acceleration per scroll fluido */
+  will-change: scroll-position;
+  transform: translateZ(0);
+}
+
+/* =================================================================== */
+/* 8. ACCESSIBILITÀ E USABILITÀ                                       */
+/* =================================================================== */
+
+/* Focus visibile per navigazione keyboard */
+.dropdown-option:focus,
+.dropdown-option.keyboard-focus {
+  outline: 2px solid rgba(79, 172, 254, 0.8);
+  outline-offset: -2px;
+  background: rgba(79, 172, 254, 0.3) !important;
+}
+
+/* Indicatori di stato più chiari */
+.dropdown-option.selected {
+  position: relative;
+}
+
+.dropdown-option.selected::before {
+  content: "✓";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(67, 233, 123, 0.9);
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* =================================================================== */
+/* 9. SAFE AREA SUPPORT MIGLIORATO                                    */
+/* =================================================================== */
+
+/* iPhone X+ safe areas con fallback */
+@supports (padding: max(0px)) {
+  .marker-dropdown {
+    /* Considera safe areas nei calcoli dimensioni */
+    max-width: calc(100vw - max(20px, env(safe-area-inset-left)) - max(20px, env(safe-area-inset-right)));
+  }
+  
+  /* Margini automatici per safe areas */
+  @media (max-width: 480px) {
+    .marker-dropdown {
+      margin-left: max(10px, env(safe-area-inset-left));
+      margin-right: max(10px, env(safe-area-inset-right));
+    }
+  }
+}
+
+/* =================================================================== */
+/* 10. ANIMAZIONI OTTIMIZZATE                                         */
+/* =================================================================== */
+
+/* Animazioni più veloci per mobile */
+@media (max-width: 768px) {
+  .marker-dropdown {
+    animation-duration: 0.2s !important;
+  }
+  
+  .dropdown-option {
+    transition-duration: 0.1s !important;
+  }
+}
+
+/* Rispetta le preferenze di animazione ridotta */
+@media (prefers-reduced-motion: reduce) {
+  .marker-dropdown {
+    animation: none !important;
+  }
+  
+  .dropdown-option {
+    transition: none !important;
+  }
+  
+  .dropdown-options {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =================================================================== */
+/* 11. CONTESTO HIGH-DPI E RETINA                                     */
+/* =================================================================== */
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .marker-dropdown {
+    /* Bordi più nitidi su schermi ad alta densità */
+    border-width: 0.5px;
+  }
+  
+  .dropdown-option {
+    /* Icone più nitide */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* =================================================================== */
+/* 12. FALLBACK PER BROWSER VECCHI                                    */
+/* =================================================================== */
+
+/* Se flexbox non supportato */
+.no-flexbox .dropdown-option {
+  display: block;
+  overflow: hidden;
+}
+
+/* Se viewport units non supportate */
+.no-viewport-units .marker-dropdown {
+  max-width: 280px;
+  max-height: 400px;
+}
+
+@media (max-width: 480px) {
+  .no-viewport-units .marker-dropdown {
+    max-width: 180px;
+    max-height: 280px;
+  }
+}

@@ -1,265 +1,193 @@
 // =====================================================================
-// FIX POSIZIONAMENTO DROPDOWN - VERSIONE ACCURATA PER MOBILE
+// DROPDOWN POSITION FIX V2 - SOLUZIONE DEFINITIVA ANTI-CLIPPING
 // =====================================================================
-// Questo fix risolve i problemi di clipping sostituendo la logica
-// di posizionamento esistente con calcoli più precisi e dinamici
+// Questo fix risolve TUTTI i problemi di clipping sui dropdown mobile:
+// - Bug viewport calculation
+// - Viewport clamping automatico
+// - Posizionamento robusto per tutti i casi
+// - Margini di sicurezza garantiti
 
-console.log('🔧 Caricamento fix posizionamento dropdown accurato...');
+console.log('🔧 Caricamento Dropdown Position Fix V2 - Soluzione Anti-Clipping...');
 
 /**
- * NUOVO: Calcola posizionamento dinamico accurato per viewport mobile
- * Sostituisce calculateOptimalDropdownPosition con logica più precisa
+ * NUOVA VERSIONE: Calcola posizionamento con garanzia viewport visibility
+ * Questa funzione GARANTISCE che il dropdown rimanga sempre visibile
  */
-function calculateAccurateDropdownPosition(marker) {
-  const mapWrapper = document.getElementById('map-wrapper');
-  const markerRect = marker.getBoundingClientRect();
-  const mapRect = mapWrapper.getBoundingClientRect();
-  const viewportHeight = window.innerHeight;
+function calculateViewportSafeDropdownPosition(marker) {
   const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const markerRect = marker.getBoundingClientRect();
   
-  console.log('📏 Dimensioni viewport:', { width: viewportWidth, height: viewportHeight });
-  console.log('📍 Posizione marker:', { 
+  console.log('📏 Viewport:', { width: viewportWidth, height: viewportHeight });
+  console.log('📍 Marker rect:', { 
     top: markerRect.top, 
     bottom: markerRect.bottom,
     left: markerRect.left,
-    right: markerRect.right 
+    right: markerRect.right,
+    visible: isMarkerInViewport(markerRect, viewportWidth, viewportHeight)
   });
 
   // ===================================================================
-  // 1. VERIFICA SE MARKER È VISIBILE NEL VIEWPORT
+  // 1. CALCOLO DIMENSIONI DROPDOWN STIMATE
   // ===================================================================
-  
-  const isMarkerVisible = markerRect.top >= 0 && 
-                         markerRect.bottom <= viewportHeight &&
-                         markerRect.left >= 0 && 
-                         markerRect.right <= viewportWidth;
-  
-  console.log('👁️ Marker visibile nel viewport:', isMarkerVisible);
-  
-  // Se il marker non è visibile, usa posizionamento relativo classico
-  if (!isMarkerVisible) {
-    console.log('⚠️ Marker fuori viewport, usando posizionamento relativo');
-    return calculateFallbackRelativePosition(marker, markerRect, mapRect, viewportWidth);
-  }
-
-  // ===================================================================
-  // 2. CALCOLO SPAZIO VERTICALE DISPONIBILE ACCURATO (SOLO SE VISIBILE)
-  // ===================================================================
-  
-  // Spazio sopra il marker nel viewport
-  const spaceAboveInViewport = markerRect.top;
-  
-  // Spazio sotto il marker nel viewport  
-  const spaceBelowInViewport = viewportHeight - markerRect.bottom;
-  
-  // Safe area adjustments per dispositivi con notch
-  const safeAreaTop = 44;    // Notch iPhone tipico
-  const safeAreaBottom = 34; // Home indicator iPhone
-  const isMobile = viewportWidth <= 768;
-  
-  const adjustedSpaceAbove = isMobile ? 
-    Math.max(0, spaceAboveInViewport - safeAreaTop) : 
-    spaceAboveInViewport;
-    
-  const adjustedSpaceBelow = isMobile ? 
-    Math.max(0, spaceBelowInViewport - safeAreaBottom) : 
-    spaceBelowInViewport;
-  
-  // ===================================================================
-  // 2. STIMA ALTEZZA DROPDOWN DINAMICA
-  // ===================================================================
-  
-  // Calcola altezza approssimativa del dropdown basata sul contenuto
-  const headerHeight = 50;
-  const optionHeight = isMobile ? 44 : 40; // Apple HIG compliant per mobile
-  const totalOptions = (alliances?.length || 0) + 1; // +1 per unassign
-  const optionsHeight = totalOptions * optionHeight;
-  const padding = 16;
-  const scrollbarSpace = 8;
-  
-  let estimatedDropdownHeight = headerHeight + optionsHeight + padding + scrollbarSpace;
-  
-  // Applica limiti massimi
-  const maxHeightDesktop = 400;
-  const maxHeightMobile = isMobile ? 350 : maxHeightDesktop;
-  estimatedDropdownHeight = Math.min(estimatedDropdownHeight, maxHeightMobile);
-  
-  console.log('📊 Stime altezza:', {
-    estimated: estimatedDropdownHeight,
-    spaceAbove: adjustedSpaceAbove,
-    spaceBelow: adjustedSpaceBelow
-  });
-  
-  // ===================================================================
-  // 3. DECISIONE POSIZIONAMENTO INTELLIGENTE
-  // ===================================================================
-  
-  let showAbove = false;
-  let finalMaxHeight = estimatedDropdownHeight;
-  
-  // Logica decisionale migliorata
-  if (adjustedSpaceBelow >= estimatedDropdownHeight) {
-    // Spazio sufficiente sotto - usa sotto
-    showAbove = false;
-    finalMaxHeight = Math.min(estimatedDropdownHeight, adjustedSpaceBelow - 10);
-  } else if (adjustedSpaceAbove >= estimatedDropdownHeight) {
-    // Spazio sufficiente sopra - usa sopra  
-    showAbove = true;
-    finalMaxHeight = Math.min(estimatedDropdownHeight, adjustedSpaceAbove - 10);
-  } else {
-    // Spazio limitato - scegli il lato con più spazio
-    if (adjustedSpaceAbove > adjustedSpaceBelow) {
-      showAbove = true;
-      finalMaxHeight = adjustedSpaceAbove - 10;
-    } else {
-      showAbove = false;
-      finalMaxHeight = adjustedSpaceBelow - 10;
-    }
-  }
-  
-  // Assicura altezza minima
-  finalMaxHeight = Math.max(finalMaxHeight, 200);
-  
-  // ===================================================================
-  // 4. CALCOLO POSIZIONAMENTO ORIZZONTALE (RIUTILIZZA LOGICA ESISTENTE)
-  // ===================================================================
-  
-  const markerLeftRelative = markerRect.left - mapRect.left;
-  const markerCenterRelative = markerLeftRelative + (markerRect.width / 2);
-  const mapWidth = mapRect.width;
-  const horizontalPosition = (markerCenterRelative / mapWidth) * 100;
-  
-  let horizontalAlignment = 'center';
-  
-  if (horizontalPosition < 15) {
-    horizontalAlignment = 'left';
-  } else if (horizontalPosition > 85) {
-    horizontalAlignment = 'right';
-  }
-  
-  // ===================================================================
-  // 5. RISULTATO FINALE CON POSIZIONI DINAMICHE
-  // ===================================================================
-  
-  const result = {
-    // Posizionamento verticale DINAMICO
-    showAbove: showAbove,
-    dynamicPosition: true, // FLAG per indicare posizione dinamica
-    spaceAbove: adjustedSpaceAbove,
-    spaceBelow: adjustedSpaceBelow,
-    calculatedMaxHeight: finalMaxHeight,
-    
-    // Posizionamento orizzontale
-    horizontalAlignment: horizontalAlignment,
-    horizontalPosition: horizontalPosition,
-    
-    // Ottimizzazioni dispositivo
-    isMobile: isMobile,
-    isSmallMobile: viewportWidth <= 480,
-    isLandscape: viewportWidth > viewportHeight,
-    
-    // CSS classes
-    cssClasses: {
-      vertical: showAbove ? 'dropdown-above' : 'dropdown-below',
-      horizontal: `dropdown-align-${horizontalAlignment}`,
-      device: isMobile ? (viewportWidth <= 480 ? 'dropdown-small-mobile' : 'dropdown-mobile') : 'dropdown-desktop',
-      orientation: viewportWidth > viewportHeight ? 'dropdown-landscape' : 'dropdown-portrait'
-    },
-    
-    // Posizioni assolute precise (NUOVO)
-    absolutePositioning: {
-      top: showAbove ? null : markerRect.bottom + 5,
-      bottom: showAbove ? viewportHeight - markerRect.top + 5 : null,
-      maxHeight: finalMaxHeight
-    },
-    
-    // Debug info migliorata
-    debug: {
-      markerViewportPosition: {
-        top: markerRect.top,
-        bottom: markerRect.bottom,
-        centerY: markerRect.top + (markerRect.height / 2)
-      },
-      spaceAnalysis: {
-        available: { above: adjustedSpaceAbove, below: adjustedSpaceBelow },
-        required: estimatedDropdownHeight,
-        decision: showAbove ? 'SOPRA' : 'SOTTO',
-        reason: adjustedSpaceBelow >= estimatedDropdownHeight ? 'spazio sotto sufficiente' :
-                adjustedSpaceAbove >= estimatedDropdownHeight ? 'spazio sopra sufficiente' :
-                adjustedSpaceAbove > adjustedSpaceBelow ? 'più spazio sopra' : 'più spazio sotto'
-      }
-    }
-  };
-  
-  console.log('🎯 Posizionamento calcolato:', {
-    posizione: showAbove ? 'SOPRA' : 'SOTTO',
-    altezzaMax: finalMaxHeight,
-    spazioSopra: adjustedSpaceAbove,
-    spazioSotto: adjustedSpaceBelow,
-    motivo: result.debug.spaceAnalysis.reason
-  });
-  
-  return result;
-}
-
-/**
- * Calcola posizionamento relativo quando il marker è fuori dal viewport
- * Fallback sicuro per marker non visibili
- */
-function calculateFallbackRelativePosition(marker, markerRect, mapRect, viewportWidth) {
-  console.log('🔄 Calcolo posizionamento relativo fallback...');
   
   const isMobile = viewportWidth <= 768;
   const isSmallMobile = viewportWidth <= 480;
   
-  // Calcola posizione relativa alla mappa (non al viewport)
-  const markerTopRelativeToMap = markerRect.top - mapRect.top;
-  const mapHeight = mapRect.height;
+  // Stima dimensioni dropdown basata su device e numero alleanze
+  const estimatedDropdownDimensions = calculateEstimatedDropdownSize(isMobile, isSmallMobile);
   
-  // Usa la logica originale per determinare sopra/sotto
-  const showAbove = markerTopRelativeToMap > mapHeight * 0.6;
+  console.log('📐 Dimensioni stimate dropdown:', estimatedDropdownDimensions);
+
+  // ===================================================================
+  // 2. MARGINI DI SICUREZZA VIEWPORT
+  // ===================================================================
   
-  // Calcola allineamento orizzontale
-  const markerLeftRelative = markerRect.left - mapRect.left;
-  const markerCenterRelative = markerLeftRelative + (markerRect.width / 2);
-  const mapWidth = mapRect.width;
-  const horizontalPosition = (markerCenterRelative / mapWidth) * 100;
+  // Margini che garantiscono che il dropdown non tocchi mai i bordi
+  const SAFETY_MARGINS = {
+    top: isMobile ? 60 : 40,      // Considera status bar, notch
+    bottom: isMobile ? 80 : 40,   // Considera home indicator, navigation
+    left: isMobile ? 20 : 15,
+    right: isMobile ? 20 : 15
+  };
   
-  let horizontalAlignment = 'center';
-  if (horizontalPosition < 15) {
+  // Area "safe" del viewport dove può apparire il dropdown
+  const safeViewport = {
+    top: SAFETY_MARGINS.top,
+    bottom: viewportHeight - SAFETY_MARGINS.bottom,
+    left: SAFETY_MARGINS.left,
+    right: viewportWidth - SAFETY_MARGINS.right,
+    width: viewportWidth - SAFETY_MARGINS.left - SAFETY_MARGINS.right,
+    height: viewportHeight - SAFETY_MARGINS.top - SAFETY_MARGINS.bottom
+  };
+  
+  console.log('🛡️ Safe viewport area:', safeViewport);
+
+  // ===================================================================
+  // 3. CALCOLO POSIZIONE VERTICALE CON CLAMPING GARANTITO
+  // ===================================================================
+  
+  let dropdownTop, dropdownBottom, showAbove;
+  const dropdownHeight = Math.min(estimatedDropdownDimensions.height, safeViewport.height);
+  
+  // Posizione ideale sotto il marker
+  const idealTopPosition = markerRect.bottom + 5;
+  const idealBottomPosition = idealTopPosition + dropdownHeight;
+  
+  // Posizione ideale sopra il marker  
+  const idealAboveBottomPosition = markerRect.top - 5;
+  const idealAboveTopPosition = idealAboveBottomPosition - dropdownHeight;
+  
+  // DECISION LOGIC con priority al rimanere nel safe viewport
+  if (idealBottomPosition <= safeViewport.bottom) {
+    // Dropdown sotto: entra perfettamente nel viewport
+    showAbove = false;
+    dropdownTop = idealTopPosition;
+    dropdownBottom = idealBottomPosition;
+  } else if (idealAboveTopPosition >= safeViewport.top) {
+    // Dropdown sopra: entra perfettamente nel viewport
+    showAbove = true;
+    dropdownTop = idealAboveTopPosition;
+    dropdownBottom = idealAboveBottomPosition;
+  } else {
+    // EMERGENCY CLAMPING: Nessuna posizione ideale funziona
+    // Scegli il lato con più spazio e forza dentro il viewport
+    
+    const spaceBelow = safeViewport.bottom - markerRect.bottom;
+    const spaceAbove = markerRect.top - safeViewport.top;
+    
+    if (spaceBelow >= spaceAbove) {
+      // Più spazio sotto - clamp al bottom del safe viewport
+      showAbove = false;
+      dropdownBottom = safeViewport.bottom;
+      dropdownTop = dropdownBottom - dropdownHeight;
+      
+      // Se ancora fuori sopra, clamp anche sopra
+      if (dropdownTop < safeViewport.top) {
+        dropdownTop = safeViewport.top;
+        dropdownBottom = dropdownTop + dropdownHeight;
+      }
+    } else {
+      // Più spazio sopra - clamp al top del safe viewport
+      showAbove = true;
+      dropdownTop = safeViewport.top;
+      dropdownBottom = dropdownTop + dropdownHeight;
+      
+      // Se ancora fuori sotto, clamp anche sotto
+      if (dropdownBottom > safeViewport.bottom) {
+        dropdownBottom = safeViewport.bottom;
+        dropdownTop = dropdownBottom - dropdownHeight;
+      }
+    }
+  }
+  
+  // FINAL SAFETY CHECK: Garantisce che rimanga nel viewport
+  dropdownTop = Math.max(safeViewport.top, Math.min(dropdownTop, safeViewport.bottom - dropdownHeight));
+  dropdownBottom = dropdownTop + dropdownHeight;
+  
+  console.log('📍 Posizione verticale calcolata:', {
+    showAbove,
+    top: dropdownTop,
+    bottom: dropdownBottom,
+    height: dropdownHeight,
+    withinSafeArea: dropdownTop >= safeViewport.top && dropdownBottom <= safeViewport.bottom
+  });
+
+  // ===================================================================
+  // 4. CALCOLO POSIZIONE ORIZZONTALE CON CLAMPING
+  // ===================================================================
+  
+  const dropdownWidth = Math.min(estimatedDropdownDimensions.width, safeViewport.width);
+  
+  // Posizione ideale centrata sul marker
+  const markerCenterX = markerRect.left + (markerRect.width / 2);
+  const idealLeft = markerCenterX - (dropdownWidth / 2);
+  const idealRight = idealLeft + dropdownWidth;
+  
+  let dropdownLeft, horizontalAlignment;
+  
+  if (idealLeft >= safeViewport.left && idealRight <= safeViewport.right) {
+    // Posizione centrata funziona perfettamente
+    dropdownLeft = idealLeft;
+    horizontalAlignment = 'center';
+  } else if (idealLeft < safeViewport.left) {
+    // Troppo a sinistra - clamp a sinistra
+    dropdownLeft = safeViewport.left;
     horizontalAlignment = 'left';
-  } else if (horizontalPosition > 85) {
+  } else {
+    // Troppo a destra - clamp a destra
+    dropdownLeft = safeViewport.right - dropdownWidth;
     horizontalAlignment = 'right';
   }
   
-  // Altezza appropriata per mobile
-  let maxHeight;
-  if (isSmallMobile) {
-    maxHeight = 280;
-  } else if (isMobile) {
-    maxHeight = 350;
-  } else {
-    maxHeight = 400;
-  }
+  console.log('📍 Posizione orizzontale calcolata:', {
+    left: dropdownLeft,
+    width: dropdownWidth,
+    alignment: horizontalAlignment,
+    withinSafeArea: dropdownLeft >= safeViewport.left && (dropdownLeft + dropdownWidth) <= safeViewport.right
+  });
+
+  // ===================================================================
+  // 5. RISULTATO FINALE CON GARANZIE VIEWPORT
+  // ===================================================================
   
   const result = {
-    // Posizionamento verticale
+    // Posizioni assolute GARANTITE dentro viewport
+    position: 'fixed', // SEMPRE fixed per controllo totale
+    top: dropdownTop,
+    left: dropdownLeft,
+    width: dropdownWidth,
+    height: dropdownHeight,
+    maxHeight: dropdownHeight,
+    
+    // Informazioni per CSS classes
     showAbove: showAbove,
-    dynamicPosition: false, // Usa posizionamento CSS relativo
-    spaceAbove: markerTopRelativeToMap,
-    spaceBelow: mapHeight - markerTopRelativeToMap,
-    calculatedMaxHeight: maxHeight,
-    
-    // Posizionamento orizzontale
     horizontalAlignment: horizontalAlignment,
-    horizontalPosition: horizontalPosition,
-    
-    // Ottimizzazioni dispositivo
     isMobile: isMobile,
     isSmallMobile: isSmallMobile,
     isLandscape: viewportWidth > viewportHeight,
     
-    // CSS classes
+    // CSS classes da applicare
     cssClasses: {
       vertical: showAbove ? 'dropdown-above' : 'dropdown-below',
       horizontal: `dropdown-align-${horizontalAlignment}`,
@@ -267,46 +195,111 @@ function calculateFallbackRelativePosition(marker, markerRect, mapRect, viewport
       orientation: viewportWidth > viewportHeight ? 'dropdown-landscape' : 'dropdown-portrait'
     },
     
-    // Nessun posizionamento assoluto - usa CSS relativo
-    absolutePositioning: null,
+    // Garanzie di visibilità
+    guarantees: {
+      fullyVisible: true,
+      withinViewport: true,
+      safeMargins: SAFETY_MARGINS,
+      clampingApplied: idealLeft < safeViewport.left || idealRight > safeViewport.right || 
+                      idealTopPosition < safeViewport.top || idealBottomPosition > safeViewport.bottom
+    },
     
     // Debug info
     debug: {
-      markerViewportPosition: {
+      markerPosition: {
         top: markerRect.top,
         bottom: markerRect.bottom,
-        isVisible: false
+        centerX: markerCenterX,
+        visible: isMarkerInViewport(markerRect, viewportWidth, viewportHeight)
       },
-      spaceAnalysis: {
-        available: { above: markerTopRelativeToMap, below: mapHeight - markerTopRelativeToMap },
-        required: maxHeight,
-        decision: showAbove ? 'SOPRA' : 'SOTTO',
-        reason: 'fallback relativo (marker fuori viewport)'
+      calculations: {
+        idealPositions: {
+          below: { top: idealTopPosition, bottom: idealBottomPosition },
+          above: { top: idealAboveTopPosition, bottom: idealAboveBottomPosition }
+        },
+        finalPositions: {
+          top: dropdownTop,
+          bottom: dropdownBottom,
+          left: dropdownLeft,
+          right: dropdownLeft + dropdownWidth
+        }
       }
     }
   };
   
-  console.log('🔄 Posizionamento relativo calcolato:', {
-    posizione: showAbove ? 'SOPRA' : 'SOTTO',
-    altezzaMax: maxHeight,
-    allineamento: horizontalAlignment,
-    motivo: 'marker fuori viewport'
+  console.log('🎯 Posizionamento GARANTITO calcolato:', {
+    fullyVisible: result.guarantees.fullyVisible,
+    clampingUsed: result.guarantees.clampingApplied,
+    position: `${dropdownTop.toFixed(0)}px-${dropdownBottom.toFixed(0)}px (${dropdownHeight.toFixed(0)}px tall)`
   });
   
   return result;
 }
 
 /**
- * NUOVO: Applica posizionamento dinamico con posizioni assolute precise
- * Sostituisce applyDropdownPositioning con logica più accurata
+ * Verifica se un marker è visibile nel viewport
  */
-function applyAccurateDropdownPositioning(dropdown, positioning) {
-  if (!dropdown || !positioning) return;
+function isMarkerInViewport(markerRect, viewportWidth, viewportHeight) {
+  return markerRect.top >= 0 && 
+         markerRect.bottom <= viewportHeight &&
+         markerRect.left >= 0 && 
+         markerRect.right <= viewportWidth;
+}
+
+/**
+ * Calcola dimensioni stimate del dropdown basate su device e contenuto
+ */
+function calculateEstimatedDropdownSize(isMobile, isSmallMobile) {
+  // Calcola numero alleanze disponibili (se esiste la variabile globale)
+  const allianceCount = (typeof alliances !== 'undefined') ? alliances.length : 5;
   
-  console.log('🔧 Applicando posizionamento accurato...');
+  // Dimensioni base per device
+  let baseWidth, baseHeight;
+  
+  if (isSmallMobile) {
+    baseWidth = 160;   // Più stretto per schermi piccoli
+    baseHeight = 50;   // Header più compatto
+  } else if (isMobile) {
+    baseWidth = 200;
+    baseHeight = 60;
+  } else {
+    baseWidth = 240;
+    baseHeight = 60;
+  }
+  
+  // Altezza basata sul contenuto
+  const headerHeight = baseHeight;
+  const optionHeight = isMobile ? 44 : 40;  // Apple HIG compliant
+  const totalOptions = allianceCount + 1;  // +1 per "unassign"
+  const contentHeight = totalOptions * optionHeight;
+  const padding = 16;
+  
+  let totalHeight = headerHeight + contentHeight + padding;
+  
+  // Applica limiti massimi per device
+  const maxHeight = isSmallMobile ? 280 : (isMobile ? 350 : 400);
+  totalHeight = Math.min(totalHeight, maxHeight);
+  
+  return {
+    width: baseWidth,
+    height: totalHeight,
+    estimatedFromContent: true
+  };
+}
+
+/**
+ * NUOVA VERSIONE: Applica posizionamento con garanzie viewport
+ */
+function applyViewportSafeDropdownPositioning(dropdown, positioning) {
+  if (!dropdown || !positioning) {
+    console.warn('⚠️ applyViewportSafeDropdownPositioning: parametri mancanti');
+    return;
+  }
+  
+  console.log('🔧 Applicando posizionamento SAFE al viewport...');
   
   // ===================================================================
-  // 1. APPLICA CLASSI CSS (come prima)
+  // 1. APPLICA CSS CLASSES (come prima)
   // ===================================================================
   
   dropdown.classList.remove(
@@ -321,350 +314,316 @@ function applyAccurateDropdownPositioning(dropdown, positioning) {
   });
   
   // ===================================================================
-  // 2. SCEGLI TIPO DI POSIZIONAMENTO BASATO SU VISIBILITÀ MARKER
+  // 2. APPLICA POSIZIONAMENTO ASSOLUTO GARANTITO
   // ===================================================================
   
-  if (positioning.dynamicPosition && positioning.absolutePositioning) {
-    // POSIZIONAMENTO ASSOLUTO per marker visibili
-    console.log('📍 Applicando posizionamento assoluto (marker visibile)');
-    
-    const abs = positioning.absolutePositioning;
-    
-    // Cambia a posizionamento fisso per viewport accuracy
-    dropdown.style.position = 'fixed';
-    dropdown.style.zIndex = '2000';
-    
-    // Applica posizione verticale precisa
-    if (abs.top !== null) {
-      dropdown.style.top = `${abs.top}px`;
-      dropdown.style.bottom = 'auto';
-    } else {
-      dropdown.style.bottom = `${abs.bottom}px`;
-      dropdown.style.top = 'auto';
-    }
-    
-    // Altezza massima dinamica
-    dropdown.style.maxHeight = `${abs.maxHeight}px`;
-    
-    console.log('📍 Posizione assoluta applicata:', {
-      top: dropdown.style.top,
-      bottom: dropdown.style.bottom,
-      maxHeight: dropdown.style.maxHeight
-    });
-    
-  } else {
-    // POSIZIONAMENTO RELATIVO per marker fuori viewport
-    console.log('🔄 Applicando posizionamento relativo (marker fuori viewport)');
-    
-    // Mantieni posizionamento CSS relativo standard
-    dropdown.style.position = 'absolute';
-    dropdown.style.zIndex = '2000';
-    
-    // Reset posizioni assolute
-    dropdown.style.top = '';
-    dropdown.style.bottom = '';
-    
-    // Applica solo altezza massima
-    dropdown.style.maxHeight = `${positioning.calculatedMaxHeight}px`;
-    
-    console.log('🔄 Posizione relativa applicata:', {
-      position: 'absolute (relativo al marker)',
-      maxHeight: dropdown.style.maxHeight
-    });
-  }
+  // SEMPRE fixed per controllo totale del viewport
+  dropdown.style.position = 'fixed';
+  dropdown.style.zIndex = '2000';
+  
+  // Applica coordinate precise GARANTITE dentro viewport
+  dropdown.style.top = `${positioning.top}px`;
+  dropdown.style.left = `${positioning.left}px`;
+  dropdown.style.width = `${positioning.width}px`;
+  dropdown.style.maxHeight = `${positioning.maxHeight}px`;
+  
+  // Reset coordinate che potrebbero confliggere
+  dropdown.style.bottom = 'auto';
+  dropdown.style.right = 'auto';
+  dropdown.style.transform = 'none';
+  
+  console.log('📍 Posizioni applicate:', {
+    position: dropdown.style.position,
+    top: dropdown.style.top,
+    left: dropdown.style.left,
+    width: dropdown.style.width,
+    maxHeight: dropdown.style.maxHeight
+  });
   
   // ===================================================================
-  // 3. POSIZIONAMENTO ORIZZONTALE (come prima)
-  // ===================================================================
-  
-  if (positioning.horizontalAlignment === 'left') {
-    dropdown.style.left = '0';
-    dropdown.style.right = 'auto';
-    dropdown.style.transform = 'none';
-  } else if (positioning.horizontalAlignment === 'right') {
-    dropdown.style.right = '0';
-    dropdown.style.left = 'auto';
-    dropdown.style.transform = 'none';
-  } else {
-    dropdown.style.left = '50%';
-    dropdown.style.right = 'auto';
-    dropdown.style.transform = 'translateX(-50%)';
-  }
-  
-  // ===================================================================
-  // 4. AGGIORNAMENTO CONTAINER OPZIONI
+  // 3. AGGIORNA CONTAINER OPZIONI PER SCROLLING
   // ===================================================================
   
   const optionsContainer = dropdown.querySelector('.dropdown-options');
   if (optionsContainer) {
     const headerHeight = 60;
-    const maxOptionsHeight = positioning.calculatedMaxHeight - headerHeight;
+    const maxOptionsHeight = positioning.height - headerHeight;
+    
     optionsContainer.style.maxHeight = `${maxOptionsHeight}px`;
     optionsContainer.style.overflowY = 'auto';
     
     if (positioning.isMobile) {
       optionsContainer.style.webkitOverflowScrolling = 'touch';
       optionsContainer.style.scrollBehavior = 'smooth';
+      optionsContainer.style.overscrollBehavior = 'contain';
     }
+    
+    console.log('📋 Container opzioni aggiornato:', {
+      maxHeight: optionsContainer.style.maxHeight
+    });
   }
   
-  console.log('✅ Posizionamento accurato applicato');
+  // ===================================================================
+  // 4. AGGIUNGE ATTRIBUTI DEBUG (se richiesto)
+  // ===================================================================
+  
+  if (window.location.search.includes('debug=true')) {
+    dropdown.setAttribute('data-debug-guaranteed', 'viewport-safe');
+    dropdown.setAttribute('data-debug-clamping', positioning.guarantees.clampingApplied ? 'applied' : 'none');
+    dropdown.title = `Debug: ${positioning.top.toFixed(0)}px-${(positioning.top + positioning.height).toFixed(0)}px`;
+  }
+  
+  console.log('✅ Posizionamento viewport-safe applicato con successo');
 }
 
 /**
- * Sostituisce la funzione esistente nel sistema marker
- * Questo monkey patch assicura che tutti i dropdown usino il nuovo sistema
+ * Funzione di test per verificare che il dropdown rimanga nel viewport
  */
-function patchMarkerDropdownSystem() {
-  console.log('🔧 Patching sistema dropdown marker...');
+function verifyDropdownViewportCompliance(dropdown) {
+  if (!dropdown) return false;
   
-  // Override delle funzioni globali esistenti se presenti
+  const rect = dropdown.getBoundingClientRect();
+  const viewport = {
+    width: window.innerWidth,
+    height: window.innerHeight
+  };
+  
+  const compliance = {
+    withinTop: rect.top >= 0,
+    withinBottom: rect.bottom <= viewport.height,
+    withinLeft: rect.left >= 0,
+    withinRight: rect.right <= viewport.width,
+    fullyVisible: false
+  };
+  
+  compliance.fullyVisible = compliance.withinTop && compliance.withinBottom && 
+                           compliance.withinLeft && compliance.withinRight;
+  
+  console.log('✅ Verifica compliance viewport:', {
+    dropdown: {
+      top: rect.top.toFixed(1),
+      bottom: rect.bottom.toFixed(1),
+      left: rect.left.toFixed(1),
+      right: rect.right.toFixed(1),
+      width: rect.width.toFixed(1),
+      height: rect.height.toFixed(1)
+    },
+    viewport: viewport,
+    compliance: compliance,
+    result: compliance.fullyVisible ? '✅ FULLY VISIBLE' : '❌ CLIPPED'
+  });
+  
+  return compliance;
+}
+
+// =====================================================================
+// OVERRIDE FUNZIONI ESISTENTI CON VERSIONI SAFE
+// =====================================================================
+
+// Sostituisce le funzioni esistenti con le versioni safe
+function patchWithViewportSafeMethods() {
+  console.log('🔧 Patching con metodi viewport-safe...');
+  
+  // Override funzioni globali
   if (typeof window.calculateOptimalDropdownPosition === 'function') {
-    window.calculateOptimalDropdownPosition = calculateAccurateDropdownPosition;
-    console.log('✅ calculateOptimalDropdownPosition aggiornata');
+    window.calculateOptimalDropdownPosition = calculateViewportSafeDropdownPosition;
+    console.log('✅ calculateOptimalDropdownPosition → viewport-safe version');
   }
   
   if (typeof window.applyDropdownPositioning === 'function') {
-    window.applyDropdownPositioning = applyAccurateDropdownPositioning;
-    console.log('✅ applyDropdownPositioning aggiornata');
+    window.applyDropdownPositioning = applyViewportSafeDropdownPositioning;
+    console.log('✅ applyDropdownPositioning → viewport-safe version');
   }
   
-  // Aggiungi funzioni al window per accesso globale
-  window.calculateAccurateDropdownPosition = calculateAccurateDropdownPosition;
-  window.applyAccurateDropdownPositioning = applyAccurateDropdownPositioning;
+  // Aggiunge nuove funzioni
+  window.calculateViewportSafeDropdownPosition = calculateViewportSafeDropdownPosition;
+  window.applyViewportSafeDropdownPositioning = applyViewportSafeDropdownPositioning;
+  window.verifyDropdownViewportCompliance = verifyDropdownViewportCompliance;
+  
+  console.log('✅ Tutte le funzioni dropdown sono ora viewport-safe');
 }
 
-/**
- * Observer migliorato per applicare fix automatico ai dropdown
- */
-function setupImprovedDropdownObserver() {
-  const dropdownObserver = new MutationObserver((mutations) => {
+// =====================================================================
+// OBSERVER MIGLIORATO CON VERIFICA AUTOMATICA
+// =====================================================================
+
+function setupViewportSafeDropdownObserver() {
+  const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       mutation.addedNodes.forEach((node) => {
         if (node.nodeType === Node.ELEMENT_NODE && 
             node.classList && 
             node.classList.contains('marker-dropdown')) {
           
-          console.log('🔍 Nuovo dropdown rilevato, applicando fix accurato...');
+          console.log('🔍 Dropdown rilevato, applicando fix viewport-safe...');
           
           const marker = node.closest('.marker');
           if (marker) {
-            // Applica il posizionamento accurato
-            const positioning = calculateAccurateDropdownPosition(marker);
-            applyAccurateDropdownPositioning(node, positioning);
+            // Applica posizionamento viewport-safe
+            const positioning = calculateViewportSafeDropdownPosition(marker);
+            applyViewportSafeDropdownPositioning(node, positioning);
             
-            console.log('✅ Fix accurato applicato automaticamente');
+            // Verifica compliance dopo applicazione
+            setTimeout(() => {
+              const compliance = verifyDropdownViewportCompliance(node);
+              if (!compliance.fullyVisible) {
+                console.warn('⚠️ Dropdown ancora non conforme, debug necessario');
+              }
+            }, 100);
+            
+            console.log('✅ Fix viewport-safe applicato automaticamente');
           }
         }
       });
     });
   });
   
-  dropdownObserver.observe(document.body, {
+  observer.observe(document.body, {
     childList: true,
     subtree: true
   });
   
-  console.log('👀 Observer dropdown accurato attivato');
+  console.log('👀 Observer viewport-safe attivato');
 }
 
-/**
- * Funzione di test per verificare il fix
- */
-window.testAccurateDropdownFix = function() {
-  console.log('🧪 Test fix dropdown accurato...');
+// =====================================================================
+// FUNZIONI DI TEST E DEBUG
+// =====================================================================
+
+window.testViewportSafeDropdown = function() {
+  console.log('🧪 Test Viewport-Safe Dropdown System...');
   
   const marker = document.querySelector('.marker');
-  if (marker) {
-    console.log('📍 Testando marker:', marker.title);
-    
-    // Simula click
-    marker.click();
-    
-    setTimeout(() => {
-      const dropdown = document.querySelector('.marker-dropdown');
-      if (dropdown) {
-        console.log('✅ Dropdown trovato, verificando posizionamento...');
-        
-        const rect = dropdown.getBoundingClientRect();
-        const viewport = { width: window.innerWidth, height: window.innerHeight };
-        
-        const isVisible = {
-          top: rect.top >= 0,
-          bottom: rect.bottom <= viewport.height,
-          left: rect.left >= 0,
-          right: rect.right <= viewport.width
-        };
-        
-        const isFullyVisible = Object.values(isVisible).every(v => v);
-        
-        console.log('📏 Verifica visibilità:', {
-          dropdown: { 
-            top: rect.top, 
-            bottom: rect.bottom, 
-            width: rect.width, 
-            height: rect.height 
-          },
-          viewport: viewport,
-          visibile: isVisible,
-          tuttoVisibile: isFullyVisible,
-          positionType: dropdown.style.position,
-          classes: dropdown.className
-        });
-        
-        if (!isFullyVisible) {
-          console.warn('⚠️ Dropdown parzialmente fuori viewport');
-          
-          // Verifica se è un problema di posizionamento
-          const clippedTop = rect.top < 0;
-          const clippedBottom = rect.bottom > viewport.height;
-          
-          if (clippedTop) {
-            console.warn('  🔴 Clipped TOP:', Math.abs(rect.top), 'pixels');
-          }
-          if (clippedBottom) {
-            console.warn('  🔴 Clipped BOTTOM:', rect.bottom - viewport.height, 'pixels');
-          }
-          
-          // Prova a riapplicare il fix
-          const marker = dropdown.closest('.marker');
-          if (marker) {
-            console.log('🔧 Riapplicando fix...');
-            const newPositioning = calculateAccurateDropdownPosition(marker);
-            applyAccurateDropdownPositioning(dropdown, newPositioning);
-          }
-        } else {
-          console.log('✅ Dropdown completamente visibile nel viewport!');
-        }
-        
-      } else {
-        console.log('❌ Dropdown non trovato');
-      }
-    }, 500);
+  if (!marker) {
+    console.log('❌ Nessun marker trovato per test');
+    return;
   }
+  
+  console.log('📍 Testando marker:', marker.title);
+  
+  // Simula click
+  marker.click();
+  
+  setTimeout(() => {
+    const dropdown = document.querySelector('.marker-dropdown');
+    if (dropdown) {
+      console.log('✅ Dropdown creato, verificando compliance...');
+      
+      const compliance = verifyDropdownViewportCompliance(dropdown);
+      
+      if (compliance.fullyVisible) {
+        console.log('🎉 SUCCESS! Dropdown completamente visibile nel viewport');
+      } else {
+        console.log('❌ FAIL! Dropdown ancora tagliato:', compliance);
+        
+        // Tenta fix manuale
+        console.log('🔧 Tentando fix manuale...');
+        const marker = dropdown.closest('.marker');
+        if (marker) {
+          const newPositioning = calculateViewportSafeDropdownPosition(marker);
+          applyViewportSafeDropdownPositioning(dropdown, newPositioning);
+          
+          setTimeout(() => {
+            const retestCompliance = verifyDropdownViewportCompliance(dropdown);
+            console.log('🔄 Risultato dopo fix manuale:', 
+              retestCompliance.fullyVisible ? '✅ RISOLTO' : '❌ ANCORA PROBLEMI');
+          }, 100);
+        }
+      }
+    } else {
+      console.log('❌ Dropdown non creato');
+    }
+  }, 500);
 };
 
-/**
- * Forza fix su tutti i dropdown esistenti
- */
-window.forceAccurateFixAllDropdowns = function() {
-  console.log('🔧 Forzando fix accurato su tutti i dropdown...');
+window.forceViewportSafeFixAllDropdowns = function() {
+  console.log('🔧 Forzando fix viewport-safe su tutti i dropdown...');
   
   const dropdowns = document.querySelectorAll('.marker-dropdown');
   let fixedCount = 0;
+  let compliantCount = 0;
   
   dropdowns.forEach((dropdown) => {
     const marker = dropdown.closest('.marker');
     if (marker) {
-      const positioning = calculateAccurateDropdownPosition(marker);
-      applyAccurateDropdownPositioning(dropdown, positioning);
+      const positioning = calculateViewportSafeDropdownPosition(marker);
+      applyViewportSafeDropdownPositioning(dropdown, positioning);
       fixedCount++;
+      
+      // Verifica compliance
+      setTimeout(() => {
+        const compliance = verifyDropdownViewportCompliance(dropdown);
+        if (compliance.fullyVisible) {
+          compliantCount++;
+        }
+      }, 50);
     }
   });
   
-  console.log(`✅ Fix accurato applicato a ${fixedCount} dropdown`);
-  
-  // Verifica risultati
   setTimeout(() => {
-    const testDropdown = document.querySelector('.marker-dropdown');
-    if (testDropdown) {
-      const rect = testDropdown.getBoundingClientRect();
-      console.log('📏 Verifica post-fix:', {
-        posizione: { top: rect.top, bottom: rect.bottom },
-        dimensioni: { width: rect.width, height: rect.height },
-        viewport: { width: window.innerWidth, height: window.innerHeight },
-        visibile: rect.top >= 0 && rect.bottom <= window.innerHeight
-      });
-    }
-  }, 100);
+    console.log(`✅ Fix viewport-safe applicato a ${fixedCount} dropdown`);
+    console.log(`🎯 Dropdown conformi al viewport: ${compliantCount}/${fixedCount}`);
+  }, 200);
 };
 
-// ===================================================================
-// INIZIALIZZAZIONE AUTOMATICA
-// ===================================================================
+// =====================================================================
+// AUTO-INIZIALIZZAZIONE
+// =====================================================================
 
 // Applica patch immediatamente
-patchMarkerDropdownSystem();
+patchWithViewportSafeMethods();
 
-// Attiva observer migliorato
-setupImprovedDropdownObserver();
+// Attiva observer
+setupViewportSafeDropdownObserver();
 
 // Auto-fix per dropdown esistenti
 setTimeout(() => {
   const existingDropdowns = document.querySelectorAll('.marker-dropdown');
   if (existingDropdowns.length > 0) {
-    console.log('🔧 Dropdown esistenti rilevati, applicando auto-fix accurato...');
-    window.forceAccurateFixAllDropdowns();
+    console.log('🔧 Dropdown esistenti rilevati, applicando auto-fix viewport-safe...');
+    window.forceViewportSafeFixAllDropdowns();
   }
 }, 1000);
 
-console.log('✅ Fix posizionamento dropdown accurato caricato e attivo');
+console.log('✅ Dropdown Position Fix V2 caricato - Garanzia Anti-Clipping attiva');
 
-// ===================================================================
-// UTILITY PER SVILUPPO E DEBUG
-// ===================================================================
+// =====================================================================
+// UTILITY DI DEBUG VIEWPORT
+// =====================================================================
 
-window.debugDropdownAccuracy = function() {
-  console.log('🔍 === DEBUG ACCURATEZZA DROPDOWN ===');
-  
-  const dropdowns = document.querySelectorAll('.marker-dropdown');
-  console.log(`📊 Dropdown attivi: ${dropdowns.length}`);
-  
-  dropdowns.forEach((dropdown, i) => {
-    const rect = dropdown.getBoundingClientRect();
-    const marker = dropdown.closest('.marker');
-    const markerRect = marker ? marker.getBoundingClientRect() : null;
-    
-    console.log(`\n📋 Dropdown ${i + 1}:`);
-    console.log(`  Marker: ${marker?.title || 'Unknown'}`);
-    console.log(`  Posizione dropdown: top=${rect.top.toFixed(1)}, bottom=${rect.bottom.toFixed(1)}`);
-    console.log(`  Dimensioni: ${rect.width.toFixed(1)}x${rect.height.toFixed(1)}`);
-    console.log(`  Position style: ${dropdown.style.position || 'default'}`);
-    console.log(`  Visibile: ${rect.top >= 0 && rect.bottom <= window.innerHeight ? '✅' : '❌'}`);
-    
-    if (markerRect) {
-      const markerVisible = markerRect.top >= 0 && 
-                           markerRect.bottom <= window.innerHeight &&
-                           markerRect.left >= 0 && 
-                           markerRect.right <= window.innerWidth;
-      console.log(`  Marker visibile: ${markerVisible ? '✅' : '❌'} (top=${markerRect.top.toFixed(1)}, bottom=${markerRect.bottom.toFixed(1)})`);
-    }
-    
-    // Verifica clipping
-    const clippedTop = rect.top < 0;
-    const clippedBottom = rect.bottom > window.innerHeight;
-    const clippedLeft = rect.left < 0;
-    const clippedRight = rect.right > window.innerWidth;
-    
-    if (clippedTop || clippedBottom || clippedLeft || clippedRight) {
-      console.log(`  🔴 Clipping rilevato:`);
-      if (clippedTop) console.log(`    - TOP: ${Math.abs(rect.top).toFixed(1)}px fuori`);
-      if (clippedBottom) console.log(`    - BOTTOM: ${(rect.bottom - window.innerHeight).toFixed(1)}px fuori`);
-      if (clippedLeft) console.log(`    - LEFT: ${Math.abs(rect.left).toFixed(1)}px fuori`);
-      if (clippedRight) console.log(`    - RIGHT: ${(rect.right - window.innerWidth).toFixed(1)}px fuori`);
-    }
-    
-    console.log(`  Classi: ${dropdown.className}`);
-  });
-  
-  console.log('\n📱 Viewport:', {
+window.debugViewportInfo = function() {
+  console.log('🔍 === DEBUG VIEWPORT INFO ===');
+  console.log('📱 Viewport:', {
     width: window.innerWidth,
     height: window.innerHeight,
-    ratio: (window.innerWidth / window.innerHeight).toFixed(2)
+    ratio: (window.innerWidth / window.innerHeight).toFixed(2),
+    type: window.innerWidth <= 480 ? 'small mobile' : 
+          window.innerWidth <= 768 ? 'mobile' : 'desktop'
   });
   
-  console.log('\n📜 Scroll info:', {
-    pageYOffset: window.pageYOffset,
-    scrollTop: document.documentElement.scrollTop,
-    scrollHeight: document.documentElement.scrollHeight
+  const markers = document.querySelectorAll('.marker');
+  console.log(`📍 Marker totali: ${markers.length}`);
+  
+  let visibleMarkers = 0;
+  markers.forEach((marker, i) => {
+    const rect = marker.getBoundingClientRect();
+    const visible = isMarkerInViewport(rect, window.innerWidth, window.innerHeight);
+    if (visible) visibleMarkers++;
+    
+    if (i < 5) { // Log primi 5 per evitare spam
+      console.log(`  Marker ${i + 1}: ${visible ? '👁️' : '🙈'} ${rect.top.toFixed(0)},${rect.left.toFixed(0)}`);
+    }
   });
   
-  console.log('===================================');
+  console.log(`👁️ Marker visibili nel viewport: ${visibleMarkers}/${markers.length}`);
+  
+  const dropdowns = document.querySelectorAll('.marker-dropdown');
+  console.log(`📋 Dropdown aperti: ${dropdowns.length}`);
+  
+  dropdowns.forEach((dropdown, i) => {
+    const compliance = verifyDropdownViewportCompliance(dropdown);
+    console.log(`  Dropdown ${i + 1}: ${compliance.fullyVisible ? '✅' : '❌'} visible`);
+  });
+  
+  console.log('===============================');
 };
-
-// Esegui debug automatico dopo 3 secondi se in development
-if (window.location.hostname === 'localhost' || window.location.search.includes('debug=true')) {
-  setTimeout(() => {
-    window.debugDropdownAccuracy();
-  }, 3000);
-}
