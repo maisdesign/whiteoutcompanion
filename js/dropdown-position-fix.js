@@ -1,304 +1,267 @@
 // =====================================================================
-// DROPDOWN POSITION FIX V3 - SOLUZIONE DINAMICA POST-RENDER
+// DROPDOWN POSITION FIX FINAL - SOLUZIONE ROBUSTA DEFINITIVA
 // =====================================================================
-// Questo fix risolve il problema delle dimensioni reali vs stimate
-// utilizzando un approccio in due fasi:
-// 1. Posizionamento iniziale con dimensioni stimate
-// 2. Riposizionamento dinamico con dimensioni reali misurate
+// Questo fix risolve TUTTI i problemi identificati:
+// - Bug getBoundingClientRect 
+// - Conflitti tra observer
+// - Position fixed non applicato
+// - Dropdown che spinge la mappa
 
-console.log('🔧 Caricamento Dropdown Position Fix V3 - Fix Dinamico Post-Render...');
+console.log('🔧 Caricamento Dropdown Position Fix FINAL - Soluzione Robusta...');
 
 /**
- * FASE 1: Calcola posizionamento iniziale con dimensioni stimate
- * Questo è simile alla V2 ma preparato per il riposizionamento dinamico
+ * VERSIONE ROBUSTA: Validazione parametri e calcolo sicuro
  */
-function calculateInitialDropdownPosition(marker) {
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-  const markerRect = marker.getBoundingClientRect();
+function calculateRobustDropdownPosition(markerElement) {
+  // ===================================================================
+  // STEP 1: VALIDAZIONE ROBUSTA PARAMETRI
+  // ===================================================================
   
-  console.log('📏 Viewport:', { width: viewportWidth, height: viewportHeight });
-  console.log('📍 Marker rect:', { 
-    top: markerRect.top, 
-    bottom: markerRect.bottom,
-    left: markerRect.left,
-    right: markerRect.right,
-    visible: isMarkerInViewport(markerRect, viewportWidth, viewportHeight)
-  });
-
-  // Device detection
-  const isMobile = viewportWidth <= 768;
-  const isSmallMobile = viewportWidth <= 480;
+  let validMarker = null;
   
-  // Dimensioni stimate conservative (più piccole per sicurezza)
-  const estimatedDimensions = calculateConservativeDropdownSize(isMobile, isSmallMobile);
-  
-  console.log('📐 Dimensioni stimate (conservative):', estimatedDimensions);
-
-  // Margini di sicurezza aumentati per fase iniziale
-  const SAFETY_MARGINS = {
-    top: isMobile ? 70 : 50,      // Margini più ampi per fase 1
-    bottom: isMobile ? 90 : 50,   
-    left: isMobile ? 25 : 20,
-    right: isMobile ? 25 : 20
-  };
-  
-  const safeViewport = {
-    top: SAFETY_MARGINS.top,
-    bottom: viewportHeight - SAFETY_MARGINS.bottom,
-    left: SAFETY_MARGINS.left,
-    right: viewportWidth - SAFETY_MARGINS.right,
-    width: viewportWidth - SAFETY_MARGINS.left - SAFETY_MARGINS.right,
-    height: viewportHeight - SAFETY_MARGINS.top - SAFETY_MARGINS.bottom
-  };
-  
-  console.log('🛡️ Safe viewport area (fase 1):', safeViewport);
-
-  // Calcolo posizione iniziale con dimensioni conservative
-  const initialHeight = Math.min(estimatedDimensions.height, safeViewport.height * 0.8); // Max 80% safe area
-  const initialWidth = Math.min(estimatedDimensions.width, safeViewport.width * 0.9);   // Max 90% safe area
-  
-  // Posizionamento verticale iniziale (preferenza sotto)
-  let initialTop, showAbove;
-  const idealTopBelow = markerRect.bottom + 10;
-  const idealBottomBelow = idealTopBelow + initialHeight;
-  
-  if (idealBottomBelow <= safeViewport.bottom) {
-    // Entra sotto
-    showAbove = false;
-    initialTop = idealTopBelow;
+  // Prova a ottenere marker valido in vari modi
+  if (markerElement && typeof markerElement.getBoundingClientRect === 'function') {
+    validMarker = markerElement;
+  } else if (markerElement && markerElement.marker && typeof markerElement.marker.getBoundingClientRect === 'function') {
+    validMarker = markerElement.marker;
+  } else if (markerElement && markerElement.closest) {
+    validMarker = markerElement.closest('.marker');
   } else {
-    // Prova sopra
-    const idealTopAbove = markerRect.top - initialHeight - 10;
-    if (idealTopAbove >= safeViewport.top) {
-      showAbove = true;
-      initialTop = idealTopAbove;
-    } else {
-      // Emergency: scegli lato con più spazio e clamp
-      const spaceBelow = safeViewport.bottom - markerRect.bottom;
-      const spaceAbove = markerRect.top - safeViewport.top;
-      
-      if (spaceBelow >= spaceAbove) {
-        showAbove = false;
-        initialTop = Math.max(safeViewport.top, safeViewport.bottom - initialHeight);
-      } else {
-        showAbove = true;
-        initialTop = safeViewport.top;
-      }
+    console.warn('⚠️ Marker non valido, cercando dropdown esistente...');
+    // Trova dropdown per ottenere marker parent
+    const existingDropdown = document.querySelector('.marker-dropdown');
+    if (existingDropdown) {
+      validMarker = existingDropdown.closest('.marker');
     }
   }
   
-  // Posizionamento orizzontale
-  const markerCenterX = markerRect.left + (markerRect.width / 2);
-  const idealLeft = markerCenterX - (initialWidth / 2);
-  const clampedLeft = Math.max(safeViewport.left, 
-                              Math.min(idealLeft, safeViewport.right - initialWidth));
+  if (!validMarker || typeof validMarker.getBoundingClientRect !== 'function') {
+    console.error('❌ Impossibile trovare marker valido, usando posizionamento fallback');
+    return calculateFallbackPositioning();
+  }
+  
+  console.log('✅ Marker valido trovato:', validMarker.title || validMarker.className);
+  
+  // ===================================================================
+  // STEP 2: CALCOLI VIEWPORT E DISPOSITIVO
+  // ===================================================================
+  
+  const viewport = {
+    width: window.innerWidth,
+    height: window.innerHeight
+  };
+  
+  const markerRect = validMarker.getBoundingClientRect();
+  const isMobile = viewport.width <= 768;
+  const isSmallMobile = viewport.width <= 480;
+  
+  console.log('📏 Info dispositivo:', {
+    viewport: viewport,
+    marker: {
+      top: markerRect.top,
+      bottom: markerRect.bottom,
+      left: markerRect.left,
+      right: markerRect.right
+    },
+    deviceType: isSmallMobile ? 'small-mobile' : (isMobile ? 'mobile' : 'desktop')
+  });
+  
+  // ===================================================================
+  // STEP 3: DIMENSIONI DROPDOWN ROBUSTE
+  // ===================================================================
+  
+  // Dimensioni sicure che funzionano sempre
+  let dropdownWidth, dropdownHeight;
+  
+  if (isSmallMobile) {
+    dropdownWidth = Math.min(180, viewport.width - 40);
+    dropdownHeight = Math.min(280, viewport.height - 120);
+  } else if (isMobile) {
+    dropdownWidth = Math.min(220, viewport.width - 60);
+    dropdownHeight = Math.min(320, viewport.height - 140);
+  } else {
+    dropdownWidth = Math.min(260, viewport.width - 80);
+    dropdownHeight = Math.min(360, viewport.height - 100);
+  }
+  
+  console.log('📐 Dimensioni dropdown calcolate:', {
+    width: dropdownWidth,
+    height: dropdownHeight
+  });
+  
+  // ===================================================================
+  // STEP 4: POSIZIONAMENTO CON GARANZIA VIEWPORT
+  // ===================================================================
+  
+  // Margini di sicurezza per evitare bordi
+  const margins = {
+    top: isMobile ? 60 : 40,
+    bottom: isMobile ? 80 : 40,
+    left: 20,
+    right: 20
+  };
+  
+  // Area sicura dentro viewport
+  const safeArea = {
+    top: margins.top,
+    bottom: viewport.height - margins.bottom,
+    left: margins.left,
+    right: viewport.width - margins.right
+  };
+  
+  // Calcolo posizione preferita (sotto il marker)
+  let finalTop, finalLeft, showAbove = false;
+  
+  const preferredTop = markerRect.bottom + 10;
+  const preferredBottom = preferredTop + dropdownHeight;
+  
+  if (preferredBottom <= safeArea.bottom) {
+    // Entra sotto
+    finalTop = preferredTop;
+  } else {
+    // Prova sopra
+    const aboveTop = markerRect.top - dropdownHeight - 10;
+    if (aboveTop >= safeArea.top) {
+      finalTop = aboveTop;
+      showAbove = true;
+    } else {
+      // Emergency: centra nella safe area
+      finalTop = safeArea.top + Math.max(0, (safeArea.bottom - safeArea.top - dropdownHeight) / 2);
+      showAbove = finalTop < markerRect.top;
+    }
+  }
+  
+  // Posizionamento orizzontale centrato sul marker
+  const markerCenter = markerRect.left + (markerRect.width / 2);
+  const preferredLeft = markerCenter - (dropdownWidth / 2);
+  finalLeft = Math.max(safeArea.left, Math.min(preferredLeft, safeArea.right - dropdownWidth));
+  
+  // Final safety clamps - GARANTISCE che sia dentro viewport
+  finalTop = Math.max(margins.top, Math.min(finalTop, viewport.height - dropdownHeight - margins.bottom));
+  finalLeft = Math.max(margins.left, Math.min(finalLeft, viewport.width - dropdownWidth - margins.right));
   
   const result = {
-    // Fase 1: Posizioni iniziali
-    phase: 1,
-    position: 'fixed',
-    top: initialTop,
-    left: clampedLeft,
-    width: initialWidth,
-    height: initialHeight,
-    maxHeight: initialHeight,
+    // Posizioni finali GARANTITE
+    top: finalTop,
+    left: finalLeft,
+    width: dropdownWidth,
+    height: dropdownHeight,
+    maxHeight: dropdownHeight,
     
-    // Info per fase 2
+    // Stato
     showAbove: showAbove,
-    safeViewport: safeViewport,
-    markerRect: markerRect,
-    
-    // Device info
     isMobile: isMobile,
     isSmallMobile: isSmallMobile,
-    isLandscape: viewportWidth > viewportHeight,
     
     // CSS classes
     cssClasses: {
       vertical: showAbove ? 'dropdown-above' : 'dropdown-below',
-      horizontal: 'dropdown-align-center', // Sempre center in fase 1
-      device: isMobile ? (isSmallMobile ? 'dropdown-small-mobile' : 'dropdown-mobile') : 'dropdown-desktop',
-      orientation: viewportWidth > viewportHeight ? 'dropdown-landscape' : 'dropdown-portrait'
+      horizontal: 'dropdown-align-center',
+      device: isSmallMobile ? 'dropdown-small-mobile' : (isMobile ? 'dropdown-mobile' : 'dropdown-desktop'),
+      orientation: viewport.width > viewport.height ? 'dropdown-landscape' : 'dropdown-portrait'
     },
     
+    // Debug
     debug: {
-      phase: 'INITIAL_POSITIONING',
-      estimated: estimatedDimensions,
-      safeArea: safeViewport,
+      markerValid: true,
+      markerRect: markerRect,
+      safeArea: safeArea,
       positioning: showAbove ? 'ABOVE' : 'BELOW'
     }
   };
   
-  console.log('🎯 Posizionamento iniziale (Fase 1):', {
-    top: initialTop,
-    height: initialHeight,
-    showAbove: showAbove,
-    phase: 'initial'
+  console.log('🎯 Posizionamento robusto calcolato:', {
+    position: `${finalTop}px, ${finalLeft}px`,
+    size: `${dropdownWidth}px × ${dropdownHeight}px`,
+    showAbove: showAbove
   });
   
   return result;
 }
 
 /**
- * FASE 2: Riposizionamento dinamico basato su dimensioni reali
- * Questa funzione viene chiamata dopo che il dropdown è stato renderizzato
+ * Posizionamento fallback quando marker non valido
  */
-function calculateDynamicDropdownReposition(dropdown, initialPositioning) {
-  if (!dropdown || !initialPositioning) {
-    console.warn('⚠️ calculateDynamicDropdownReposition: parametri mancanti');
-    return null;
-  }
-  
-  // Misura dimensioni reali del dropdown
-  const realRect = dropdown.getBoundingClientRect();
-  const realWidth = realRect.width;
-  const realHeight = realRect.height;
-  
-  console.log('📏 Dimensioni reali misurate:', {
-    width: realWidth,
-    height: realHeight,
-    currentTop: realRect.top,
-    currentBottom: realRect.bottom
-  });
-  
-  // Verifica se il dropdown è ancora dentro il safe viewport
-  const safeViewport = initialPositioning.safeViewport;
-  const isCurrentlyCompliant = realRect.top >= safeViewport.top && 
-                              realRect.bottom <= safeViewport.bottom &&
-                              realRect.left >= safeViewport.left && 
-                              realRect.right <= safeViewport.right;
-  
-  console.log('🔍 Compliance check fase 2:', {
-    compliant: isCurrentlyCompliant,
-    currentBounds: {
-      top: realRect.top,
-      bottom: realRect.bottom,
-      left: realRect.left,
-      right: realRect.right
-    },
-    safeBounds: safeViewport
-  });
-  
-  if (isCurrentlyCompliant) {
-    console.log('✅ Dropdown già compliant, nessun riposizionamento necessario');
-    return {
-      phase: 2,
-      reposition: false,
-      reason: 'already_compliant',
-      finalPositioning: initialPositioning
-    };
-  }
-  
-  // RIPOSIZIONAMENTO NECESSARIO
-  console.log('🔧 Riposizionamento necessario, ricalcolando...');
-  
-  const markerRect = initialPositioning.markerRect;
-  let newTop, newLeft, newShowAbove;
-  
-  // Riposizionamento verticale con dimensioni reali
-  const idealTopBelow = markerRect.bottom + 10;
-  const idealBottomBelow = idealTopBelow + realHeight;
-  
-  if (idealBottomBelow <= safeViewport.bottom) {
-    // Entra sotto con dimensioni reali
-    newShowAbove = false;
-    newTop = idealTopBelow;
-  } else {
-    // Prova sopra con dimensioni reali
-    const idealTopAbove = markerRect.top - realHeight - 10;
-    if (idealTopAbove >= safeViewport.top) {
-      newShowAbove = true;
-      newTop = idealTopAbove;
-    } else {
-      // Emergency clamping con dimensioni reali
-      const spaceBelow = safeViewport.bottom - markerRect.bottom - 10;
-      const spaceAbove = markerRect.top - safeViewport.top - 10;
-      
-      if (spaceBelow >= spaceAbove && spaceBelow >= 100) {
-        // Sotto con altezza ridotta
-        newShowAbove = false;
-        newTop = markerRect.bottom + 10;
-        realHeight = Math.min(realHeight, spaceBelow);
-      } else if (spaceAbove >= 100) {
-        // Sopra con altezza ridotta
-        newShowAbove = true;
-        newTop = safeViewport.top;
-        realHeight = Math.min(realHeight, spaceAbove);
-      } else {
-        // Caso estremo: centra nel safe viewport
-        newShowAbove = false;
-        newTop = safeViewport.top + (safeViewport.height - realHeight) / 2;
-        newTop = Math.max(safeViewport.top, newTop);
-      }
-    }
-  }
-  
-  // Riposizionamento orizzontale con dimensioni reali
-  const markerCenterX = markerRect.left + (markerRect.width / 2);
-  const idealLeft = markerCenterX - (realWidth / 2);
-  newLeft = Math.max(safeViewport.left, 
-                    Math.min(idealLeft, safeViewport.right - realWidth));
-  
-  // Final safety clamp
-  newTop = Math.max(safeViewport.top, 
-                   Math.min(newTop, safeViewport.bottom - realHeight));
-  
-  const result = {
-    phase: 2,
-    reposition: true,
-    reason: 'size_mismatch_correction',
-    
-    // Nuove posizioni
-    position: 'fixed',
-    top: newTop,
-    left: newLeft,
-    width: realWidth,
-    height: realHeight,
-    maxHeight: realHeight,
-    
-    // Info aggiuntive
-    showAbove: newShowAbove,
-    
-    // Update CSS classes se necessario
-    cssClasses: {
-      ...initialPositioning.cssClasses,
-      vertical: newShowAbove ? 'dropdown-above' : 'dropdown-below'
-    },
-    
-    debug: {
-      phase: 'DYNAMIC_REPOSITION',
-      sizeDifference: {
-        widthDiff: realWidth - initialPositioning.width,
-        heightDiff: realHeight - initialPositioning.height
-      },
-      newPositioning: newShowAbove ? 'ABOVE' : 'BELOW',
-      correction: 'real_dimensions_used'
-    }
+function calculateFallbackPositioning() {
+  const viewport = {
+    width: window.innerWidth,
+    height: window.innerHeight
   };
   
-  console.log('🎯 Riposizionamento dinamico (Fase 2):', {
-    newTop: newTop,
-    newHeight: realHeight,
-    correction: `${realHeight - initialPositioning.height}px altezza aggiuntiva`,
-    phase: 'dynamic'
-  });
+  const isMobile = viewport.width <= 768;
+  const isSmallMobile = viewport.width <= 480;
   
-  return result;
+  // Centra nel viewport
+  const width = isSmallMobile ? 180 : (isMobile ? 220 : 260);
+  const height = isSmallMobile ? 280 : (isMobile ? 320 : 360);
+  
+  const top = Math.max(60, (viewport.height - height) / 2);
+  const left = Math.max(20, (viewport.width - width) / 2);
+  
+  console.log('🔄 Usando posizionamento fallback centrato');
+  
+  return {
+    top: top,
+    left: left,
+    width: width,
+    height: height,
+    maxHeight: height,
+    showAbove: false,
+    isMobile: isMobile,
+    isSmallMobile: isSmallMobile,
+    cssClasses: {
+      vertical: 'dropdown-below',
+      horizontal: 'dropdown-align-center',
+      device: isSmallMobile ? 'dropdown-small-mobile' : (isMobile ? 'dropdown-mobile' : 'dropdown-desktop'),
+      orientation: viewport.width > viewport.height ? 'dropdown-landscape' : 'dropdown-portrait'
+    },
+    debug: {
+      markerValid: false,
+      fallback: true
+    }
+  };
 }
 
 /**
- * Applica il posizionamento (fase 1 o 2)
+ * APPLICAZIONE ROBUSTA: Applica posizionamento con controllo totale
  */
-function applyDynamicDropdownPositioning(dropdown, positioning) {
-  if (!dropdown || !positioning) {
-    console.warn('⚠️ applyDynamicDropdownPositioning: parametri mancanti');
+function applyRobustDropdownPositioning(dropdown, positioning) {
+  if (!dropdown) {
+    console.error('❌ applyRobustDropdownPositioning: dropdown non valido');
     return;
   }
   
-  console.log(`🔧 Applicando posizionamento Fase ${positioning.phase}...`);
+  if (!positioning) {
+    console.warn('⚠️ positioning non valido, ricalcolando...');
+    positioning = calculateFallbackPositioning();
+  }
   
-  // Applica CSS classes
+  console.log('🔧 Applicando posizionamento robusto...');
+  
+  // ===================================================================
+  // STEP 1: RIMUOVI TUTTI GLI STILI CONFLITTUALI
+  // ===================================================================
+  
+  // Reset completo stili posizionamento
+  dropdown.style.position = '';
+  dropdown.style.top = '';
+  dropdown.style.left = '';
+  dropdown.style.right = '';
+  dropdown.style.bottom = '';
+  dropdown.style.transform = '';
+  dropdown.style.width = '';
+  dropdown.style.height = '';
+  dropdown.style.maxWidth = '';
+  dropdown.style.maxHeight = '';
+  dropdown.style.margin = '';
+  dropdown.style.float = '';
+  dropdown.style.display = '';
+  
+  // ===================================================================
+  // STEP 2: APPLICA CSS CLASSES
+  // ===================================================================
+  
+  // Rimuovi tutte le classi di posizionamento
   dropdown.classList.remove(
     'dropdown-above', 'dropdown-below',
     'dropdown-align-left', 'dropdown-align-center', 'dropdown-align-right',
@@ -306,310 +269,340 @@ function applyDynamicDropdownPositioning(dropdown, positioning) {
     'dropdown-landscape', 'dropdown-portrait'
   );
   
+  // Aggiungi nuove classi
   Object.values(positioning.cssClasses).forEach(cssClass => {
     dropdown.classList.add(cssClass);
   });
   
-  // Applica posizionamento
-  dropdown.style.position = positioning.position;
-  dropdown.style.zIndex = '2000';
-  dropdown.style.top = `${positioning.top}px`;
-  dropdown.style.left = `${positioning.left}px`;
-  dropdown.style.width = `${positioning.width}px`;
-  dropdown.style.maxHeight = `${positioning.maxHeight}px`;
+  // ===================================================================
+  // STEP 3: APPLICA POSIZIONAMENTO FIXED ROBUSTO
+  // ===================================================================
   
-  // Reset conflitti
-  dropdown.style.bottom = 'auto';
-  dropdown.style.right = 'auto';
-  dropdown.style.transform = 'none';
+  // FORZA position fixed con !important via CSS inline
+  dropdown.style.cssText = `
+    position: fixed !important;
+    top: ${positioning.top}px !important;
+    left: ${positioning.left}px !important;
+    width: ${positioning.width}px !important;
+    max-height: ${positioning.maxHeight}px !important;
+    z-index: 9999 !important;
+    margin: 0 !important;
+    transform: none !important;
+    right: auto !important;
+    bottom: auto !important;
+    float: none !important;
+    display: block !important;
+  `;
   
-  // Aggiorna container opzioni
+  // ===================================================================
+  // STEP 4: CONFIGURA CONTAINER OPZIONI
+  // ===================================================================
+  
   const optionsContainer = dropdown.querySelector('.dropdown-options');
   if (optionsContainer) {
     const headerHeight = 60;
     const maxOptionsHeight = positioning.height - headerHeight;
-    optionsContainer.style.maxHeight = `${Math.max(100, maxOptionsHeight)}px`;
-    optionsContainer.style.overflowY = 'auto';
+    
+    optionsContainer.style.cssText = `
+      max-height: ${Math.max(100, maxOptionsHeight)}px !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+    `;
     
     if (positioning.isMobile) {
       optionsContainer.style.webkitOverflowScrolling = 'touch';
-      optionsContainer.style.scrollBehavior = 'smooth';
+      optionsContainer.style.touchAction = 'pan-y';
     }
   }
   
-  console.log('✅ Posizionamento applicato:', {
-    phase: positioning.phase,
-    position: `${positioning.top}px, ${positioning.left}px`,
-    size: `${positioning.width}px × ${positioning.height}px`
+  console.log('✅ Posizionamento robusto applicato:', {
+    position: dropdown.style.position,
+    top: dropdown.style.top,
+    left: dropdown.style.left,
+    width: dropdown.style.width,
+    zIndex: dropdown.style.zIndex
   });
-}
-
-/**
- * Processo completo in due fasi
- */
-function applyTwoPhaseDropdownPositioning(dropdown, marker) {
-  if (!dropdown || !marker) {
-    console.warn('⚠️ applyTwoPhaseDropdownPositioning: parametri mancanti');
-    return;
-  }
   
-  console.log('🚀 Avvio processo two-phase positioning...');
+  // ===================================================================
+  // STEP 5: VERIFICA FINALE E AUTO-CORREZIONE
+  // ===================================================================
   
-  // FASE 1: Posizionamento iniziale
-  const initialPositioning = calculateInitialDropdownPosition(marker);
-  applyDynamicDropdownPositioning(dropdown, initialPositioning);
-  
-  // FASE 2: Riposizionamento dinamico dopo render
   setTimeout(() => {
-    console.log('⏰ Fase 2: Avvio riposizionamento dinamico...');
+    const rect = dropdown.getBoundingClientRect();
+    const viewport = {
+      width: window.innerWidth,
+      height: window.innerHeight
+    };
     
-    const dynamicPositioning = calculateDynamicDropdownReposition(dropdown, initialPositioning);
+    const isVisible = rect.top >= 0 && 
+                     rect.bottom <= viewport.height && 
+                     rect.left >= 0 && 
+                     rect.right <= viewport.width;
     
-    if (dynamicPositioning && dynamicPositioning.reposition) {
-      console.log('🔄 Applicando correzione dimensioni reali...');
-      applyDynamicDropdownPositioning(dropdown, dynamicPositioning);
-      
-      // Verifica finale dopo riposizionamento
-      setTimeout(() => {
-        const finalCompliance = verifyDropdownViewportCompliance(dropdown);
-        console.log('✅ Verifica finale two-phase:', {
-          compliant: finalCompliance.fullyVisible,
-          result: finalCompliance.fullyVisible ? '🎉 SUCCESS' : '⚠️ NEEDS_REVIEW'
-        });
-        
-        if (!finalCompliance.fullyVisible) {
-          console.warn('⚠️ Dropdown ancora non compliant dopo two-phase, applicando emergency fix...');
-          applyEmergencyDropdownFix(dropdown);
-        }
-      }, 50);
+    console.log('🔍 Verifica finale dropdown:', {
+      visible: isVisible,
+      bounds: {
+        top: rect.top,
+        bottom: rect.bottom,
+        left: rect.left,
+        right: rect.right
+      },
+      viewport: viewport
+    });
+    
+    if (!isVisible) {
+      console.warn('⚠️ Dropdown ancora non visibile, applicando emergency fix...');
+      applyEmergencyFix(dropdown);
     } else {
-      console.log('✅ Fase 2 completata: nessuna correzione necessaria');
+      console.log('🎉 SUCCESS! Dropdown completamente visibile');
     }
-  }, 100); // Attendi che il DOM si stabilizzi
+  }, 100);
 }
 
 /**
  * Emergency fix per casi estremi
  */
-function applyEmergencyDropdownFix(dropdown) {
-  console.log('🚨 Applicando emergency fix...');
+function applyEmergencyFix(dropdown) {
+  console.log('🚨 EMERGENCY FIX attivato');
   
   const viewport = {
     width: window.innerWidth,
     height: window.innerHeight
   };
   
-  const rect = dropdown.getBoundingClientRect();
+  // Posizionamento di emergenza al centro del viewport
+  const emergencyWidth = Math.min(200, viewport.width - 40);
+  const emergencyHeight = Math.min(300, viewport.height - 80);
+  const emergencyTop = Math.max(20, (viewport.height - emergencyHeight) / 2);
+  const emergencyLeft = Math.max(20, (viewport.width - emergencyWidth) / 2);
   
-  // Emergency clamping alle dimensioni viewport
-  let newTop = Math.max(10, Math.min(rect.top, viewport.height - rect.height - 10));
-  let newLeft = Math.max(10, Math.min(rect.left, viewport.width - rect.width - 10));
+  dropdown.style.cssText = `
+    position: fixed !important;
+    top: ${emergencyTop}px !important;
+    left: ${emergencyLeft}px !important;
+    width: ${emergencyWidth}px !important;
+    height: ${emergencyHeight}px !important;
+    max-height: ${emergencyHeight}px !important;
+    z-index: 99999 !important;
+    margin: 0 !important;
+    transform: none !important;
+    right: auto !important;
+    bottom: auto !important;
+    display: block !important;
+    background: rgba(20, 25, 40, 0.98) !important;
+    border: 2px solid #4facfe !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+  `;
   
-  // Se ancora troppo alto, riduci altezza
-  if (rect.height > viewport.height - 40) {
-    dropdown.style.maxHeight = `${viewport.height - 40}px`;
-    dropdown.style.height = 'auto';
-    
-    const optionsContainer = dropdown.querySelector('.dropdown-options');
-    if (optionsContainer) {
-      optionsContainer.style.maxHeight = `${viewport.height - 100}px`;
-    }
-  }
-  
-  dropdown.style.top = `${newTop}px`;
-  dropdown.style.left = `${newLeft}px`;
-  
-  console.log('🚨 Emergency fix applicato:', {
-    newPosition: `${newTop}px, ${newLeft}px`,
-    maxHeight: dropdown.style.maxHeight
+  console.log('🚨 Emergency fix applicato - dropdown centrato nel viewport');
+}
+
+/**
+ * SISTEMA UNIFICATO: Gestisce tutti i tipi di chiamate
+ */
+function handleDropdownPositioning(dropdownOrMarker, markerOrUndefined) {
+  console.log('🔄 handleDropdownPositioning chiamato con:', {
+    param1: dropdownOrMarker?.className || typeof dropdownOrMarker,
+    param2: markerOrUndefined?.className || typeof markerOrUndefined
   });
-}
-
-/**
- * Dimensioni conservative per fase 1
- */
-function calculateConservativeDropdownSize(isMobile, isSmallMobile) {
-  // Usa stime più conservative per ridurre rischio overflow
-  const allianceCount = Math.max(1, Math.min(10, 
-    (typeof alliances !== 'undefined') ? alliances.length : 3));
   
-  let baseWidth, baseHeight;
+  let dropdown = null;
+  let marker = null;
   
-  if (isSmallMobile) {
-    baseWidth = 140;   // Più conservative
-    baseHeight = 45;   
-  } else if (isMobile) {
-    baseWidth = 180;
-    baseHeight = 55;
+  // Determina dropdown e marker dai parametri
+  if (dropdownOrMarker && dropdownOrMarker.classList?.contains('marker-dropdown')) {
+    // Caso 1: primo parametro è dropdown
+    dropdown = dropdownOrMarker;
+    marker = markerOrUndefined || dropdown.closest('.marker');
+  } else if (dropdownOrMarker && dropdownOrMarker.classList?.contains('marker')) {
+    // Caso 2: primo parametro è marker
+    marker = dropdownOrMarker;
+    dropdown = marker.querySelector('.marker-dropdown');
   } else {
-    baseWidth = 220;
-    baseHeight = 55;
+    // Caso 3: trova dropdown automaticamente
+    dropdown = document.querySelector('.marker-dropdown');
+    marker = dropdown?.closest('.marker');
   }
   
-  const headerHeight = baseHeight;
-  const optionHeight = isMobile ? 40 : 36;  // Più compatte
-  const totalOptions = allianceCount + 1;
-  const contentHeight = totalOptions * optionHeight;
-  const padding = 12;
+  if (!dropdown) {
+    console.warn('⚠️ Dropdown non trovato');
+    return;
+  }
   
-  let totalHeight = headerHeight + contentHeight + padding;
+  console.log('✅ Dropdown e marker identificati:', {
+    dropdown: dropdown.className,
+    marker: marker?.title || marker?.className || 'non trovato'
+  });
   
-  // Limiti ancora più conservative
-  const maxHeight = isSmallMobile ? 240 : (isMobile ? 280 : 320);
-  totalHeight = Math.min(totalHeight, maxHeight);
-  
-  return {
-    width: baseWidth,
-    height: totalHeight,
-    conservative: true
-  };
+  // Calcola e applica posizionamento
+  const positioning = calculateRobustDropdownPosition(marker);
+  applyRobustDropdownPositioning(dropdown, positioning);
 }
+
+// =====================================================================
+// INTEGRAZIONE CON SISTEMA ESISTENTE
+// =====================================================================
 
 /**
- * Funzioni di utilità (riutilizzate da V2)
+ * Override delle funzioni globali esistenti
  */
-function isMarkerInViewport(markerRect, viewportWidth, viewportHeight) {
-  return markerRect.top >= 0 && 
-         markerRect.bottom <= viewportHeight &&
-         markerRect.left >= 0 && 
-         markerRect.right <= viewportWidth;
-}
-
-function verifyDropdownViewportCompliance(dropdown) {
-  if (!dropdown) return { fullyVisible: false };
-  
-  const rect = dropdown.getBoundingClientRect();
-  const viewport = {
-    width: window.innerWidth,
-    height: window.innerHeight
-  };
-  
-  const compliance = {
-    withinTop: rect.top >= 0,
-    withinBottom: rect.bottom <= viewport.height,
-    withinLeft: rect.left >= 0,
-    withinRight: rect.right <= viewport.width,
-    fullyVisible: false
-  };
-  
-  compliance.fullyVisible = compliance.withinTop && compliance.withinBottom && 
-                           compliance.withinLeft && compliance.withinRight;
-  
-  return {
-    dropdown: {
-      top: rect.top.toFixed(1),
-      bottom: rect.bottom.toFixed(1),
-      left: rect.left.toFixed(1),
-      right: rect.right.toFixed(1),
-      width: rect.width.toFixed(1),
-      height: rect.height.toFixed(1)
-    },
-    viewport: viewport,
-    compliance: compliance,
-    result: compliance.fullyVisible ? '✅ FULLY VISIBLE' : '❌ CLIPPED'
-  };
-}
-
-// =====================================================================
-// INTEGRAZIONE E OVERRIDE SISTEMA ESISTENTE
-// =====================================================================
-
-function patchWithTwoPhaseSystem() {
-  console.log('🔧 Patching con sistema two-phase...');
+function patchExistingSystem() {
+  console.log('🔧 Patching sistema esistente con versione robusta...');
   
   // Override funzioni principali
-  window.calculateOptimalDropdownPosition = calculateInitialDropdownPosition;
-  window.applyDropdownPositioning = applyTwoPhaseDropdownPositioning;
+  window.calculateOptimalDropdownPosition = calculateRobustDropdownPosition;
+  window.applyDropdownPositioning = handleDropdownPositioning;
   
-  // Esporta nuove funzioni
-  window.calculateInitialDropdownPosition = calculateInitialDropdownPosition;
-  window.calculateDynamicDropdownReposition = calculateDynamicDropdownReposition;
-  window.applyTwoPhaseDropdownPositioning = applyTwoPhaseDropdownPositioning;
-  window.verifyDropdownViewportCompliance = verifyDropdownViewportCompliance;
+  // Funzioni specifiche
+  window.calculateRobustDropdownPosition = calculateRobustDropdownPosition;
+  window.applyRobustDropdownPositioning = applyRobustDropdownPositioning;
+  window.handleDropdownPositioning = handleDropdownPositioning;
   
-  console.log('✅ Sistema two-phase attivato');
+  console.log('✅ Sistema patchato con versione robusta');
 }
 
-// Observer per applicazione automatica
-function setupTwoPhaseObserver() {
-  const observer = new MutationObserver((mutations) => {
+/**
+ * Observer che gestisce tutti i dropdown automaticamente
+ */
+function setupRobustObserver() {
+  // Disabilita observer esistenti per evitare conflitti
+  const existingObservers = window.dropdownObservers || [];
+  existingObservers.forEach(observer => {
+    try {
+      observer.disconnect();
+    } catch (e) {
+      // Ignore
+    }
+  });
+  
+  // Nuovo observer unificato
+  const robustObserver = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       mutation.addedNodes.forEach((node) => {
         if (node.nodeType === Node.ELEMENT_NODE && 
             node.classList && 
             node.classList.contains('marker-dropdown')) {
           
-          console.log('🔍 Dropdown rilevato, applicando two-phase fix...');
+          console.log('🔍 Nuovo dropdown rilevato, applicando fix robusto...');
           
-          const marker = node.closest('.marker');
-          if (marker) {
-            applyTwoPhaseDropdownPositioning(node, marker);
-            console.log('✅ Two-phase fix applicato automaticamente');
-          }
+          // Usa timeout per assicurarsi che il DOM sia stabile
+          setTimeout(() => {
+            handleDropdownPositioning(node);
+          }, 50);
         }
       });
     });
   });
   
-  observer.observe(document.body, {
+  robustObserver.observe(document.body, {
     childList: true,
     subtree: true
   });
   
-  console.log('👀 Observer two-phase attivato');
+  // Salva observer per riferimento
+  window.dropdownObservers = [robustObserver];
+  
+  console.log('👀 Observer robusto attivato');
 }
 
-// Funzioni di test
-window.testTwoPhaseDropdown = function() {
-  console.log('🧪 Test Two-Phase Dropdown System...');
-  
-  const marker = document.querySelector('.marker');
-  if (!marker) {
-    console.log('❌ Nessun marker trovato per test');
-    return;
-  }
-  
-  console.log('📍 Testando marker:', marker.title);
-  marker.click();
-  
-  setTimeout(() => {
-    const dropdown = document.querySelector('.marker-dropdown');
-    if (dropdown) {
-      console.log('✅ Test completato, verifica i log per dettagli two-phase');
-    } else {
-      console.log('❌ Dropdown non creato');
-    }
-  }, 1000);
-};
-
-window.forceApplyTwoPhaseFix = function() {
-  console.log('🔧 Forzando two-phase fix su tutti i dropdown...');
-  
-  const dropdowns = document.querySelectorAll('.marker-dropdown');
-  let fixedCount = 0;
-  
-  dropdowns.forEach((dropdown) => {
-    const marker = dropdown.closest('.marker');
-    if (marker) {
-      applyTwoPhaseDropdownPositioning(dropdown, marker);
-      fixedCount++;
-    }
-  });
-  
-  console.log(`✅ Two-phase fix applicato a ${fixedCount} dropdown`);
-};
-
-// Auto-inizializzazione
-patchWithTwoPhaseSystem();
-setupTwoPhaseObserver();
-
-// Auto-fix dropdown esistenti
-setTimeout(() => {
+/**
+ * Fix immediato per dropdown esistenti
+ */
+function fixExistingDropdowns() {
   const existingDropdowns = document.querySelectorAll('.marker-dropdown');
+  
   if (existingDropdowns.length > 0) {
-    console.log('🔧 Dropdown esistenti rilevati, applicando auto-fix two-phase...');
-    window.forceApplyTwoPhaseFix();
+    console.log(`🔧 Fixing ${existingDropdowns.length} dropdown esistenti...`);
+    
+    existingDropdowns.forEach((dropdown, index) => {
+      setTimeout(() => {
+        handleDropdownPositioning(dropdown);
+      }, index * 100); // Stagger per evitare conflitti
+    });
   }
-}, 1000);
+}
 
-console.log('✅ Dropdown Position Fix V3 (Two-Phase) caricato - Sistema dinamico attivo');
+// =====================================================================
+// FUNZIONI DI TEST E DEBUG
+// =====================================================================
+
+window.testRobustDropdown = function() {
+  console.log('🧪 Test sistema robusto...');
+  
+  // Chiudi dropdown esistenti
+  document.querySelectorAll('.marker-dropdown').forEach(d => d.remove());
+  
+  // Trova primo marker e simula click
+  const marker = document.querySelector('.marker');
+  if (marker) {
+    console.log('📍 Testando marker:', marker.title);
+    marker.click();
+    
+    setTimeout(() => {
+      const dropdown = document.querySelector('.marker-dropdown');
+      if (dropdown) {
+        console.log('✅ Test completato - verifica che il dropdown sia visibile');
+      } else {
+        console.log('❌ Dropdown non creato');
+      }
+    }, 500);
+  } else {
+    console.log('❌ Nessun marker trovato');
+  }
+};
+
+window.forceFixAllDropdowns = function() {
+  console.log('🔧 Force fix tutti i dropdown...');
+  fixExistingDropdowns();
+};
+
+window.debugDropdownSystem = function() {
+  console.log('🔍 === DEBUG SISTEMA DROPDOWN ===');
+  console.log('Viewport:', { width: window.innerWidth, height: window.innerHeight });
+  console.log('Marker trovati:', document.querySelectorAll('.marker').length);
+  console.log('Dropdown aperti:', document.querySelectorAll('.marker-dropdown').length);
+  
+  const dropdown = document.querySelector('.marker-dropdown');
+  if (dropdown) {
+    const rect = dropdown.getBoundingClientRect();
+    console.log('Dropdown corrente:', {
+      position: dropdown.style.position,
+      top: dropdown.style.top,
+      left: dropdown.style.left,
+      bounds: {
+        top: rect.top,
+        bottom: rect.bottom,
+        left: rect.left,
+        right: rect.right
+      },
+      visible: rect.top >= 0 && rect.bottom <= window.innerHeight && 
+               rect.left >= 0 && rect.right <= window.innerWidth
+    });
+  }
+  console.log('================================');
+};
+
+// =====================================================================
+// AUTO-INIZIALIZZAZIONE
+// =====================================================================
+
+// Patch sistema immediato
+patchExistingSystem();
+
+// Setup observer robusto
+setupRobustObserver();
+
+// Fix dropdown esistenti
+setTimeout(() => {
+  fixExistingDropdowns();
+}, 500);
+
+console.log('✅ Dropdown Position Fix FINAL caricato - Sistema robusto attivo');
+
+// Auto-test in development
+if (window.location.hostname === 'localhost' || window.location.search.includes('debug=true')) {
+  setTimeout(() => {
+    window.debugDropdownSystem();
+  }, 2000);
+}
