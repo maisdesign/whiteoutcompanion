@@ -1,30 +1,22 @@
 // =====================================================================
-// MARKERS.JS - GESTIONE COMPLETA MARKER E VALIDAZIONE INTELLIGENTE
+// MARKERS.JS - GESTIONE MARKER E VALIDAZIONE INTELLIGENTE (PULITO)
 // =====================================================================
-// Questo file gestisce tutto ciò che riguarda i marker sulla mappa:
-// - Creazione e posizionamento visuale dei marker
-// - Dropdown per assegnazione alleanze
+// Sistema pulito che gestisce:
+// - Creazione e posizionamento marker sulla mappa
 // - Validazione intelligente per evitare conflitti di buff
-// - Ottimizzazione esperienza utente su dispositivi touch
+// - Integrazione con il nuovo sistema barra controllo fissa
 // 
-// FILOSOFIA DEL DESIGN:
-// Ogni marker rappresenta una facility del gioco Whiteout Survival.
-// Il sistema previene assegnazioni subottimali educando l'utente
-// sulle meccaniche di buff del gioco, trasformando errori in
-// opportunità di apprendimento strategico.
+// RIMOSSO: Tutto il sistema dropdown obsoleto sostituito dalla barra controllo
 
-console.log('🗺️ Caricamento sistema marker intelligente...');
+console.log('🗺️ Caricamento sistema marker pulito...');
 
 // =====================================================================
 // SEZIONE 1: CONFIGURAZIONE ICONE E COSTANTI
 // =====================================================================
-// Le icone facility rappresentano visualmente ogni tipo di struttura
-// sulla mappa. Questo mapping è fondamentale per l'esperienza utente.
 
 /**
  * Mapping delle icone per ogni tipo di facility nel gioco
  * Ogni icona è scelta per essere immediatamente riconoscibile
- * e coerente con la funzione della facility nel gioco
  */
 const facilityIcons = {
   'Castle': '🏰',      // Il castello è il cuore della base
@@ -42,26 +34,20 @@ const facilityIcons = {
 
 /**
  * Configurazione per ottimizzazione touch devices
- * Questi parametri migliorano l'esperienza su smartphone e tablet
  */
 const TOUCH_CONFIG = {
   minMarkerSize: 16,           // Dimensione minima tocco confortevole
-  scrollThreshold: 8,          // Numero massimo alleanze prima scroll
-  dropdownMaxHeight: 320,      // Altezza massima dropdown touch
+  markerHitRadius: 25,         // Area intorno ai marker per touch
   momentumScrolling: true      // Abilita scroll fluido
 };
 
 // =====================================================================
 // SEZIONE 2: UTILITÀ PER DISPOSITIVI TOUCH
 // =====================================================================
-// Queste funzioni rilevando le caratteristiche del dispositivo per
-// ottimizzare automaticamente l'esperienza utente
 
 /**
  * Rileva se stiamo operando su un dispositivo touch con potenziali
  * problemi di scrolling (tipicamente Android su schermi piccoli)
- * 
- * @returns {boolean} True se il dispositivo potrebbe avere problemi di scroll
  */
 function isTouchDeviceWithScrollIssues() {
   return (
@@ -72,20 +58,7 @@ function isTouchDeviceWithScrollIssues() {
 }
 
 /**
- * Verifica se il browser supporta scrollbar personalizzate
- * Importante per sapere se possiamo applicare stili CSS avanzati
- * 
- * @returns {boolean} True se supporta scrollbar personalizzate
- */
-function supportsCustomScrollbars() {
-  const testElement = document.createElement('div');
-  testElement.style.cssText = '-webkit-overflow-scrolling: touch';
-  return testElement.style.webkitOverflowScrolling === 'touch';
-}
-
-/**
  * Applica ottimizzazioni specifiche per il dispositivo corrente
- * Questa funzione adatta l'interfaccia alle capacità del device
  */
 function applyTouchOptimizations() {
   if (isTouchDeviceWithScrollIssues()) {
@@ -102,25 +75,15 @@ function applyTouchOptimizations() {
 // =====================================================================
 // SEZIONE 3: SISTEMA DI VALIDAZIONE FACILITY DUPLICATE
 // =====================================================================
-// Questa è la sezione più importante del file: implementa la logica
-// per prevenire assegnazioni di facility duplicate che sprecherebbero
-// i buff nel gioco Whiteout Survival.
 
 /**
  * Analizza se un'alleanza possiede già facility dello stesso tipo e livello
  * 
  * Questa funzione implementa una regola fondamentale di Whiteout Survival:
- * i buff non si sommano per facility identiche. È come avere più chiavi
- * identiche per la stessa porta: solo una serve, le altre sono inutili.
- * 
- * @param {string} allianceName - Nome dell'alleanza da analizzare
- * @param {string} facilityType - Tipo facility (es: "Construction")  
- * @param {string} facilityLevel - Livello facility (es: "Lv.1")
- * @param {Object} excludeFacility - Facility da escludere (per editing)
- * @returns {Object} Dettagli completi sulla situazione duplicate
+ * i buff non si sommano per facility identiche.
  */
 function analyzeAllianceFacilityDuplicates(allianceName, facilityType, facilityLevel, excludeFacility = null) {
-  // Prima, raccogliamo tutte le facility già controllate da questa alleanza
+  // Raccogliamo tutte le facility già controllate da questa alleanza
   const allianceFacilities = facilityData.filter(facility => {
     // Escludiamo la facility che stiamo modificando (utile durante editing)
     if (excludeFacility && facility === excludeFacility) {
@@ -130,8 +93,7 @@ function analyzeAllianceFacilityDuplicates(allianceName, facilityType, facilityL
     return facility.Alliance === allianceName;
   });
   
-  // Ora cerchiamo facility che abbiano esattamente lo stesso tipo e livello
-  // Queste sono le "duplicate" che causano spreco di buff
+  // Cerchiamo facility che abbiano esattamente lo stesso tipo e livello
   const exactDuplicates = allianceFacilities.filter(facility => 
     facility.Type === facilityType && facility.Level === facilityLevel
   );
@@ -158,14 +120,6 @@ function analyzeAllianceFacilityDuplicates(allianceName, facilityType, facilityL
 
 /**
  * Genera suggerimenti intelligenti per ottimizzare le assegnazioni
- * 
- * Invece di dire solo "questo è sbagliato", aiutiamo l'utente trovando
- * alternative migliori che massimizzano i buff disponibili.
- * 
- * @param {string} allianceName - Nome dell'alleanza
- * @param {string} currentType - Tipo facility che si sta assegnando
- * @param {string} currentLevel - Livello facility che si sta assegnando
- * @returns {Array} Lista di facility alternative consigliate
  */
 function generateOptimalFacilitySuggestions(allianceName, currentType, currentLevel) {
   // Trova tutte le facility non ancora assegnate
@@ -208,18 +162,6 @@ function generateOptimalFacilitySuggestions(allianceName, currentType, currentLe
 
 /**
  * Costruisce e mostra l'alert educativo per facility duplicate
- * 
- * Questo non è un semplice warning, ma un vero sistema educativo che:
- * 1. Spiega il problema nel contesto del gioco
- * 2. Mostra calcoli concreti dei buff
- * 3. Suggerisce alternative migliori
- * 4. Rispetta la scelta finale dell'utente
- * 
- * @param {string} allianceName - Nome dell'alleanza
- * @param {string} facilityType - Tipo facility
- * @param {string} facilityLevel - Livello facility  
- * @param {Object} analysis - Risultato dell'analisi duplicati
- * @returns {boolean} True se l'utente conferma l'assegnazione
  */
 function displayEducationalDuplicateAlert(allianceName, facilityType, facilityLevel, analysis) {
   const t = translations[currentLanguage] || translations['en'];
@@ -284,19 +226,12 @@ ${t.notRecommended || '(Non raccomandata per ottimizzazione strategica)'}
 // =====================================================================
 // SEZIONE 4: CREAZIONE E GESTIONE MARKER
 // =====================================================================
-// Questa sezione gestisce la creazione visuale dei marker sulla mappa
-// e la loro sincronizzazione con i dati delle facility
 
 /**
  * Crea un marker visuale per una facility sulla mappa
  * 
  * Ogni marker è un elemento DOM posizionato precisamente sulla mappa
- * che rappresenta una facility del gioco. Include icona del tipo,
- * colori ufficiali del gioco, e gestione eventi per interazione.
- * 
- * @param {Object} facility - Dati della facility
- * @param {number} index - Indice della facility nell'array
- * @returns {HTMLElement|null} Elemento DOM del marker creato
+ * che rappresenta una facility del gioco. Usa il NUOVO sistema barra controllo.
  */
 function createInteractiveFacilityMarker(facility, index) {
   const mapWrapper = document.getElementById('map-wrapper');
@@ -323,18 +258,22 @@ function createInteractiveFacilityMarker(facility, index) {
   const coordinatesText = facility.ingameCoords ? ` (${facility.ingameCoords})` : '';
   marker.title = `${facility.Type} ${facility.Level}${coordinatesText}`;
   
-  // Configura evento click per apertura dropdown
+  // Configura evento click per NUOVO sistema barra controllo
   marker.onclick = (event) => {
-  event.stopPropagation();
-  
-  // Usa il nuovo sistema barra controllo fissa
-  if (typeof handleMarkerClick === 'function') {
-    handleMarkerClick(facility, marker);
-  } else {
-    // Fallback al sistema vecchio se non disponibile
-    displayFacilityAssignmentDropdown(facility, marker, index);
-  }
-};
+    event.stopPropagation();
+    
+    // Usa il nuovo sistema barra controllo fissa
+    if (typeof handleMarkerClick === 'function') {
+      handleMarkerClick(facility, marker);
+    } else {
+      // Fallback: mostra messaggio se sistema non disponibile
+      console.warn('⚠️ Sistema barra controllo non disponibile');
+      const t = translations[currentLanguage] || {};
+      if (typeof showStatus === 'function') {
+        showStatus(t.addAtLeastOneAlliance || '⚠️ Sistema controllo non pronto', 'warning');
+      }
+    }
+  };
   
   // Aggiungi icona rappresentativa della facility
   const facilityIcon = document.createElement('span');
@@ -357,11 +296,6 @@ function createInteractiveFacilityMarker(facility, index) {
 
 /**
  * Applica le impostazioni di calibrazione alla posizione del marker
- * La calibrazione permette di aggiustare la posizione dei marker
- * per allinearli perfettamente con la mappa di gioco
- * 
- * @param {Object} facility - Dati facility con coordinate
- * @returns {Object} Coordinate calibrate {x, y}
  */
 function applyMapCalibration(facility) {
   // Applica trasformazioni di calibrazione se disponibili
@@ -407,725 +341,8 @@ function recreateAllMapMarkers() {
 }
 
 // =====================================================================
-// SEZIONE 5: SISTEMA DROPDOWN PER ASSEGNAZIONI
+// SEZIONE 5: ASSEGNAZIONE FACILITY CON VALIDAZIONE INTELLIGENTE
 // =====================================================================
-// I dropdown permettono agli utenti di assegnare facility alle alleanze
-// con un'interfaccia intuitiva e ottimizzata per tutti i dispositivi
-
-/**
- * Mostra il dropdown per assegnare una facility a un'alleanza
- * 
- * Il dropdown è un'interfaccia contestuale che appare accanto al marker
- * cliccato, mostrando tutte le alleanze disponibili e opzioni di gestione.
- * Include ottimizzazioni per dispositivi touch e gestione intelligente
- * dello spazio disponibile.
- * 
- * @param {Object} facility - Dati della facility
- * @param {HTMLElement} marker - Elemento DOM del marker 
- * @param {number} index - Indice della facility
- */
-function displayFacilityAssignmentDropdown(facility, marker, index) {
-  const t = translations[currentLanguage] || translations['en'];
-  
-  // Verifica che ci siano alleanze disponibili
-  if (alliances.length === 0) {
-    const message = t.addAtLeastOneAlliance || '⚠️ Aggiungi almeno un\'alleanza prima di assegnare.';
-    if (typeof showStatus === 'function') {
-      showStatus(message, 'error');
-    } else {
-      alert(message);
-    }
-    return;
-  }
-
-  // Chiudi eventuali dropdown aperti
-  closeAllAssignmentDropdowns();
-
-  // Crea il container principale del dropdown
-  const dropdown = document.createElement('div');
-  dropdown.className = 'marker-dropdown';
-  
-  // Calcola posizionamento intelligente (sopra o sotto il marker)
-  const optimalPosition = calculateOptimalDropdownPosition(marker);
-  if (optimalPosition.showAbove) {
-    dropdown.classList.add('dropdown-above');
-  }
-  
-  // Crea header informativo (sempre visibile)
-  const header = createDropdownHeader(facility, alliances.length + 1, t);
-  dropdown.appendChild(header);
-  
-  // Crea container scrollabile per le opzioni
-  const optionsContainer = createDropdownOptionsContainer(facility, t);
-  dropdown.appendChild(optionsContainer);
-  
-  // Configura gestione scroll avanzata se necessario
-  if (alliances.length > TOUCH_CONFIG.scrollThreshold) {
-    setupAdvancedScrollHandling(dropdown, optionsContainer, alliances.length, t);
-  }
-  
-  // Attacca il dropdown al marker
-  marker.appendChild(dropdown);
-  
-  // Configura auto-chiusura e gestione eventi
-  setupDropdownEventHandlers(dropdown);
-  
-  // Configura accessibilità keyboard
-  setupDropdownKeyboardNavigation(optionsContainer);
-  
-  console.log('📋 Dropdown aperto per:', facility.Type, facility.Level);
-}
-
-/**
- * Calcola il posizionamento ottimale per il dropdown considerando
- * TUTTI gli aspetti: verticale (sopra/sotto) + orizzontale (sinistra/destra) + mobile
- * 
- * @param {HTMLElement} marker - Elemento marker di riferimento
- * @returns {Object} Informazioni complete sul posizionamento ottimale
- */
-function calculateOptimalDropdownPosition(marker) {
-  const mapWrapper = document.getElementById('map-wrapper');
-  const markerRect = marker.getBoundingClientRect();
-  const mapRect = mapWrapper.getBoundingClientRect();
-  
-  // ===================================================================
-  // 1. CALCOLO POSIZIONAMENTO VERTICALE (LA TUA LOGICA ESISTENTE)
-  // ===================================================================
-  
-  const markerTopRelative = markerRect.top - mapRect.top;
-  const mapHeight = mapRect.height;
-  
-  // Se il marker è nella parte bassa della mappa, mostra dropdown sopra
-  const showAbove = markerTopRelative > mapHeight * 0.6;
-  const availableSpaceVertical = showAbove ? markerTopRelative : (mapHeight - markerTopRelative);
-  
-  // ===================================================================
-  // 2. CALCOLO POSIZIONAMENTO ORIZZONTALE (NUOVA LOGICA)
-  // ===================================================================
-  
-  const markerLeftRelative = markerRect.left - mapRect.left;
-  const markerCenterRelative = markerLeftRelative + (markerRect.width / 2);
-  const mapWidth = mapRect.width;
-  
-  // Calcola percentuale posizione orizzontale del marker
-  const horizontalPosition = (markerCenterRelative / mapWidth) * 100;
-  
-  let horizontalAlignment = 'center'; // default
-  let availableSpaceHorizontal = {
-    left: markerLeftRelative,
-    right: mapWidth - (markerLeftRelative + markerRect.width),
-    center: Math.min(markerLeftRelative, mapWidth - (markerLeftRelative + markerRect.width))
-  };
-  
-  // ===================================================================
-  // 3. DECISIONI INTELLIGENTI BASATE SU DISPOSITIVO
-  // ===================================================================
-  
-  const isMobile = window.innerWidth <= 768;
-  const isSmallMobile = window.innerWidth <= 480;
-  
-  // Dimensioni stimate del dropdown (basate sui breakpoint CSS)
-  let estimatedDropdownWidth;
-  if (isSmallMobile) {
-    estimatedDropdownWidth = 170; // Media tra 140-200px
-  } else if (isMobile) {
-    estimatedDropdownWidth = 200; // Media tra 160-240px  
-  } else {
-    estimatedDropdownWidth = 240; // Media tra 200-280px
-  }
-  
-  // Margine di sicurezza
-  const safetyMargin = isMobile ? 20 : 10;
-  const requiredSpace = (estimatedDropdownWidth / 2) + safetyMargin;
-  
-  // ===================================================================
-  // 4. LOGICA POSIZIONAMENTO ORIZZONTALE INTELLIGENTE
-  // ===================================================================
-  
-  if (horizontalPosition < 15) {
-    // Marker molto a sinistra - allinea dropdown a sinistra
-    horizontalAlignment = 'left';
-  } else if (horizontalPosition > 85) {
-    // Marker molto a destra - allinea dropdown a destra  
-    horizontalAlignment = 'right';
-  } else if (availableSpaceHorizontal.left < requiredSpace) {
-    // Poco spazio a sinistra - allinea a sinistra
-    horizontalAlignment = 'left';
-  } else if (availableSpaceHorizontal.right < requiredSpace) {
-    // Poco spazio a destra - allinea a destra
-    horizontalAlignment = 'right';
-  } else {
-    // Spazio sufficiente da entrambi i lati - mantieni centrato
-    horizontalAlignment = 'center';
-  }
-  
-  // ===================================================================
-  // 5. CALCOLO ALTEZZA MASSIMA DINAMICA
-  // ===================================================================
-  
-  let maxHeight;
-  
-  if (isMobile) {
-    // Su mobile, considera anche l'orientamento
-    const isLandscape = window.innerWidth > window.innerHeight;
-    
-    if (isLandscape) {
-      // In landscape mobile, spazio limitato verticalmente
-      maxHeight = Math.min(250, availableSpaceVertical - 20);
-    } else {
-      // In portrait mobile, più spazio verticale disponibile
-      maxHeight = Math.min(
-        isSmallMobile ? 280 : 350, 
-        availableSpaceVertical - 30
-      );
-    }
-  } else {
-    // Desktop - usa spazio disponibile con generoso buffer
-    maxHeight = Math.min(400, availableSpaceVertical - 40);
-  }
-  
-  // ===================================================================
-  // 6. ADJUSTMENTS PER NOTCH E SAFE AREAS (iPhone X+)
-  // ===================================================================
-  
-  let safeAreaAdjustments = {
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0
-  };
-  
-  if (isMobile && CSS.supports('padding', 'env(safe-area-inset-top)')) {
-    // Stima safe area (valori tipici iPhone X+)
-    const estimatedNotchHeight = 44; // iPhone notch tipico
-    const estimatedHomeIndicator = 34; // iPhone home indicator
-    
-    if (showAbove) {
-      safeAreaAdjustments.top = estimatedNotchHeight;
-    } else {
-      safeAreaAdjustments.bottom = estimatedHomeIndicator;
-    }
-    
-    safeAreaAdjustments.left = 10; // Bordi curvi laterali
-    safeAreaAdjustments.right = 10;
-  }
-  
-  // ===================================================================
-  // 7. RISULTATO FINALE COMPRENSIVO
-  // ===================================================================
-  
-  const result = {
-    // Posizionamento verticale (la tua logica esistente)
-    showAbove: showAbove,
-    availableSpace: availableSpaceVertical,
-    
-    // Nuovo: Posizionamento orizzontale
-    horizontalAlignment: horizontalAlignment,
-    horizontalPosition: horizontalPosition,
-    availableSpaceHorizontal: availableSpaceHorizontal,
-    
-    // Nuovo: Ottimizzazioni dispositivo
-    isMobile: isMobile,
-    isSmallMobile: isSmallMobile,
-    isLandscape: window.innerWidth > window.innerHeight,
-    
-    // Nuovo: Dimensioni calcolate
-    estimatedDropdownWidth: estimatedDropdownWidth,
-    maxHeight: maxHeight,
-    
-    // Nuovo: Safe area adjustments
-    safeAreaAdjustments: safeAreaAdjustments,
-    
-    // Nuovo: CSS classes da applicare
-    cssClasses: {
-      vertical: showAbove ? 'dropdown-above' : 'dropdown-below',
-      horizontal: `dropdown-align-${horizontalAlignment}`,
-      device: isMobile ? (isSmallMobile ? 'dropdown-small-mobile' : 'dropdown-mobile') : 'dropdown-desktop',
-      orientation: window.innerWidth > window.innerHeight ? 'dropdown-landscape' : 'dropdown-portrait'
-    },
-    
-    // Debug info (utile per troubleshooting)
-    debug: {
-      markerPosition: {
-        x: horizontalPosition.toFixed(1) + '%',
-        y: ((markerTopRelative / mapHeight) * 100).toFixed(1) + '%'
-      },
-      spacesAvailable: {
-        top: markerTopRelative,
-        bottom: mapHeight - markerTopRelative,
-        left: availableSpaceHorizontal.left,
-        right: availableSpaceHorizontal.right
-      },
-      dropdownWillFit: {
-        vertically: availableSpaceVertical >= maxHeight,
-        horizontally: availableSpaceHorizontal[horizontalAlignment] >= (estimatedDropdownWidth / 2)
-      }
-    }
-  };
-  
-  console.log('📍 Calcolo posizione dropdown:', {
-    marker: marker.title || 'Unknown',
-    position: result.debug.markerPosition,
-    vertical: showAbove ? 'sopra' : 'sotto',
-    horizontal: horizontalAlignment,
-    device: result.cssClasses.device
-  });
-  
-  return result;
-}
-
-/**
- * Applica il posizionamento calcolato al dropdown
- * Questa funzione utilizza il risultato di calculateOptimalDropdownPosition
- * 
- * @param {HTMLElement} dropdown - Elemento dropdown da posizionare
- * @param {Object} positioning - Risultato di calculateOptimalDropdownPosition
- */
-function applyDropdownPositioning(dropdown, positioning) {
-  if (!dropdown || !positioning) return;
-  
-  // ===================================================================
-  // 1. APPLICA CLASSI CSS
-  // ===================================================================
-  
-  // Rimuovi classi precedenti
-  dropdown.classList.remove(
-    'dropdown-above', 'dropdown-below',
-    'dropdown-align-left', 'dropdown-align-center', 'dropdown-align-right',
-    'dropdown-mobile', 'dropdown-small-mobile', 'dropdown-desktop',
-    'dropdown-landscape', 'dropdown-portrait'
-  );
-  
-  // Aggiungi nuove classi
-  Object.values(positioning.cssClasses).forEach(cssClass => {
-    dropdown.classList.add(cssClass);
-  });
-  
-  // ===================================================================
-  // 2. APPLICA STILI INLINE PER OTTIMIZZAZIONI SPECIFICHE
-  // ===================================================================
-  
-  // Altezza massima dinamica
-  dropdown.style.maxHeight = `${positioning.maxHeight}px`;
-  
-  // Larghezza su mobile
-  if (positioning.isMobile) {
-    dropdown.style.maxWidth = `${positioning.estimatedDropdownWidth}px`;
-    
-    // Safe area adjustments
-    if (positioning.safeAreaAdjustments.left > 0) {
-      dropdown.style.marginLeft = `${positioning.safeAreaAdjustments.left}px`;
-    }
-    if (positioning.safeAreaAdjustments.right > 0) {
-      dropdown.style.marginRight = `${positioning.safeAreaAdjustments.right}px`;
-    }
-  }
-  
-  // ===================================================================
-  // 3. POSIZIONAMENTO PRECISION ADJUSTMENTS
-  // ===================================================================
-  
-  if (positioning.horizontalAlignment === 'left') {
-    dropdown.style.left = '0';
-    dropdown.style.right = 'auto';
-    dropdown.style.transform = 'none';
-  } else if (positioning.horizontalAlignment === 'right') {
-    dropdown.style.right = '0';
-    dropdown.style.left = 'auto';
-    dropdown.style.transform = 'none';
-  } else {
-    // center - mantieni il comportamento di default del CSS
-    dropdown.style.left = '50%';
-    dropdown.style.right = 'auto';
-    dropdown.style.transform = 'translateX(-50%)';
-  }
-  
-  // ===================================================================
-  // 4. AGGIORNAMENTO CONTAINER OPZIONI SE NECESSARIO
-  // ===================================================================
-  
-  const optionsContainer = dropdown.querySelector('.dropdown-options');
-  if (optionsContainer && positioning.isMobile) {
-    // Altezza massima per il container scrollabile
-    const headerHeight = 60; // Stima altezza header
-    const maxOptionsHeight = positioning.maxHeight - headerHeight;
-    optionsContainer.style.maxHeight = `${maxOptionsHeight}px`;
-    
-    // Ottimizzazioni scroll per dispositivo
-    if (positioning.isSmallMobile) {
-      optionsContainer.style.overflowY = 'auto';
-      optionsContainer.style.webkitOverflowScrolling = 'touch';
-    }
-  }
-  
-  console.log('✅ Posizionamento dropdown applicato:', positioning.cssClasses);
-}
-
-/**
- * Funzione helper per debug del posizionamento
- * Utile durante lo sviluppo per verificare i calcoli
- * 
- * @param {HTMLElement} marker - Marker da analizzare
- */
-function debugDropdownPositioning(marker) {
-  const positioning = calculateOptimalDropdownPosition(marker);
-  
-  console.log('🔍 === DEBUG POSIZIONAMENTO DROPDOWN ===');
-  console.log('Marker:', marker.title || marker.className);
-  console.log('Posizione:', positioning.debug.markerPosition);
-  console.log('Spazi disponibili:', positioning.debug.spacesAvailable);
-  console.log('Dropdown fit check:', positioning.debug.dropdownWillFit);
-  console.log('Decisioni:', {
-    vertical: positioning.showAbove ? 'SOPRA' : 'SOTTO',
-    horizontal: positioning.horizontalAlignment.toUpperCase(),
-    device: positioning.cssClasses.device
-  });
-  console.log('Classi CSS:', positioning.cssClasses);
-  console.log('===========================================');
-  
-  return positioning;
-}
-
-// Esporta le funzioni per uso globale
-window.calculateOptimalDropdownPosition = calculateOptimalDropdownPosition;
-window.applyDropdownPositioning = applyDropdownPositioning;
-window.debugDropdownPositioning = debugDropdownPositioning;
-
-/**
- * Crea l'header informativo del dropdown
- * Mostra dettagli facility e numero opzioni disponibili
- * 
- * @param {Object} facility - Dati facility
- * @param {number} totalOptions - Numero totale opzioni
- * @param {Object} t - Traduzioni correnti
- * @returns {HTMLElement} Elemento header creato
- */
-function createDropdownHeader(facility, totalOptions, t) {
-  const header = document.createElement('div');
-  header.className = 'dropdown-header';
-  
-  const coordinatesText = facility.ingameCoords ? ` - ${facility.ingameCoords}` : '';
-  const optionsText = t.options || 'opzioni';
-  
-  header.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <span>${facility.Type} ${facility.Level}${coordinatesText}</span>
-      <span style="font-size: 11px; opacity: 0.8;">${totalOptions} ${optionsText}</span>
-    </div>
-  `;
-  
-  return header;
-}
-
-/**
- * Crea il container delle opzioni con tutte le alleanze disponibili
- * Include opzione per rimuovere assegnazione e lista alleanze
- * 
- * @param {Object} facility - Dati facility
- * @param {Object} t - Traduzioni correnti  
- * @returns {HTMLElement} Container opzioni creato
- */
-function createDropdownOptionsContainer(facility, t) {
-  const optionsContainer = document.createElement('div');
-  optionsContainer.className = 'dropdown-options';
-  
-  // Applica ottimizzazioni touch se necessario
-  if (isTouchDeviceWithScrollIssues()) {
-    optionsContainer.style.cssText += `
-      -webkit-overflow-scrolling: touch;
-      scroll-behavior: smooth;
-      overscroll-behavior: contain;
-      touch-action: pan-y;
-    `;
-  }
-  
-  // Aggiunge opzione "rimuovi assegnazione"
-  const unassignOption = createUnassignOption(facility, t);
-  optionsContainer.appendChild(unassignOption);
-  
-  // Aggiunge separatore se ci sono alleanze
-  if (alliances.length > 0) {
-    const separator = createOptionsSeparator();
-    optionsContainer.appendChild(separator);
-  }
-  
-  // Aggiunge opzione per ogni alleanza
-  alliances.forEach((alliance, index) => {
-    const allianceOption = createAllianceOption(facility, alliance, t);
-    optionsContainer.appendChild(allianceOption);
-  });
-  
-  return optionsContainer;
-}
-
-/**
- * Crea l'opzione per rimuovere l'assegnazione corrente
- * 
- * @param {Object} facility - Dati facility
- * @param {Object} t - Traduzioni correnti
- * @returns {HTMLElement} Opzione unassign creata
- */
-function createUnassignOption(facility, t) {
-  const unassignOption = document.createElement('div');
-  unassignOption.className = 'dropdown-option unassign';
-  
-  // Evidenzia se attualmente non assegnata
-  if (!facility.Alliance) {
-    unassignOption.classList.add('selected');
-  }
-  
-  unassignOption.innerHTML = `
-    <span style="font-size: 16px;">❌</span>
-    <span>${t.unassigned || 'Non assegnata'}</span>
-  `;
-  
-  unassignOption.onclick = (event) => {
-    event.stopPropagation();
-    assignFacilityToAllianceWithValidation(facility, facility.marker, null);
-    closeAllAssignmentDropdowns();
-  };
-  
-  return unassignOption;
-}
-
-/**
- * Crea un separatore visuale tra sezioni del dropdown
- * 
- * @returns {HTMLElement} Elemento separatore
- */
-function createOptionsSeparator() {
-  const separator = document.createElement('div');
-  separator.style.cssText = `
-    height: 1px;
-    background: rgba(79, 172, 254, 0.3);
-    margin: 5px 0;
-  `;
-  return separator;
-}
-
-/**
- * Crea un'opzione per una specifica alleanza
- * Include icona, nome, e statistiche assegnazioni
- * 
- * @param {Object} facility - Dati facility
- * @param {Object} alliance - Dati alleanza
- * @param {Object} t - Traduzioni correnti
- * @returns {HTMLElement} Opzione alleanza creata
- */
-function createAllianceOption(facility, alliance, t) {
-  const option = document.createElement('div');
-  option.className = 'dropdown-option';
-  
-  // Evidenzia se attualmente assegnata a questa alleanza
-  if (facility.Alliance === alliance.name) {
-    option.classList.add('selected');
-  }
-  
-  // Calcola statistiche assegnazioni correnti
-  const currentAssignments = facilityData.filter(f => f.Alliance === alliance.name).length;
-  const structuresText = t.structures || 'strutture';
-  
-  option.innerHTML = `
-    <img src="${alliance.icon}" alt="${alliance.name}" class="alliance-icon-small">
-    <div style="flex: 1; display: flex; flex-direction: column;">
-      <span style="font-weight: 500;">${alliance.name}</span>
-      <span style="font-size: 11px; opacity: 0.7;">${currentAssignments} ${structuresText}</span>
-    </div>
-  `;
-  
-  // Configura evento click con validazione
-  option.onclick = (event) => {
-    event.stopPropagation();
-    assignFacilityToAllianceWithValidation(facility, facility.marker, alliance.name);
-    closeAllAssignmentDropdowns();
-  };
-  
-  return option;
-}
-
-/**
- * Configura gestione scroll avanzata per dropdown con molte opzioni
- * Include indicatori visivi e ottimizzazioni touch
- * 
- * @param {HTMLElement} dropdown - Container principale dropdown
- * @param {HTMLElement} optionsContainer - Container opzioni scrollabile
- * @param {number} totalAlliances - Numero totale alleanze
- * @param {Object} t - Traduzioni correnti
- */
-function setupAdvancedScrollHandling(dropdown, optionsContainer, totalAlliances, t) {
-  const isTouch = isTouchDeviceWithScrollIssues();
-  
-  // Crea indicatore scroll se necessario
-  const scrollIndicator = document.createElement('div');
-  scrollIndicator.className = 'dropdown-scroll-indicator';
-  scrollIndicator.innerHTML = isTouch ? '⬇️ Scorri' : '⬇️';
-  scrollIndicator.title = t.scrollToSeeAll || 'Scrolla per vedere tutte le alleanze';
-  
-  // Stile ottimizzato per touch
-  if (isTouch) {
-    scrollIndicator.style.cssText += `
-      font-size: 10px;
-      padding: 4px 8px;
-      background: rgba(79, 172, 254, 0.8);
-      border-radius: 12px;
-      color: white;
-      bottom: 4px;
-      right: 4px;
-      z-index: 1000;
-    `;
-  }
-  
-  dropdown.appendChild(scrollIndicator);
-  
-  // Gestione dinamica dell'indicatore
-  let scrollTimeout;
-  optionsContainer.addEventListener('scroll', () => {
-    const isAtBottom = optionsContainer.scrollTop + optionsContainer.clientHeight >= 
-                      optionsContainer.scrollHeight - 10;
-    
-    // Mostra/nascondi indicatore
-    scrollIndicator.style.display = isAtBottom ? 'none' : 'block';
-    
-    // Feedback visivo durante scroll
-    optionsContainer.classList.add('scrolling');
-    
-    if (scrollTimeout) clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(() => {
-      optionsContainer.classList.remove('scrolling');
-    }, 200);
-  });
-  
-  // Ottimizzazioni specifiche per touch
-  if (isTouch) {
-    setupTouchScrollOptimizations(optionsContainer);
-  }
-}
-
-/**
- * Configura ottimizzazioni specifiche per scroll touch
- * Migliora l'esperienza su dispositivi mobili
- * 
- * @param {HTMLElement} optionsContainer - Container da ottimizzare
- */
-function setupTouchScrollOptimizations(optionsContainer) {
-  optionsContainer.addEventListener('touchstart', (event) => {
-    optionsContainer.classList.add('touch-active');
-    event.stopPropagation();
-  }, { passive: false });
-  
-  optionsContainer.addEventListener('touchend', () => {
-    setTimeout(() => {
-      optionsContainer.classList.remove('touch-active');
-    }, 150);
-  });
-  
-  optionsContainer.addEventListener('touchmove', (event) => {
-    event.stopPropagation();
-  }, { passive: true });
-}
-
-/**
- * Configura gli event handler per gestione dropdown
- * Include auto-chiusura e click fuori area
- * 
- * @param {HTMLElement} dropdown - Dropdown da configurare
- */
-function setupDropdownEventHandlers(dropdown) {
-  // Auto-chiusura dopo timeout (più tempo per touch)
-  const autoCloseTime = isTouchDeviceWithScrollIssues() ? 15000 : 12000;
-  
-  setTimeout(() => {
-    if (dropdown.parentNode) {
-      dropdown.style.animation = 'fadeOut 0.3s ease';
-      setTimeout(() => dropdown.remove(), 300);
-    }
-  }, autoCloseTime);
-  
-  // Gestione click fuori dropdown
-  setTimeout(() => {
-    const handleOutsideClick = (event) => {
-      if (!dropdown.contains(event.target) && dropdown.parentNode) {
-        dropdown.style.animation = 'fadeOut 0.3s ease';
-        setTimeout(() => dropdown.remove(), 300);
-      }
-    };
-    
-    document.addEventListener('click', handleOutsideClick, { once: true });
-    document.addEventListener('touchstart', handleOutsideClick, { once: true });
-  }, 100);
-}
-
-/**
- * Configura navigazione da tastiera per accessibilità
- * Permette di usare frecce e Enter per navigare
- * 
- * @param {HTMLElement} optionsContainer - Container da rendere accessibile
- */
-function setupDropdownKeyboardNavigation(optionsContainer) {
-  optionsContainer.tabIndex = 0;
-  optionsContainer.focus();
-  
-  optionsContainer.addEventListener('keydown', (event) => {
-    const options = optionsContainer.querySelectorAll('.dropdown-option');
-    let currentIndex = Array.from(options).findIndex(opt => opt.classList.contains('keyboard-focus'));
-    
-    switch(event.key) {
-      case 'ArrowDown':
-        event.preventDefault();
-        if (currentIndex < options.length - 1) {
-          options[currentIndex]?.classList.remove('keyboard-focus');
-          options[currentIndex + 1]?.classList.add('keyboard-focus');
-          options[currentIndex + 1]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-        }
-        break;
-        
-      case 'ArrowUp':
-        event.preventDefault();
-        if (currentIndex > 0) {
-          options[currentIndex]?.classList.remove('keyboard-focus');
-          options[currentIndex - 1]?.classList.add('keyboard-focus');
-          options[currentIndex - 1]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-        }
-        break;
-        
-      case 'Enter':
-        event.preventDefault();
-        options[currentIndex]?.click();
-        break;
-        
-      case 'Escape':
-        closeAllAssignmentDropdowns();
-        break;
-    }
-  });
-  
-  // Evidenzia prima opzione per navigazione keyboard
-  const firstOption = optionsContainer.querySelector('.dropdown-option:not(.unassign)');
-  if (firstOption) {
-    firstOption.classList.add('keyboard-focus');
-  }
-}
-
-/**
- * Chiude tutti i dropdown aperti sulla mappa
- * Utile per prevenire dropdown multipli aperti simultaneamente
- */
-function closeAllAssignmentDropdowns() {
-  document.querySelectorAll('.marker-dropdown').forEach(dropdown => {
-    dropdown.style.animation = 'fadeOut 0.2s ease';
-    setTimeout(() => {
-      if (dropdown.parentNode) {
-        dropdown.remove();
-      }
-    }, 200);
-  });
-}
-
-// =====================================================================
-// SEZIONE 6: ASSEGNAZIONE FACILITY CON VALIDAZIONE INTELLIGENTE
-// =====================================================================
-// Questa è la funzione principale che gestisce l'assegnazione delle
-// facility alle alleanze, includendo tutta la logica di validazione
 
 /**
  * Assegna una facility a un'alleanza con validazione completa
@@ -1135,10 +352,6 @@ function closeAllAssignmentDropdowns() {
  * 2. Educa l'utente sui problemi rilevati
  * 3. Rispetta la decisione finale dell'utente
  * 4. Aggiorna tutti i sistemi correlati
- * 
- * @param {Object} facility - Dati della facility da assegnare
- * @param {HTMLElement} marker - Elemento visuale del marker
- * @param {string|null} allianceName - Nome alleanza (null per rimuovere)
  */
 function assignFacilityToAllianceWithValidation(facility, marker, allianceName) {
   console.log('🔄 Processo assegnazione facility:', {
@@ -1151,7 +364,7 @@ function assignFacilityToAllianceWithValidation(facility, marker, allianceName) 
   const t = translations[currentLanguage] || translations['en'];
   const previousAlliance = facility.Alliance;
   
-  // VALIDAZIONE CRITICAL PATH: Controlla facility duplicate solo per nuove assegnazioni
+  // VALIDAZIONE: Controlla facility duplicate solo per nuove assegnazioni
   if (allianceName) {
     const duplicateAnalysis = analyzeAllianceFacilityDuplicates(
       allianceName, 
@@ -1198,7 +411,7 @@ function assignFacilityToAllianceWithValidation(facility, marker, allianceName) 
     }
   }
   
-  // ESECUZIONE ASSEGNAZIONE: Procedi con l'assegnazione dopo validazione
+  // ESECUZIONE: Procedi con l'assegnazione dopo validazione
   facility.Alliance = allianceName;
   
   // AGGIORNAMENTO VISUALE: Aggiorna immediatamente l'interfaccia
@@ -1207,7 +420,7 @@ function assignFacilityToAllianceWithValidation(facility, marker, allianceName) 
   // FEEDBACK UTENTE: Mostra messaggio di conferma appropriato
   provideFeedbackToUser(facility, allianceName, previousAlliance, t);
   
-  // SINCRONIZZAZIONE SISTEMI: Aggiorna tutti i componenti dell'UI
+  // SINCRONIZZAZIONE: Aggiorna tutti i componenti dell'UI
   synchronizeAllUIComponents();
   
   // PERSISTENZA: Salva lo stato aggiornato
@@ -1218,10 +431,6 @@ function assignFacilityToAllianceWithValidation(facility, marker, allianceName) 
 
 /**
  * Aggiorna la visualizzazione del marker dopo l'assegnazione
- * Include icona alleanza e stato CSS appropriato
- * 
- * @param {Object} facility - Dati facility aggiornati
- * @param {HTMLElement} marker - Elemento marker da aggiornare
  */
 function updateFacilityMarkerVisuals(facility, marker) {
   // Aggiorna icona alleanza
@@ -1237,12 +446,6 @@ function updateFacilityMarkerVisuals(facility, marker) {
 
 /**
  * Fornisce feedback appropriato all'utente dopo l'assegnazione
- * Messaggi diversi per assegnazione vs rimozione
- * 
- * @param {Object} facility - Facility modificata
- * @param {string|null} allianceName - Nome alleanza (null se rimossa)
- * @param {string|null} previousAlliance - Alleanza precedente
- * @param {Object} t - Traduzioni correnti
  */
 function provideFeedbackToUser(facility, allianceName, previousAlliance, t) {
   let feedbackMessage;
@@ -1269,7 +472,6 @@ function provideFeedbackToUser(facility, allianceName, previousAlliance, t) {
 
 /**
  * Sincronizza tutti i componenti dell'UI dopo modifiche
- * Usa setTimeout per evitare problemi di timing con il DOM
  */
 function synchronizeAllUIComponents() {
   setTimeout(() => {
@@ -1298,7 +500,6 @@ function synchronizeAllUIComponents() {
 
 /**
  * Salva le modifiche in persistenza locale
- * Utilizza la funzione saveData se disponibile
  */
 function persistDataChanges() {
   if (typeof saveData === 'function') {
@@ -1310,15 +511,12 @@ function persistDataChanges() {
 }
 
 // =====================================================================
-// SEZIONE 7: GESTIONE ICONE ALLEANZE SUI MARKER
+// SEZIONE 6: GESTIONE ICONE ALLEANZE SUI MARKER
 // =====================================================================
-// Sistema per mostrare visualmente quale alleanza controlla ogni facility
 
 /**
  * Renderizza l'icona dell'alleanza sul marker della facility
  * L'icona appare sopra il marker per identificazione rapida
- * 
- * @param {Object} facility - Facility con assegnazione alleanza
  */
 function renderAllianceIconOnMarker(facility) {
   if (!facility.marker) {
@@ -1360,15 +558,12 @@ function renderAllianceIconOnMarker(facility) {
 }
 
 // =====================================================================
-// SEZIONE 8: ANALISI E OTTIMIZZAZIONE BUFF
+// SEZIONE 7: ANALISI E OTTIMIZZAZIONE BUFF
 // =====================================================================
-// Strumenti avanzati per analizzare l'efficienza delle assegnazioni
 
 /**
  * Analizza l'efficienza complessiva dei buff per tutte le alleanze
  * Identifica sprechi e opportunità di ottimizzazione
- * 
- * @returns {Object} Report dettagliato sull'efficienza buff
  */
 function generateBuffEfficiencyReport() {
   const report = {
@@ -1440,9 +635,6 @@ function generateBuffEfficiencyReport() {
 
 /**
  * Genera raccomandazioni specifiche per ottimizzare le assegnazioni
- * 
- * @param {Object} report - Report efficienza da cui derivare raccomandazioni
- * @returns {Array} Lista di raccomandazioni actionable
  */
 function generateOptimizationRecommendations(report) {
   const recommendations = [];
@@ -1488,7 +680,6 @@ function generateOptimizationRecommendations(report) {
 
 /**
  * Funzione di utilità per debug: mostra report ottimizzazione in console
- * Accessibile globalmente per troubleshooting
  */
 window.showBuffOptimizationReport = function() {
   const report = generateBuffEfficiencyReport();
@@ -1530,22 +721,8 @@ window.showBuffOptimizationReport = function() {
 };
 
 // =====================================================================
-// SEZIONE 9: GESTIONE EVENTI GLOBALI E INIZIALIZZAZIONE
+// SEZIONE 8: INIZIALIZZAZIONE DEL SISTEMA MARKER
 // =====================================================================
-// Event handler per integrazione con il resto dell'applicazione
-
-/**
- * Event handler per chiusura dropdown quando si clicca altrove
- * Previene l'accumulo di dropdown aperti
- */
-document.addEventListener('click', function(event) {
-  // Chiudi dropdown solo se il click è fuori da marker e dropdown
-  if (!event.target.closest('.marker') && !event.target.closest('.marker-dropdown')) {
-    setTimeout(() => {
-      closeAllAssignmentDropdowns();
-    }, 50);
-  }
-});
 
 /**
  * Inizializzazione del sistema marker
@@ -1583,67 +760,29 @@ function initializeMarkerSystem() {
   // Report inizializzazione
   console.log(`✅ Sistema marker inizializzato: ${successfulCreations}/${facilityData.length} marker creati`);
   
-  // Aggiungi stili CSS necessari per keyboard navigation se non presenti
-  addKeyboardNavigationStyles();
-  
   return successfulCreations === facilityData.length;
 }
 
-/**
- * Aggiunge stili CSS per navigazione keyboard se non già presenti
- * Garantisce accessibilità anche se il CSS principale non è caricato
- */
-function addKeyboardNavigationStyles() {
-  if (!document.getElementById('marker-keyboard-styles')) {
-    const style = document.createElement('style');
-    style.id = 'marker-keyboard-styles';
-    style.textContent = `
-      .dropdown-option.keyboard-focus {
-        background: rgba(79, 172, 254, 0.4) !important;
-        border-color: rgba(79, 172, 254, 0.8) !important;
-        outline: 2px solid rgba(79, 172, 254, 0.6);
-        outline-offset: -2px;
-      }
-      
-      .dropdown-options.scrolling {
-        background: rgba(20, 25, 40, 0.99);
-      }
-      
-      .dropdown-options.touch-active {
-        user-select: none;
-        -webkit-user-select: none;
-      }
-      
-      @media (pointer: coarse) {
-        .dropdown-options {
-          -webkit-overflow-scrolling: touch;
-          scroll-behavior: smooth;
-          overscroll-behavior: contain;
-        }
-      }
-    `;
-    
-    document.head.appendChild(style);
-    console.log('✅ Stili navigazione keyboard aggiunti');
-  }
-}
-
 // =====================================================================
-// FUNZIONI ESPORTATE GLOBALMENTE
+// SEZIONE 9: FUNZIONI ESPORTATE E UTILITY
 // =====================================================================
-// Esposizione di funzioni chiave per integrazione con altri moduli
 
 // Esporta funzioni principali per uso da altri moduli
 window.createMarker = createInteractiveFacilityMarker;
 window.recreateAllMarkers = recreateAllMapMarkers;
 window.renderAllianceIcon = renderAllianceIconOnMarker;
-window.closeAllDropdowns = closeAllAssignmentDropdowns;
+window.assignFacilityToAllianceWithValidation = assignFacilityToAllianceWithValidation;
 
-// Funzione di utilità per debugging e maintenance
+// Esporta funzioni di validazione per uso con barra controllo
+window.analyzeAllianceFacilityDuplicates = analyzeAllianceFacilityDuplicates;
+window.generateOptimalFacilitySuggestions = generateOptimalFacilitySuggestions;
+
+/**
+ * Funzione di debug per il sistema marker
+ */
 window.debugMarkerSystem = function() {
   const totalFacilities = typeof facilityData !== 'undefined' ? facilityData.length : 0;
   const markersOnPage = document.querySelectorAll('.marker').length;
-  const openDropdowns = document.querySelectorAll('.marker-dropdown').length;
   const assignedFacilities = typeof facilityData !== 'undefined' 
     ? facilityData.filter(f => f.Alliance).length 
     : 0;
@@ -1651,187 +790,17 @@ window.debugMarkerSystem = function() {
   console.log('🔍 === DEBUG SISTEMA MARKER ===');
   console.log(`📊 Facility totali: ${totalFacilities}`);
   console.log(`📍 Marker sulla pagina: ${markersOnPage}`);
-  console.log(`📋 Dropdown aperti: ${openDropdowns}`);
   console.log(`🎯 Facility assegnate: ${assignedFacilities}`);
   console.log(`📱 Dispositivo touch: ${isTouchDeviceWithScrollIssues()}`);
-  console.log(`🖱️ Scrollbar personalizzate: ${supportsCustomScrollbars()}`);
+  console.log('✅ Sistema barra controllo integrato');
   
   return {
     totalFacilities,
     markersOnPage,
-    openDropdowns,
     assignedFacilities,
     isTouch: isTouchDeviceWithScrollIssues(),
-    customScrollbars: supportsCustomScrollbars()
+    newControlSystem: true
   };
 };
 
-console.log('✅ Sistema marker caricato completamente - Pronto per inizializzazione');
-
-// =====================================================================
-// FINE MARKERS.JS
-// =====================================================================
-
-// SOLO PER TEST - aggiungi al tuo markers.js
-function testAllPositions() {
-  const markers = document.querySelectorAll('.marker');
-  markers.forEach((marker, i) => {
-    setTimeout(() => {
-      console.log(`Testing marker ${i + 1}/${markers.length}`);
-      const result = debugDropdownPositioning(marker);
-    }, i * 1000);
-  });
-}
-
-// Chiama dalla console: testAllPositions()
-
-// =====================================================================
-// FIX TEMPORANEO - APPLICAZIONE AUTOMATICA CLASSI DROPDOWN
-// =====================================================================
-// Aggiungi questo codice alla fine del tuo markers.js per applicare 
-// automaticamente le classi corrette ai dropdown quando vengono creati
-
-// Observer per intercettare i dropdown appena creati
-const dropdownObserver = new MutationObserver((mutations) => {
-  mutations.forEach((mutation) => {
-    mutation.addedNodes.forEach((node) => {
-      if (node.nodeType === Node.ELEMENT_NODE && 
-          node.classList && 
-          node.classList.contains('marker-dropdown')) {
-        
-        console.log('🔧 Dropdown rilevato senza classi, applicando fix...');
-        
-        // Trova il marker parent
-        const marker = node.closest('.marker');
-        if (marker) {
-          // Applica il posizionamento corretto
-          const positioning = calculateOptimalDropdownPosition(marker);
-          applyDropdownPositioning(node, positioning);
-          
-          console.log('✅ Fix applicato:', {
-            classi: node.className,
-            dimensioni: {
-              width: node.offsetWidth + 'px',
-              height: node.offsetHeight + 'px',
-              maxHeight: node.style.maxHeight
-            }
-          });
-        }
-      }
-    });
-  });
-});
-
-// Attiva l'observer
-dropdownObserver.observe(document.body, {
-  childList: true,
-  subtree: true
-});
-
-console.log('🛠️ Fix automatico dropdown attivato - i dropdown verranno corretti automaticamente');
-
-// =====================================================================
-// FUNZIONE DI TEST MIGLIORATA
-// =====================================================================
-
-window.testDropdownFix = function() {
-  console.log('🧪 Test fix dropdown...');
-  
-  // Trova un marker e simula click
-  const marker = document.querySelector('.marker');
-  if (marker) {
-    console.log('📍 Testando marker:', marker.title);
-    
-    // Simula click
-    marker.click();
-    
-    // Attendi che il dropdown appaia
-    setTimeout(() => {
-      const dropdown = document.querySelector('.marker-dropdown');
-      if (dropdown) {
-        console.log('✅ Dropdown trovato:');
-        console.log('  - Classi:', dropdown.className);
-        console.log('  - Width:', dropdown.offsetWidth + 'px');
-        console.log('  - Height:', dropdown.offsetHeight + 'px');
-        console.log('  - MaxHeight:', dropdown.style.maxHeight);
-        
-        // Verifica se le classi corrette sono applicate
-        const hasDeviceClass = dropdown.classList.contains('dropdown-mobile') || 
-                             dropdown.classList.contains('dropdown-small-mobile') ||
-                             dropdown.classList.contains('dropdown-desktop');
-        
-        const hasPositionClass = dropdown.classList.contains('dropdown-above') || 
-                                dropdown.classList.contains('dropdown-below');
-        
-        const hasAlignClass = dropdown.classList.contains('dropdown-align-left') || 
-                            dropdown.classList.contains('dropdown-align-center') ||
-                            dropdown.classList.contains('dropdown-align-right');
-        
-        console.log('🔍 Verifica classi:');
-        console.log('  - Device class:', hasDeviceClass ? '✅' : '❌');
-        console.log('  - Position class:', hasPositionClass ? '✅' : '❌');
-        console.log('  - Align class:', hasAlignClass ? '✅' : '❌');
-        
-        if (!hasDeviceClass || !hasPositionClass || !hasAlignClass) {
-          console.log('🔧 Classi mancanti rilevate, applicando fix manuale...');
-          const marker = dropdown.closest('.marker');
-          if (marker) {
-            const positioning = calculateOptimalDropdownPosition(marker);
-            applyDropdownPositioning(dropdown, positioning);
-            console.log('✅ Fix manuale applicato');
-          }
-        }
-        
-      } else {
-        console.log('❌ Dropdown non trovato');
-      }
-    }, 500);
-  }
-};
-
-// =====================================================================
-// FUNZIONE PER FORZARE APPLICAZIONE CLASSI AI DROPDOWN ESISTENTI
-// =====================================================================
-
-window.forceFixAllDropdowns = function() {
-  console.log('🔧 Forzando fix su tutti i dropdown esistenti...');
-  
-  const dropdowns = document.querySelectorAll('.marker-dropdown');
-  let fixedCount = 0;
-  
-  dropdowns.forEach((dropdown) => {
-    const marker = dropdown.closest('.marker');
-    if (marker) {
-      const positioning = calculateOptimalDropdownPosition(marker);
-      applyDropdownPositioning(dropdown, positioning);
-      fixedCount++;
-    }
-  });
-  
-  console.log(`✅ Fix applicato a ${fixedCount} dropdown`);
-  
-  // Test dimensioni dopo fix
-  setTimeout(() => {
-    const testDropdown = document.querySelector('.marker-dropdown');
-    if (testDropdown) {
-      console.log('📏 Nuove dimensioni:', {
-        width: testDropdown.offsetWidth + 'px',
-        height: testDropdown.offsetHeight + 'px',
-        classi: testDropdown.className
-      });
-    }
-  }, 100);
-};
-
-// =====================================================================
-// AUTO-FIX PER DROPDOWN ESISTENTI AL CARICAMENTO
-// =====================================================================
-
-// Applica fix automaticamente dopo 2 secondi
-setTimeout(() => {
-  const existingDropdowns = document.querySelectorAll('.marker-dropdown');
-  if (existingDropdowns.length > 0) {
-    console.log('🔧 Dropdown esistenti rilevati, applicando auto-fix...');
-    window.forceFixAllDropdowns();
-  }
-}, 2000);
+console.log('✅ Sistema marker pulito caricato - Integrato con barra controllo fissa');
