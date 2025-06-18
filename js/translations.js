@@ -1,15 +1,12 @@
 // =====================================================================
-// TRANSLATIONS.JS - SISTEMA MULTILINGUA OTTIMIZZATO
+// TRANSLATIONS.JS - SISTEMA MULTILINGUA COMPLETO E AGGIORNATO
 // =====================================================================
 // Sistema traduzioni per Whiteout Survival Companion: 6 lingue complete
-// con struttura modulare per funzionalità dell'app. Ogni lingua contiene
-// le stesse chiavi organizzate per sezioni logiche.
+// TUTTE le stringhe sono ora tradotte correttamente!
 //
-// LINGUE: IT (principale), EN (internazionale), ES, FR, DE, PT
-// SEZIONI: Interfaccia, Alleanze, Import/Export, Multilingua, Colori,
-//          Riepiloghi, Calibrazione, Assegnazioni, Anti-duplicati, Reset
+// VERSIONE AGGIORNATA con TUTTE le chiavi mancanti aggiunte
 
-console.log('🌐 Caricamento sistema traduzioni ottimizzato...');
+console.log('🌐 Caricamento sistema traduzioni completo e aggiornato...');
 
 // =====================================================================
 // CONFIGURAZIONE LINGUE SUPPORTATE
@@ -17,9 +14,6 @@ console.log('🌐 Caricamento sistema traduzioni ottimizzato...');
 
 const SUPPORTED_LANGUAGES = ['it', 'en', 'es', 'fr', 'de', 'pt'];
 
-/**
- * Restituisce il nome visualizzato di una lingua
- */
 function getLanguageDisplayName(languageCode) {
   const names = {
     'it': 'Italiano',
@@ -33,7 +27,7 @@ function getLanguageDisplayName(languageCode) {
 }
 
 // =====================================================================
-// TRADUZIONI COMPLETE - 6 LINGUE
+// TRADUZIONI COMPLETE - TUTTE LE CHIAVI INCLUSE
 // =====================================================================
 
 const translations = {
@@ -185,6 +179,30 @@ const translations = {
     problems: "Problemi",
     copies: "copie",
     wasted: "sprecate",
+    
+    // NUOVE CHIAVI AGGIUNTE - Controlli barra fissa
+    noChange: "Nessun Cambio",
+    facilityType: "Tipo",
+    facilityLevel: "Livello",
+    selectFacility: "Seleziona una facility",
+    close: "Chiudi",
+    chooseDifferent: "Scegli Diversa",
+    confirmAnyway: "Conferma Comunque",
+    remove: "Rimuovi",
+    assign: "Assegna",
+    
+    // NUOVE CHIAVI - Messaggi sistema
+    unknownBuff: "Buff sconosciuto",
+    betterAlternatives: "Alternative migliori",
+    showMore: "Mostra altro",
+    showLess: "Mostra meno",
+    errorOccurred: "Si è verificato un errore",
+    tryAgain: "Riprova",
+    loading: "Caricamento...",
+    saving: "Salvataggio...",
+    saved: "Salvato",
+    fieldRequired: "Campo obbligatorio",
+    invalidInput: "Input non valido",
     
     // Messaggi sistema
     appLoaded: "🎯 App caricata! {count} strutture con colori ufficiali.",
@@ -339,6 +357,30 @@ const translations = {
     copies: "copies",
     wasted: "wasted",
     
+    // NUOVE CHIAVI AGGIUNTE - Controlli barra fissa
+    noChange: "No Change",
+    facilityType: "Type",
+    facilityLevel: "Level",
+    selectFacility: "Select a facility",
+    close: "Close",
+    chooseDifferent: "Choose Different",
+    confirmAnyway: "Confirm Anyway",
+    remove: "Remove",
+    assign: "Assign",
+    
+    // NUOVE CHIAVI - Messaggi sistema
+    unknownBuff: "Unknown buff",
+    betterAlternatives: "Better alternatives",
+    showMore: "Show more",
+    showLess: "Show less",
+    errorOccurred: "An error occurred",
+    tryAgain: "Try again",
+    loading: "Loading...",
+    saving: "Saving...",
+    saved: "Saved",
+    fieldRequired: "Required field",
+    invalidInput: "Invalid input",
+    
     // Messaggi sistema
     appLoaded: "🎯 App loaded! {count} structures with official colors.",
     appReady: "🚀 App ready for use"
@@ -491,6 +533,30 @@ const translations = {
     problems: "Problemas",
     copies: "copias",
     wasted: "desperdiciadas",
+    
+    // NUOVE CHIAVI AGGIUNTE - Controlli barra fissa
+    noChange: "Sin Cambios",
+    facilityType: "Tipo",
+    facilityLevel: "Nivel",
+    selectFacility: "Selecciona una instalación",
+    close: "Cerrar",
+    chooseDifferent: "Elegir Diferente",
+    confirmAnyway: "Confirmar De Todos Modos",
+    remove: "Eliminar",
+    assign: "Asignar",
+    
+    // NUOVE CHIAVI - Messaggi sistema
+    unknownBuff: "Buff desconocido",
+    betterAlternatives: "Mejores alternativas",
+    showMore: "Mostrar más",
+    showLess: "Mostrar menos",
+    errorOccurred: "Ocurrió un error",
+    tryAgain: "Inténtalo de nuevo",
+    loading: "Cargando...",
+    saving: "Guardando...",
+    saved: "Guardado",
+    fieldRequired: "Campo requerido",
+    invalidInput: "Entrada inválida",
     
     // Messaggi sistema
     appLoaded: "🎯 ¡App cargada! {count} estructuras con colores oficiales.",
@@ -645,6 +711,30 @@ const translations = {
     copies: "copies",
     wasted: "gaspillées",
     
+    // NUOVE CHIAVI AGGIUNTE - Controlli barra fissa
+    noChange: "Aucun Changement",
+    facilityType: "Type",
+    facilityLevel: "Niveau",
+    selectFacility: "Sélectionner une installation",
+    close: "Fermer",
+    chooseDifferent: "Choisir Différent",
+    confirmAnyway: "Confirmer Quand Même",
+    remove: "Supprimer",
+    assign: "Assigner",
+    
+    // NUOVE CHIAVI - Messaggi sistema
+    unknownBuff: "Buff inconnu",
+    betterAlternatives: "Meilleures alternatives",
+    showMore: "Voir plus",
+    showLess: "Voir moins",
+    errorOccurred: "Une erreur s'est produite",
+    tryAgain: "Réessayer",
+    loading: "Chargement...",
+    saving: "Sauvegarde...",
+    saved: "Sauvé",
+    fieldRequired: "Champ requis",
+    invalidInput: "Entrée invalide",
+    
     // Messaggi sistema
     appLoaded: "🎯 App chargée ! {count} structures avec couleurs officielles.",
     appReady: "🚀 App prête à utiliser"
@@ -797,6 +887,30 @@ const translations = {
     problems: "Probleme",
     copies: "Kopien",
     wasted: "verschwendet",
+    
+    // NUOVE CHIAVI AGGIUNTE - Controlli barra fissa
+    noChange: "Keine Änderung",
+    facilityType: "Typ",
+    facilityLevel: "Stufe",
+    selectFacility: "Anlage auswählen",
+    close: "Schließen",
+    chooseDifferent: "Andere Wählen",
+    confirmAnyway: "Trotzdem Bestätigen",
+    remove: "Entfernen",
+    assign: "Zuweisen",
+    
+    // NUOVE CHIAVI - Messaggi sistema
+    unknownBuff: "Unbekannter Buff",
+    betterAlternatives: "Bessere Alternativen",
+    showMore: "Mehr anzeigen",
+    showLess: "Weniger anzeigen",
+    errorOccurred: "Ein Fehler ist aufgetreten",
+    tryAgain: "Erneut versuchen",
+    loading: "Laden...",
+    saving: "Speichern...",
+    saved: "Gespeichert",
+    fieldRequired: "Pflichtfeld",
+    invalidInput: "Ungültige Eingabe",
     
     // Messaggi sistema
     appLoaded: "🎯 App geladen! {count} Strukturen mit offiziellen Farben.",
@@ -951,6 +1065,30 @@ const translations = {
     copies: "cópias",
     wasted: "desperdiçadas",
     
+    // NUOVE CHIAVI AGGIUNTE - Controlli barra fissa
+    noChange: "Sem Mudança",
+    facilityType: "Tipo",
+    facilityLevel: "Nível",
+    selectFacility: "Selecionar uma instalação",
+    close: "Fechar",
+    chooseDifferent: "Escolher Diferente",
+    confirmAnyway: "Confirmar Mesmo Assim",
+    remove: "Remover",
+    assign: "Atribuir",
+    
+    // NUOVE CHIAVI - Messaggi sistema
+    unknownBuff: "Buff desconhecido",
+    betterAlternatives: "Melhores alternativas",
+    showMore: "Mostrar mais",
+    showLess: "Mostrar menos",
+    errorOccurred: "Ocorreu um erro",
+    tryAgain: "Tente novamente",
+    loading: "Carregando...",
+    saving: "Salvando...",
+    saved: "Salvo",
+    fieldRequired: "Campo obrigatório",
+    invalidInput: "Entrada inválida",
+    
     // Messaggi sistema
     appLoaded: "🎯 App carregado! {count} estruturas com cores oficiais.",
     appReady: "🚀 App pronto para usar"
@@ -958,12 +1096,9 @@ const translations = {
 };
 
 // =====================================================================
-// FUNZIONI UTILITÀ OTTIMIZZATE
+// FUNZIONI UTILITÀ
 // =====================================================================
 
-/**
- * Valida completezza traduzioni per tutte le lingue
- */
 function validateTranslationsCompleteness() {
   const languages = Object.keys(translations);
   const referenceKeys = new Set(Object.keys(translations['en']));
@@ -995,13 +1130,10 @@ function validateTranslationsCompleteness() {
   return report;
 }
 
-/**
- * Debug traduzioni semplificato
- */
 window.debugTranslations = function() {
   const report = validateTranslationsCompleteness();
   
-  console.log('🌐 === REPORT TRADUZIONI ===');
+  console.log('🌐 === REPORT TRADUZIONI COMPLETO ===');
   console.log(`📊 Lingue supportate: ${report.totalLanguages}`);
   console.log(`🔑 Chiavi di riferimento: ${report.referenceKeyCount}`);
   
@@ -1023,7 +1155,7 @@ window.debugTranslations = function() {
 };
 
 // =====================================================================
-// VERIFICA INTEGRITÀ E LOG FINALE
+// VERIFICA INTEGRITÀ FINALE
 // =====================================================================
 
 const integrityCheck = validateTranslationsCompleteness();
@@ -1032,10 +1164,10 @@ const hasIssues = Object.values(integrityCheck.languageReports).some(report => r
 if (hasIssues) {
   console.warn('⚠️ Alcune traduzioni potrebbero essere incomplete. Usa debugTranslations() per dettagli.');
 } else {
-  console.log('✅ Tutte le traduzioni sono complete e integrate correttamente.');
+  console.log('✅ TUTTE le traduzioni sono complete al 100%!');
 }
 
-console.log(`🌐 Sistema traduzioni caricato: ${integrityCheck.totalLanguages} lingue, ${integrityCheck.referenceKeyCount} chiavi per lingua`);
+console.log(`🌐 Sistema traduzioni COMPLETO caricato: ${integrityCheck.totalLanguages} lingue, ${integrityCheck.referenceKeyCount} chiavi per lingua`);
 
 // Esporta per compatibilità
 if (typeof module !== 'undefined' && module.exports) {

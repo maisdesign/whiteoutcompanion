@@ -61,19 +61,19 @@ function createFixedControlBar() {
     <div class="control-bar-content">
       <div class="control-dropdowns">
         <div class="control-dropdown-group">
-          <label for="alliance-select">${t.alliance || 'Alleanza'}:</label>
+          <label for="alliance-select">${t.alliances || 'Alleanza'}:</label>
           <select id="alliance-select" class="control-select">
             <option value="">${t.unassigned || 'Non assegnata'}</option>
           </select>
         </div>
         
         <div class="control-dropdown-group">
-          <label for="type-display">${t.type || 'Tipo'}:</label>
+          <label for="type-display">${t.facilityType || 'Tipo'}:</label>
           <input type="text" id="type-display" class="control-input readonly" readonly>
         </div>
         
         <div class="control-dropdown-group">
-          <label for="level-display">${t.level || 'Livello'}:</label>
+          <label for="level-display">${t.facilityLevel || 'Livello'}:</label>
           <input type="text" id="level-display" class="control-input readonly" readonly>
         </div>
       </div>
@@ -93,7 +93,7 @@ function createFixedControlBar() {
             ${t.confirmAnyway || 'Conferma Comunque'}
           </button>
           <button id="warning-cancel-btn" class="btn btn-info btn-small">
-            ${t.choose_different || 'Scegli Diversa'}
+            ${t.chooseDifferent || 'Scegli Diversa'}
           </button>
         </div>
       </div>
@@ -311,6 +311,7 @@ function updateAssignButtonState() {
   } else {
     assignBtn.disabled = true;
     assignBtn.classList.add('disabled');
+    // ERRORE: "Nessun Cambio" è hardcoded in italiano!
     assignBtn.innerHTML = `⏹️ ${t.noChange || 'Nessun Cambio'}`;
     assignBtn.className = 'btn btn-info disabled';
   }
