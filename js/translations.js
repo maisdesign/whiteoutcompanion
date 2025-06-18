@@ -12,6 +12,27 @@
 console.log('🌐 Caricamento sistema traduzioni ottimizzato...');
 
 // =====================================================================
+// CONFIGURAZIONE LINGUE SUPPORTATE
+// =====================================================================
+
+const SUPPORTED_LANGUAGES = ['it', 'en', 'es', 'fr', 'de', 'pt'];
+
+/**
+ * Restituisce il nome visualizzato di una lingua
+ */
+function getLanguageDisplayName(languageCode) {
+  const names = {
+    'it': 'Italiano',
+    'en': 'English', 
+    'es': 'Español',
+    'fr': 'Français',
+    'de': 'Deutsch',
+    'pt': 'Português'
+  };
+  return names[languageCode] || languageCode.toUpperCase();
+}
+
+// =====================================================================
 // TRADUZIONI COMPLETE - 6 LINGUE
 // =====================================================================
 
