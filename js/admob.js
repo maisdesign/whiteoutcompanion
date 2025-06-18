@@ -44,6 +44,13 @@ const ADMOB_CONFIG = Object.freeze({
   // Flag di controllo per modalità test
   showTestAds: true,
   
+  // Configurazione ambiente produzione
+  production: Object.freeze({
+    enableLogging: false,        // Disabilita logging in produzione
+    retryAttempts: 2,           // Tentativi massimi per operazioni fallite
+    debounceDelay: 300          // Delay per debounce eventi sistema
+  }),
+  
   // Timing per operazioni asincrone (ottimizzazione performance)
   delays: Object.freeze({
     initialization: 500,
@@ -147,23 +154,43 @@ const DOMHelpers = Object.freeze({
 });
 
 /**
- * Sistema di logging avanzato con categorizzazione automatica
- * e formattazione consistente per debugging efficace.
+ * Sistema di logging avanzato con controllo granulare per ambienti diversi.
+ * La configurazione del logging è fondamentale per bilanciare le esigenze
+ * di debugging in sviluppo con le performance in produzione.
  */
 const Logger = Object.freeze({
+  /**
+   * Verifica se il logging è abilitato per l'ambiente corrente
+   * @private
+   */
+  _isEnabled: () => {
+    // In sviluppo il logging è sempre attivo per facilitare il debug
+    if (ADMOB_CONFIG.showTestAds) return true;
+    
+    // In produzione rispetta la configurazione esplicita
+    return ADMOB_CONFIG.production.enableLogging;
+  },
+  
   info: (message, data = null) => {
-    console.log(`🎯 AdMob: ${message}`, data || '');
+    if (Logger._isEnabled()) {
+      console.log(`🎯 AdMob: ${message}`, data || '');
+    }
   },
   
   success: (message, data = null) => {
-    console.log(`✅ AdMob: ${message}`, data || '');
+    if (Logger._isEnabled()) {
+      console.log(`✅ AdMob: ${message}`, data || '');
+    }
   },
   
   warning: (message, data = null) => {
-    console.warn(`⚠️ AdMob: ${message}`, data || '');
+    if (Logger._isEnabled()) {
+      console.warn(`⚠️ AdMob: ${message}`, data || '');
+    }
   },
   
   error: (message, error = null) => {
+    // Gli errori sono sempre loggati, anche in produzione, per debugging critici
     console.error(`❌ AdMob: ${message}`, error || '');
   }
 });
@@ -313,8 +340,9 @@ const InitializationSystem = Object.freeze({
 // ========================================================================
 
 /**
- * Sistema di gestione banner avanzato con pattern retry e caching.
- * Ottimizzato per ridurre chiamate ridondanti e migliorare l'affidabilità.
+ * Sistema di gestione banner avanzato con pattern retry e resilienza per
+ * ambienti di produzione instabili. Include meccanismi automatici di recupero
+ * da fallimenti temporanei e gestione ottimizzata delle risorse di rete.
  */
 const BannerManager = Object.freeze({
   /**
@@ -330,8 +358,8 @@ const BannerManager = Object.freeze({
     Logger.info('Avvio caricamento sequenziale banner...');
 
     const results = {
-      top: await BannerManager._loadBanner('top'),
-      bottom: await BannerManager._loadBanner('bottom')
+      top: await BannerManager._loadBannerWithRetry('top'),
+      bottom: await BannerManager._loadBannerWithRetry('bottom')
     };
 
     AdMobState.update({ bannersLoaded: results });
@@ -343,17 +371,54 @@ const BannerManager = Object.freeze({
   },
 
   /**
-   * Carica un singolo banner con retry automatico
+   * Carica un singolo banner con sistema di retry automatico per gestire
+   * instabilità di rete e problemi temporanei dell'SDK AdMob.
    * @private
    * @param {string} position - Posizione del banner ('top' | 'bottom')
    * @returns {Promise<boolean>} Success status
    */
-  _loadBanner: async (position) => {
+  _loadBannerWithRetry: async (position) => {
+    const maxAttempts = ADMOB_CONFIG.production.retryAttempts;
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const success = await BannerManager._loadBanner(position, attempt);
+      
+      if (success) {
+        // Successo al primo tentativo o dopo retry
+        if (attempt > 1) {
+          Logger.success(`Banner ${position} caricato al tentativo ${attempt}/${maxAttempts}`);
+        }
+        return true;
+      }
+      
+      // Fallimento - valuta se continuare i tentativi
+      if (attempt < maxAttempts) {
+        const backoffDelay = attempt * 1000; // Backoff esponenziale
+        Logger.warning(`Tentativo ${attempt} fallito per banner ${position}, retry in ${backoffDelay}ms`);
+        await BannerManager._delay(backoffDelay);
+      } else {
+        Logger.error(`Banner ${position} fallito dopo ${maxAttempts} tentativi`);
+      }
+    }
+    
+    return false;
+  },
+
+  /**
+   * Carica un singolo banner - implementazione base
+   * @private
+   * @param {string} position - Posizione del banner
+   * @param {number} attempt - Numero del tentativo corrente (per logging)
+   * @returns {Promise<boolean>} Success status
+   */
+  _loadBanner: async (position, attempt = 1) => {
     const { bannerIds, showTestAds } = ADMOB_CONFIG;
     const elementId = ADMOB_CONFIG.selectors[`${position}Banner`];
 
     try {
-      Logger.info(`Caricamento banner ${position}...`);
+      if (attempt === 1) {
+        Logger.info(`Caricamento banner ${position}...`);
+      }
 
       await window.AdMob.showBanner({
         adId: bannerIds[position],
@@ -364,15 +429,26 @@ const BannerManager = Object.freeze({
 
       // Aggiornamento stato visuale con classe loaded
       DOMHelpers.addClasses(elementId, 'loaded');
-      Logger.success(`Banner ${position} caricato correttamente`);
+      
+      if (attempt === 1) {
+        Logger.success(`Banner ${position} caricato correttamente`);
+      }
       
       return true;
     } catch (error) {
-      Logger.error(`Errore caricamento banner ${position}`, error);
+      Logger.error(`Errore caricamento banner ${position} (tentativo ${attempt})`, error);
       BannerManager._hideBanner(position);
       return false;
     }
   },
+
+  /**
+   * Utility per introdurre delay controllati nelle operazioni asincrone
+   * @private
+   * @param {number} ms - Millisecondi di attesa
+   * @returns {Promise<void>}
+   */
+  _delay: (ms) => new Promise(resolve => setTimeout(resolve, ms)),
 
   /**
    * Nasconde tutti i banner con aggiornamento stato
@@ -439,10 +515,15 @@ const BannerManager = Object.freeze({
 // ========================================================================
 
 /**
- * Sistema di gestione del ciclo di vita dell'applicazione.
- * Ottimizza il comportamento degli annunci in base agli eventi del sistema.
+ * Sistema di gestione del ciclo di vita dell'applicazione con tecniche avanzate
+ * di debouncing per eventi di sistema. Questo approccio risolve problematiche
+ * specifiche degli ambienti mobili dove gli eventi possono essere generati
+ * in modo inconsistente o duplicato.
  */
 const LifecycleManager = Object.freeze({
+  // Variabili private per gestione debounce
+  _orientationTimeout: null,
+  
   /**
    * Configura tutti i listener per gli eventi del ciclo di vita
    */
@@ -460,10 +541,10 @@ const LifecycleManager = Object.freeze({
     // Gestione ripresa applicazione  
     document.addEventListener('resume', LifecycleManager._handleAppResume);
     
-    // Gestione cambio orientamento
-    window.addEventListener('orientationchange', LifecycleManager._handleOrientationChange);
+    // Gestione cambio orientamento con debounce per stabilità
+    window.addEventListener('orientationchange', LifecycleManager._handleOrientationChangeDebounced);
 
-    Logger.success('Listener ciclo di vita configurati');
+    Logger.success('Listener ciclo di vita configurati con debounce avanzato');
   },
 
   /**
@@ -487,16 +568,37 @@ const LifecycleManager = Object.freeze({
   },
 
   /**
-   * Gestione cambio orientamento con ricaricamento ottimizzato
+   * Gestione cambio orientamento con debounce per prevenire eventi multipli.
+   * Il debounce è essenziale perché i dispositivi mobili spesso generano
+   * più eventi orientationchange in rapida successione durante la rotazione.
+   * Questo può causare chiamate multiple non necessarie all'API AdMob.
+   * @private
+   */
+  _handleOrientationChangeDebounced: () => {
+    // Cancella qualsiasi timeout precedente per implementare il debounce
+    if (LifecycleManager._orientationTimeout) {
+      clearTimeout(LifecycleManager._orientationTimeout);
+    }
+    
+    // Imposta nuovo timeout con delay configurabile
+    LifecycleManager._orientationTimeout = setTimeout(() => {
+      LifecycleManager._handleOrientationChange();
+      LifecycleManager._orientationTimeout = null; // Cleanup per memory management
+    }, ADMOB_CONFIG.production.debounceDelay);
+    
+    Logger.info('Cambio orientamento rilevato - attesa stabilizzazione...');
+  },
+
+  /**
+   * Implementazione effettiva della gestione cambio orientamento.
+   * Separata dalla versione debounced per chiarezza architetturale.
    * @private
    */
   _handleOrientationChange: () => {
     if (!AdMobState.get('isReady')) return;
 
-    Logger.info('Cambio orientamento rilevato - adattamento banner');
-    setTimeout(() => {
-      BannerManager.loadAll();
-    }, ADMOB_CONFIG.delays.orientationChange);
+    Logger.info('Orientamento stabilizzato - adattamento banner');
+    BannerManager.loadAll();
   }
 });
 
