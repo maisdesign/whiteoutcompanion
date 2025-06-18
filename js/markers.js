@@ -1,1625 +1,806 @@
 // =====================================================================
-// MARKERS-EVOLVED.JS - ARCHITETTURA PATTERN-DRIVEN OTTIMIZZATA
+// MARKERS.JS - GESTIONE MARKER E VALIDAZIONE INTELLIGENTE (PULITO)
 // =====================================================================
+// Sistema pulito che gestisce:
+// - Creazione e posizionamento marker sulla mappa
+// - Validazione intelligente per evitare conflitti di buff
+// - Integrazione con il nuovo sistema barra controllo fissa
 // 
-// Evoluzione da approccio imperativo a sistema pattern-based enterprise
-// 
-// DESIGN PATTERNS IMPLEMENTATI:
-// 🏗️ Factory Pattern - Creazione intelligente marker
-// 🔍 Strategy Pattern - Sistema validazione modulare  
-// 👀 Observer Pattern - Sincronizzazione stati
-// 🎯 Command Pattern - Operazioni marker reversibili
-// 🚀 Performance Optimizations - Virtual DOM e batching
-//
-// EDUCATIVO: Ogni sezione mostra come evolvere da codice procedurale
-// a design pattern eleganti mantenendo compatibilità backwards
+// RIMOSSO: Tutto il sistema dropdown obsoleto sostituito dalla barra controllo
 
-console.log('🚀 Caricamento markers.js evolved - Pattern-driven architecture');
+console.log('🗺️ Caricamento sistema marker pulito...');
 
 // =====================================================================
-// SEZIONE 1: FOUNDATION - CORE ABSTRACTIONS
+// SEZIONE 1: CONFIGURAZIONE ICONE E COSTANTI
 // =====================================================================
 
 /**
- * EDUCATIONAL INSIGHT: Centralized Configuration
+ * Mapping delle icone per ogni tipo di facility nel gioco
+ * Ogni icona è scelta per essere immediatamente riconoscibile
+ */
+const facilityIcons = {
+  'Castle': '🏰',      // Il castello è il cuore della base
+  'Construction': '🔨', // Velocità costruzione edifici
+  'Production': '🏭',  // Produzione risorse
+  'Defense': '🛡️',     // Difesa della base
+  'Gathering': '⛏️',   // Raccolta risorse dalla mappa
+  'Tech': '🔬',        // Ricerca e tecnologie
+  'Weapons': '⚔️',     // Forza attacco truppe
+  'Training': '🎯',    // Velocità addestramento
+  'Expedition': '🚁',  // Velocità marcia truppe
+  'Stronghold': '🏛️',  // Roccaforti territoriali
+  'Fortress': '🏯'     // Fortezze strategiche
+};
+
+/**
+ * Configurazione per ottimizzazione touch devices
+ */
+const TOUCH_CONFIG = {
+  minMarkerSize: 16,           // Dimensione minima tocco confortevole
+  markerHitRadius: 25,         // Area intorno ai marker per touch
+  momentumScrolling: true      // Abilita scroll fluido
+};
+
+// =====================================================================
+// SEZIONE 2: UTILITÀ PER DISPOSITIVI TOUCH
+// =====================================================================
+
+/**
+ * Rileva se stiamo operando su un dispositivo touch con potenziali
+ * problemi di scrolling (tipicamente Android su schermi piccoli)
+ */
+function isTouchDeviceWithScrollIssues() {
+  return (
+    'ontouchstart' in window &&
+    /Android/i.test(navigator.userAgent) &&
+    window.innerWidth < 768
+  );
+}
+
+/**
+ * Applica ottimizzazioni specifiche per il dispositivo corrente
+ */
+function applyTouchOptimizations() {
+  if (isTouchDeviceWithScrollIssues()) {
+    console.log('📱 Applicando ottimizzazioni per dispositivo touch');
+    
+    // Aggiungi classe CSS per ottimizzazioni touch
+    document.body.classList.add('touch-optimized');
+    
+    // Riduce animazioni per migliori performance
+    document.documentElement.style.setProperty('--animation-duration', '0.2s');
+  }
+}
+
+// =====================================================================
+// SEZIONE 3: SISTEMA DI VALIDAZIONE FACILITY DUPLICATE
+// =====================================================================
+
+/**
+ * Analizza se un'alleanza possiede già facility dello stesso tipo e livello
  * 
- * Invece di avere configurazioni sparse nel codice, creiamo un oggetto
- * di configurazione centralizzato. Questo pattern:
- * - Facilita la manutenzione
- * - Rende il testing più semplice 
- * - Permette configurazioni dinamiche
+ * Questa funzione implementa una regola fondamentale di Whiteout Survival:
+ * i buff non si sommano per facility identiche.
  */
-const MarkerSystemConfig = Object.freeze({
-    // Performance settings
-    performance: {
-        batchSize: 50,              // Marker processati per batch
-        debounceDelay: 16,          // ~60fps per operazioni DOM
-        virtualDOMEnabled: true,     // Abilita virtual DOM per performance
-        lazyLoadThreshold: 100      // Soglia per lazy loading
-    },
-    
-    // Visual settings  
-    visual: {
-        markerBaseSize: 12,
-        hoverScaleFactor: 1.5,
-        animationDuration: 300,
-        touchMinSize: 16
-    },
-    
-    // Validation settings
-    validation: {
-        enableIntelligentSuggestions: true,
-        maxAlternativeSuggestions: 5,
-        duplicateWarningThreshold: 1
-    },
-    
-    // Integration settings
-    integration: {
-        useFixedControlBar: true,
-        enableLegacyCompatibility: true
+function analyzeAllianceFacilityDuplicates(allianceName, facilityType, facilityLevel, excludeFacility = null) {
+  // Raccogliamo tutte le facility già controllate da questa alleanza
+  const allianceFacilities = facilityData.filter(facility => {
+    // Escludiamo la facility che stiamo modificando (utile durante editing)
+    if (excludeFacility && facility === excludeFacility) {
+      return false;
     }
-});
+    
+    return facility.Alliance === allianceName;
+  });
+  
+  // Cerchiamo facility che abbiano esattamente lo stesso tipo e livello
+  const exactDuplicates = allianceFacilities.filter(facility => 
+    facility.Type === facilityType && facility.Level === facilityLevel
+  );
+  
+  // Calcoliamo statistiche utili per feedback intelligente
+  const facilityTypeGroups = {};
+  allianceFacilities.forEach(facility => {
+    const key = `${facility.Type}|${facility.Level}`;
+    if (!facilityTypeGroups[key]) {
+      facilityTypeGroups[key] = [];
+    }
+    facilityTypeGroups[key].push(facility);
+  });
+  
+  return {
+    hasDuplicate: exactDuplicates.length > 0,
+    duplicateCount: exactDuplicates.length,
+    existingDuplicates: exactDuplicates,
+    allAllianceFacilities: allianceFacilities,
+    facilityTypeDistribution: facilityTypeGroups,
+    totalAllianceFacilities: allianceFacilities.length
+  };
+}
 
 /**
- * EDUCATIONAL INSIGHT: Type System Foundation
+ * Genera suggerimenti intelligenti per ottimizzare le assegnazioni
+ */
+function generateOptimalFacilitySuggestions(allianceName, currentType, currentLevel) {
+  // Trova tutte le facility non ancora assegnate
+  const availableFacilities = facilityData.filter(facility => !facility.Alliance);
+  
+  // Trova facility già controllate da questa alleanza per evitare duplicati
+  const allianceAnalysis = analyzeAllianceFacilityDuplicates(allianceName, currentType, currentLevel);
+  const existingTypes = new Set(
+    Object.keys(allianceAnalysis.facilityTypeDistribution)
+  );
+  
+  // Cerca facility disponibili che non creerebbero duplicati
+  const optimalAlternatives = availableFacilities.filter(facility => {
+    const facilityKey = `${facility.Type}|${facility.Level}`;
+    const currentKey = `${currentType}|${currentLevel}`;
+    
+    // Esclude la facility identica a quella che stiamo assegnando
+    if (facilityKey === currentKey) {
+      return false;
+    }
+    
+    // Esclude facility che creerebbero altri duplicati
+    return !existingTypes.has(facilityKey);
+  });
+  
+  // Ordina per valore del buff (se conosciuto) per suggerire le migliori
+  optimalAlternatives.sort((a, b) => {
+    const buffA = buffValues[`${a.Type}|${a.Level}`] || '0%';
+    const buffB = buffValues[`${b.Type}|${b.Level}`] || '0%';
+    
+    // Estrae il numero dal valore percentuale per ordinamento
+    const numA = parseInt(buffA.match(/\d+/)?.[0] || '0');
+    const numB = parseInt(buffB.match(/\d+/)?.[0] || '0');
+    
+    return numB - numA; // Ordine decrescente (migliori per primi)
+  });
+  
+  return optimalAlternatives.slice(0, 5); // Restituisce le 5 migliori alternative
+}
+
+/**
+ * Costruisce e mostra l'alert educativo per facility duplicate
+ */
+function displayEducationalDuplicateAlert(allianceName, facilityType, facilityLevel, analysis) {
+  const t = translations[currentLanguage] || translations['en'];
+  
+  // Calcola i numeri concreti per l'educazione dell'utente
+  const buffKey = `${facilityType}|${facilityLevel}`;
+  const singleBuffValue = buffValues[buffKey] || t.unknownBuff || 'Buff sconosciuto';
+  const totalDuplicatesAfterAssignment = analysis.duplicateCount + 1;
+  
+  // Genera suggerimenti alternativi intelligenti
+  const alternatives = generateOptimalFacilitySuggestions(allianceName, facilityType, facilityLevel);
+  const alternativesText = alternatives.length > 0 
+    ? alternatives.slice(0, 3).map(facility => {
+        const altBuffKey = `${facility.Type}|${facility.Level}`;
+        const altBuffValue = buffValues[altBuffKey] || t.unknownBuff || 'Buff sconosciuto';
+        return `• ${facility.Type} ${facility.Level} (${altBuffValue})`;
+      }).join('\n')
+    : `• ${t.noAlternativesAvailable || 'Nessuna alternativa disponibile al momento'}`;
+  
+  // Costruisce il messaggio educativo completo
+  const educationalMessage = `
+🚫 ${t.duplicateFacilityWarning || 'ATTENZIONE: Buff Duplicato Rilevato!'}
+
+📋 ${t.situation || 'Situazione'}:
+• ${t.alliance || 'Alleanza'}: "${allianceName}"
+• ${t.facility || 'Facility'}: ${facilityType} ${facilityLevel}
+• ${t.alreadyPresent || 'Già presenti'}: ${analysis.duplicateCount}
+
+⚠️ ${t.gameplayProblem || 'PROBLEMA DEL GAMEPLAY'}:
+${t.duplicateFacilityExplanation || 'In Whiteout Survival i buff NON si sommano per facility identiche!'}
+
+🔢 ${t.buffCalculation || 'Calcolo Buff'}:
+• ${t.theoreticalBuff || 'Buff teorico'}: ${singleBuffValue} × ${totalDuplicatesAfterAssignment} = ?
+• ${t.actualBuff || 'Buff REALE'}: ${singleBuffValue} × 1 = ${singleBuffValue}
+• ${t.wastedBuffs || 'Buff sprecati'}: ${totalDuplicatesAfterAssignment - 1}
+
+💡 ${t.betterStrategy || 'STRATEGIA MIGLIORE'}:
+${t.diversifyFacilities || 'Diversifica i tipi di facility per massimizzare i buff!'}
+
+🤔 ${t.moreEffectiveAlternatives || 'Alternative più efficaci'}:
+${alternativesText}
+
+❓ ${t.continueAnyway || 'Vuoi continuare comunque con questa assegnazione?'}
+${t.notRecommended || '(Non raccomandata per ottimizzazione strategica)'}
+  `.trim();
+  
+  // Mostra l'alert e cattura la decisione dell'utente
+  const userDecision = confirm(educationalMessage);
+  
+  // Log per analytics e debug
+  console.log('🎓 Alert educativo mostrato:', {
+    alliance: allianceName,
+    facility: `${facilityType} ${facilityLevel}`,
+    duplicatesFound: analysis.duplicateCount,
+    userConfirmed: userDecision,
+    alternativesOffered: alternatives.length
+  });
+  
+  return userDecision;
+}
+
+// =====================================================================
+// SEZIONE 4: CREAZIONE E GESTIONE MARKER
+// =====================================================================
+
+/**
+ * Crea un marker visuale per una facility sulla mappa
  * 
- * Anche in JavaScript, definire "tipi" espliciti tramite oggetti
- * migliora la leggibilità e la manutenibilità del codice.
+ * Ogni marker è un elemento DOM posizionato precisamente sulla mappa
+ * che rappresenta una facility del gioco. Usa il NUOVO sistema barra controllo.
  */
-const MarkerTypes = Object.freeze({
-    FACILITY: 'facility',
-    OVERLAY: 'overlay', 
-    TEMPORARY: 'temporary'
-});
+function createInteractiveFacilityMarker(facility, index) {
+  const mapWrapper = document.getElementById('map-wrapper');
+  if (!mapWrapper) {
+    console.warn('⚠️ Map wrapper non trovato, impossibile creare marker');
+    return null;
+  }
 
-const ValidationResults = Object.freeze({
-    VALID: 'valid',
-    WARNING: 'warning', 
-    ERROR: 'error',
-    BLOCKED: 'blocked'
-});
+  // Rimuovi marker esistente se presente (per aggiornamenti)
+  if (facility.marker) {
+    facility.marker.remove();
+  }
 
-// =====================================================================
-// SEZIONE 2: STRATEGY PATTERN - SISTEMA VALIDAZIONE MODULARE
-// =====================================================================
-
-/**
- * EDUCATIONAL INSIGHT: Strategy Pattern Implementation
- * 
- * Il pattern Strategy permette di definire una famiglia di algoritmi,
- * incapsularli e renderli intercambiabili. Invece di avere una singola
- * funzione di validazione monolitica, ora abbiamo strategie specifiche
- * che possono essere combinate e estese facilmente.
- */
-class ValidationStrategy {
-    /**
-     * Interfaccia base per tutte le strategie di validazione
-     * @param {Object} context - Contesto di validazione
-     * @returns {Object} Risultato validazione
-     */
-    validate(context) {
-        throw new Error('Strategy must implement validate method');
-    }
-    
-    /**
-     * Priority determina l'ordine di esecuzione delle validazioni
-     * @returns {number} Priority (più alto = eseguito prima)
-     */
-    get priority() {
-        return 0;
-    }
-    
-    /**
-     * Nome human-readable della strategia
-     * @returns {string} Nome strategia
-     */
-    get name() {
-        return this.constructor.name;
-    }
-}
-
-/**
- * STRATEGIA 1: Validazione Duplicati Buff
- * 
- * Evoluzione della funzione analyzeAllianceFacilityDuplicates originale
- * in una strategia dedicata e ottimizzata.
- */
-class DuplicateBuffValidationStrategy extends ValidationStrategy {
-    constructor() {
-        super();
-        // Cache per ottimizzare ricerche ripetute
-        this._allianceFacilityCache = new Map();
-        this._lastCacheUpdate = 0;
-    }
-    
-    get priority() {
-        return 100; // Alta priorità per validazione duplicati
-    }
-    
-    validate(context) {
-        const { facility, targetAlliance, excludeFacility } = context;
-        
-        // Ottimizzazione: usa cache se dati non sono cambiati
-        const allianceFacilities = this._getCachedAllianceFacilities(targetAlliance);
-        
-        // Analisi duplicati ottimizzata
-        const duplicateAnalysis = this._analyzeDuplicates(
-            allianceFacilities, 
-            facility.Type, 
-            facility.Level,
-            excludeFacility
-        );
-        
-        if (duplicateAnalysis.hasDuplicate) {
-            return {
-                result: ValidationResults.WARNING,
-                severity: 'medium',
-                message: this._buildDuplicateMessage(targetAlliance, facility, duplicateAnalysis),
-                data: duplicateAnalysis,
-                suggestions: this._generateIntelligentSuggestions(context)
-            };
-        }
-        
-        return {
-            result: ValidationResults.VALID,
-            message: `No buff conflicts detected for ${facility.Type} ${facility.Level}`
-        };
-    }
-    
-    /**
-     * Cache intelligente per facility per alleanza
-     * Evita scansioni ripetute del dataset completo
-     */
-    _getCachedAllianceFacilities(allianceName) {
-        const currentTime = Date.now();
-        const cacheKey = allianceName;
-        
-        // Invalida cache ogni 5 secondi o dopo modifiche
-        if (currentTime - this._lastCacheUpdate > 5000 || !this._allianceFacilityCache.has(cacheKey)) {
-            const facilities = facilityData.filter(f => f.Alliance === allianceName);
-            this._allianceFacilityCache.set(cacheKey, facilities);
-            this._lastCacheUpdate = currentTime;
-        }
-        
-        return this._allianceFacilityCache.get(cacheKey) || [];
-    }
-    
-    /**
-     * Analisi duplicati ottimizzata con early return
-     */
-    _analyzeDuplicates(allianceFacilities, facilityType, facilityLevel, excludeFacility) {
-        const exactDuplicates = [];
-        
-        // Ottimizzazione: early return se alleanza vuota
-        if (allianceFacilities.length === 0) {
-            return {
-                hasDuplicate: false,
-                duplicateCount: 0,
-                exactDuplicates: []
-            };
-        }
-        
-        // Scansione ottimizzata con break early
-        for (const facility of allianceFacilities) {
-            if (excludeFacility && facility === excludeFacility) continue;
-            
-            if (facility.Type === facilityType && facility.Level === facilityLevel) {
-                exactDuplicates.push(facility);
-            }
-        }
-        
-        return {
-            hasDuplicate: exactDuplicates.length > 0,
-            duplicateCount: exactDuplicates.length,
-            exactDuplicates,
-            totalAllianceFacilities: allianceFacilities.length
-        };
-    }
-    
-    /**
-     * Costruisce messaggio di warning intelligente
-     */
-    _buildDuplicateMessage(allianceName, facility, analysis) {
-        const buffKey = `${facility.Type}|${facility.Level}`;
-        const buffValue = buffValues[buffKey] || 'Unknown buff';
-        const totalAfter = analysis.duplicateCount + 1;
-        
-        return `⚠️ BUFF CONFLICT: Alliance "${allianceName}" will have ${totalAfter} identical ${facility.Type} ${facility.Level} facilities. Only one buff (${buffValue}) will be active, wasting ${totalAfter - 1} potential buff slots.`;
-    }
-    
-    /**
-     * Genera suggerimenti intelligenti per alternative ottimali
-     */
-    _generateIntelligentSuggestions(context) {
-        if (!MarkerSystemConfig.validation.enableIntelligentSuggestions) {
-            return [];
-        }
-        
-        const { targetAlliance, facility } = context;
-        const availableFacilities = facilityData.filter(f => !f.Alliance);
-        const currentKey = `${facility.Type}|${facility.Level}`;
-        
-        // Trova facility che non creerebbero conflitti
-        const suggestions = availableFacilities
-            .filter(f => `${f.Type}|${f.Level}` !== currentKey)
-            .filter(f => !this._wouldCreateDuplicate(targetAlliance, f))
-            .sort((a, b) => this._getBuffValue(b) - this._getBuffValue(a))
-            .slice(0, MarkerSystemConfig.validation.maxAlternativeSuggestions);
-            
-        return suggestions.map(f => ({
-            facility: f,
-            buffValue: buffValues[`${f.Type}|${f.Level}`] || 'Unknown',
-            reason: 'No conflict, optimal buff utilization'
-        }));
-    }
-    
-    /**
-     * Utility: verifica se una facility creerebbe duplicati
-     */
-    _wouldCreateDuplicate(allianceName, facility) {
-        const allianceFacilities = this._getCachedAllianceFacilities(allianceName);
-        return allianceFacilities.some(f => 
-            f.Type === facility.Type && f.Level === facility.Level
-        );
-    }
-    
-    /**
-     * Utility: estrae valore numerico del buff per sorting
-     */
-    _getBuffValue(facility) {
-        const buffKey = `${facility.Type}|${facility.Level}`;
-        const buffString = buffValues[buffKey] || '0%';
-        const match = buffString.match(/(\d+)/);
-        return match ? parseInt(match[1]) : 0;
-    }
-    
-    /**
-     * Invalida cache quando i dati cambiano
-     */
-    invalidateCache() {
-        this._allianceFacilityCache.clear();
-        this._lastCacheUpdate = 0;
-    }
-}
-
-/**
- * STRATEGIA 2: Validazione Limiti Alleanza
- * 
- * Esempio di come aggiungere nuove regole di validazione
- * senza modificare il codice esistente.
- */
-class AllianceLimitsValidationStrategy extends ValidationStrategy {
-    constructor(maxFacilitiesPerAlliance = 50) {
-        super();
-        this.maxFacilitiesPerAlliance = maxFacilitiesPerAlliance;
-    }
-    
-    get priority() {
-        return 80; // Priorità media
-    }
-    
-    validate(context) {
-        const { targetAlliance } = context;
-        
-        const currentCount = facilityData.filter(f => f.Alliance === targetAlliance).length;
-        
-        if (currentCount >= this.maxFacilitiesPerAlliance) {
-            return {
-                result: ValidationResults.BLOCKED,
-                severity: 'high',
-                message: `Alliance "${targetAlliance}" has reached the maximum limit of ${this.maxFacilitiesPerAlliance} facilities.`,
-                data: { currentCount, limit: this.maxFacilitiesPerAlliance }
-            };
-        }
-        
-        if (currentCount >= this.maxFacilitiesPerAlliance * 0.9) {
-            return {
-                result: ValidationResults.WARNING,
-                severity: 'low',
-                message: `Alliance "${targetAlliance}" is approaching the facility limit (${currentCount}/${this.maxFacilitiesPerAlliance}).`,
-                data: { currentCount, limit: this.maxFacilitiesPerAlliance }
-            };
-        }
-        
-        return {
-            result: ValidationResults.VALID,
-            message: `Alliance facility count within limits (${currentCount}/${this.maxFacilitiesPerAlliance})`
-        };
-    }
-}
-
-/**
- * VALIDATOR ORCHESTRATOR
- * 
- * Coordina tutte le strategie di validazione e combina i risultati.
- * Implementa il pattern Chain of Responsibility.
- */
-class IntelligentValidator {
-    constructor() {
-        this.strategies = new Map();
-        this._registerDefaultStrategies();
-    }
-    
-    /**
-     * Registra le strategie di validazione di default
-     */
-    _registerDefaultStrategies() {
-        this.addStrategy('duplicateBuffs', new DuplicateBuffValidationStrategy());
-        this.addStrategy('allianceLimits', new AllianceLimitsValidationStrategy());
-    }
-    
-    /**
-     * Aggiunge una nuova strategia di validazione
-     * @param {string} name - Nome univoco della strategia
-     * @param {ValidationStrategy} strategy - Istanza della strategia
-     */
-    addStrategy(name, strategy) {
-        if (!(strategy instanceof ValidationStrategy)) {
-            throw new Error('Strategy must extend ValidationStrategy');
-        }
-        this.strategies.set(name, strategy);
-    }
-    
-    /**
-     * Rimuove una strategia di validazione
-     * @param {string} name - Nome della strategia da rimuovere
-     */
-    removeStrategy(name) {
-        return this.strategies.delete(name);
-    }
-    
-    /**
-     * Esegue tutte le validazioni applicabili
-     * @param {Object} context - Contesto di validazione
-     * @returns {Object} Risultato complessivo della validazione
-     */
-    async validate(context) {
-        const results = [];
-        
-        // Ordina strategie per priorità
-        const sortedStrategies = Array.from(this.strategies.entries())
-            .sort(([, a], [, b]) => b.priority - a.priority);
-        
-        // Esegui validazioni in parallelo per performance migliori
-        const validationPromises = sortedStrategies.map(async ([name, strategy]) => {
-            try {
-                const result = await strategy.validate(context);
-                return { name, strategy: strategy.name, ...result };
-            } catch (error) {
-                console.error(`Validation strategy ${name} failed:`, error);
-                return {
-                    name,
-                    strategy: strategy.name,
-                    result: ValidationResults.ERROR,
-                    message: `Validation failed: ${error.message}`,
-                    error
-                };
-            }
-        });
-        
-        const validationResults = await Promise.all(validationPromises);
-        
-        // Combina risultati con logica intelligente
-        return this._combineValidationResults(validationResults);
-    }
-    
-    /**
-     * Combina i risultati delle diverse validazioni in un risultato finale
-     */
-    _combineValidationResults(results) {
-        const errors = results.filter(r => r.result === ValidationResults.ERROR);
-        const blocked = results.filter(r => r.result === ValidationResults.BLOCKED);
-        const warnings = results.filter(r => r.result === ValidationResults.WARNING);
-        
-        // Se ci sono errori o blocchi, il risultato finale è negativo
-        if (errors.length > 0 || blocked.length > 0) {
-            return {
-                isValid: false,
-                finalResult: blocked.length > 0 ? ValidationResults.BLOCKED : ValidationResults.ERROR,
-                summary: this._buildFailureSummary(errors, blocked),
-                details: [...errors, ...blocked],
-                warnings,
-                allResults: results
-            };
-        }
-        
-        // Se ci sono warning, il risultato è valido ma con avvertimenti
-        if (warnings.length > 0) {
-            return {
-                isValid: true,
-                requiresUserConfirmation: true,
-                finalResult: ValidationResults.WARNING,
-                summary: this._buildWarningSummary(warnings),
-                details: warnings,
-                allResults: results
-            };
-        }
-        
-        // Tutto valido
-        return {
-            isValid: true,
-            finalResult: ValidationResults.VALID,
-            summary: 'All validations passed successfully',
-            allResults: results
-        };
-    }
-    
-    /**
-     * Costruisce summary per fallimenti
-     */
-    _buildFailureSummary(errors, blocked) {
-        if (blocked.length > 0) {
-            return `Assignment blocked: ${blocked[0].message}`;
-        }
-        if (errors.length > 0) {
-            return `Validation error: ${errors[0].message}`;
-        }
-        return 'Unknown validation failure';
-    }
-    
-    /**
-     * Costruisce summary per warning
-     */
-    _buildWarningSummary(warnings) {
-        if (warnings.length === 1) {
-            return warnings[0].message;
-        }
-        return `${warnings.length} warnings detected. Review before proceeding.`;
-    }
-    
-    /**
-     * Invalida cache di tutte le strategie
-     */
-    invalidateAllCaches() {
-        for (const [, strategy] of this.strategies) {
-            if (typeof strategy.invalidateCache === 'function') {
-                strategy.invalidateCache();
-            }
-        }
-    }
-}
-
-// =====================================================================
-// SEZIONE 3: FACTORY PATTERN - CREAZIONE INTELLIGENTE MARKER
-// =====================================================================
-
-/**
- * EDUCATIONAL INSIGHT: Factory Pattern
- * 
- * Il Factory Pattern nasconde la complessità della creazione di oggetti
- * e permette di creare diversi tipi di marker in modo uniforme.
- * Questo è particolarmente utile quando la logica di creazione è complessa
- * o quando vogliamo supportare diversi tipi di marker.
- */
-class MarkerFactory {
-    constructor(config = MarkerSystemConfig) {
-        this.config = config;
-        this.createdMarkers = new WeakMap(); // Per tracking e cleanup
-    }
-    
-    /**
-     * Crea un marker basato sul tipo e parametri specificati
-     * @param {Object} facilityData - Dati della facility
-     * @param {string} type - Tipo di marker da creare
-     * @param {Object} options - Opzioni aggiuntive
-     * @returns {HTMLElement} Elemento marker creato
-     */
-    createMarker(facilityData, type = MarkerTypes.FACILITY, options = {}) {
-        // Seleziona il builder appropriato basato sul tipo
-        const builder = this._getBuilderForType(type);
-        
-        // Crea il marker usando il builder specifico
-        const marker = builder.create(facilityData, options);
-        
-        // Applica configurazioni comuni
-        this._applyCommonConfiguration(marker, facilityData, options);
-        
-        // Registra per tracking
-        this.createdMarkers.set(marker, {
-            facilityData,
-            type,
-            createdAt: Date.now(),
-            options
-        });
-        
-        return marker;
-    }
-    
-    /**
-     * Ottiene il builder appropriato per il tipo di marker
-     */
-    _getBuilderForType(type) {
-        switch (type) {
-            case MarkerTypes.FACILITY:
-                return new FacilityMarkerBuilder(this.config);
-            case MarkerTypes.OVERLAY:
-                return new OverlayMarkerBuilder(this.config);
-            case MarkerTypes.TEMPORARY:
-                return new TemporaryMarkerBuilder(this.config);
-            default:
-                throw new Error(`Unknown marker type: ${type}`);
-        }
-    }
-    
-    /**
-     * Applica configurazioni comuni a tutti i marker
-     */
-    _applyCommonConfiguration(marker, facilityData, options) {
-        // Gestione touch devices
-        if ('ontouchstart' in window) {
-            const minSize = this.config.visual.touchMinSize;
-            marker.style.minWidth = `${minSize}px`;
-            marker.style.minHeight = `${minSize}px`;
-        }
-        
-        // Applica calibrazione se disponibile
-        if (typeof applyMapCalibration === 'function') {
-            const adjustedPosition = applyMapCalibration(facilityData);
-            marker.style.left = `calc(${adjustedPosition.x}% - 6px)`;
-            marker.style.top = `calc(${adjustedPosition.y}% - 6px)`;
-        }
-        
-        // Event handlers comuni
-        this._attachCommonEventHandlers(marker, facilityData, options);
-    }
-    
-    /**
-     * Attacca event handlers comuni a tutti i marker
-     */
-    _attachCommonEventHandlers(marker, facilityData, options) {
-        // Click handler con debouncing
-        let clickTimeout = null;
-        marker.addEventListener('click', (event) => {
-            event.stopPropagation();
-            
-            // Debounce per evitare click multipli accidentali
-            if (clickTimeout) return;
-            
-            clickTimeout = setTimeout(() => {
-                this._handleMarkerClick(marker, facilityData, event);
-                clickTimeout = null;
-            }, 100);
-        });
-        
-        // Hover effects ottimizzati
-        if (!('ontouchstart' in window)) { // Solo su non-touch devices
-            marker.addEventListener('mouseenter', () => {
-                marker.style.transform = `scale(${this.config.visual.hoverScaleFactor})`;
-                marker.style.zIndex = '1000';
-            });
-            
-            marker.addEventListener('mouseleave', () => {
-                marker.style.transform = 'scale(1)';
-                marker.style.zIndex = '';
-            });
-        }
-    }
-    
-    /**
-     * Gestisce click sui marker con integrazione intelligente
-     */
-    _handleMarkerClick(marker, facilityData, event) {
-        // Integrazione con sistema barra controllo se disponibile
-        if (this.config.integration.useFixedControlBar && typeof handleMarkerClick === 'function') {
-            handleMarkerClick(facilityData, marker);
-            return;
-        }
-        
-        // Fallback per compatibilità legacy
-        if (this.config.integration.enableLegacyCompatibility) {
-            console.log('Marker clicked:', facilityData.Type, facilityData.Level);
-            
-            // Mostra messaggio se sistema non disponibile
-            if (typeof showStatus === 'function') {
-                const t = translations[currentLanguage] || {};
-                showStatus(t.addAtLeastOneAlliance || '⚠️ Control system not ready', 'warning');
-            }
-        }
-    }
-    
-    /**
-     * Aggiorna tutti i marker creati da questa factory
-     * Utile per aggiornamenti di massa
-     */
-    updateAllMarkers() {
-        let updatedCount = 0;
-        
-        // Itera su tutti i marker creati (che sono ancora nel DOM)
-        for (const [marker, info] of this.createdMarkers) {
-            if (marker.parentNode) {
-                this._updateMarker(marker, info);
-                updatedCount++;
-            }
-        }
-        
-        console.log(`Updated ${updatedCount} markers`);
-        return updatedCount;
-    }
-    
-    /**
-     * Aggiorna un singolo marker
-     */
-    _updateMarker(marker, info) {
-        // Riapplica configurazioni che potrebbero essere cambiate
-        this._applyCommonConfiguration(marker, info.facilityData, info.options);
-        
-        // Aggiorna icona alleanza se necessario
-        if (typeof renderAllianceIconOnMarker === 'function') {
-            renderAllianceIconOnMarker(info.facilityData);
-        }
-    }
-    
-    /**
-     * Cleanup: rimuove marker e pulisce tracking
-     */
-    destroyMarker(marker) {
-        if (marker && marker.parentNode) {
-            marker.parentNode.removeChild(marker);
-        }
-        return this.createdMarkers.delete(marker);
-    }
-    
-    /**
-     * Statistiche sui marker creati
-     */
-    getStats() {
-        let activeCount = 0;
-        let totalCreated = 0;
-        
-        for (const [marker] of this.createdMarkers) {
-            totalCreated++;
-            if (marker.parentNode) {
-                activeCount++;
-            }
-        }
-        
-        return {
-            totalCreated,
-            activeCount,
-            orphaned: totalCreated - activeCount
-        };
-    }
-}
-
-/**
- * BUILDER BASE per marker
- */
-class MarkerBuilder {
-    constructor(config) {
-        this.config = config;
-    }
-    
-    create(facilityData, options) {
-        throw new Error('Builder must implement create method');
-    }
-}
-
-/**
- * BUILDER SPECIFICO per facility marker
- */
-class FacilityMarkerBuilder extends MarkerBuilder {
-    create(facilityData, options = {}) {
-        const marker = document.createElement('div');
-        marker.className = `marker ${facilityData.Type.toLowerCase()}`;
-        
-        // Configura dimensioni base
-        const size = options.size || this.config.visual.markerBaseSize;
-        marker.style.width = `${size}px`;
-        marker.style.height = `${size}px`;
-        
-        // Tooltip informativo
-        const coordinates = facilityData.ingameCoords ? ` (${facilityData.ingameCoords})` : '';
-        marker.title = `${facilityData.Type} ${facilityData.Level}${coordinates}`;
-        
-        // Icona facility
-        this._addFacilityIcon(marker, facilityData);
-        
-        // Stato assegnazione
-        if (facilityData.Alliance) {
-            marker.classList.add('assigned');
-        }
-        
-        return marker;
-    }
-    
-    _addFacilityIcon(marker, facilityData) {
-        const facilityIcon = document.createElement('span');
-        facilityIcon.className = 'facility-icon';
-        facilityIcon.textContent = facilityIcons[facilityData.Type] || '📍';
-        marker.appendChild(facilityIcon);
-    }
-}
-
-/**
- * BUILDER per marker overlay (ad esempio per evidenziazioni temporanee)
- */
-class OverlayMarkerBuilder extends MarkerBuilder {
-    create(facilityData, options = {}) {
-        const marker = document.createElement('div');
-        marker.className = 'marker overlay-marker';
-        
-        // Stile distinto per overlay
-        marker.style.cssText = `
-            border: 3px solid ${options.color || '#ff6b6b'};
-            background: ${options.backgroundColor || 'transparent'};
-            border-radius: 50%;
-            animation: pulseOverlay 2s infinite;
-        `;
-        
-        return marker;
-    }
-}
-
-/**
- * BUILDER per marker temporanei
- */
-class TemporaryMarkerBuilder extends MarkerBuilder {
-    create(facilityData, options = {}) {
-        const marker = document.createElement('div');
-        marker.className = 'marker temporary-marker';
-        
-        // Auto-rimozione dopo timeout
-        const timeout = options.timeout || 5000;
-        setTimeout(() => {
-            if (marker.parentNode) {
-                marker.remove();
-            }
-        }, timeout);
-        
-        return marker;
-    }
-}
-
-// =====================================================================
-// SEZIONE 4: OBSERVER PATTERN - SINCRONIZZAZIONE STATI
-// =====================================================================
-
-/**
- * EDUCATIONAL INSIGHT: Observer Pattern
- * 
- * L'Observer Pattern permette a oggetti di notificare automaticamente
- * altri oggetti quando il loro stato cambia. Questo è ideale per
- * mantenere sincronizzati diversi componenti dell'UI senza creare
- * dipendenze strette tra di loro.
- */
-class MarkerStateManager {
-    constructor() {
-        this.observers = new Map();
-        this.state = {
-            totalMarkers: 0,
-            assignedMarkers: 0,
-            lastUpdate: null
-        };
-    }
-    
-    /**
-     * Aggiunge un observer per un tipo di evento specifico
-     * @param {string} eventType - Tipo di evento da osservare
-     * @param {Function} callback - Funzione da chiamare quando l'evento si verifica
-     * @param {Object} options - Opzioni per l'observer
-     */
-    subscribe(eventType, callback, options = {}) {
-        if (!this.observers.has(eventType)) {
-            this.observers.set(eventType, []);
-        }
-        
-        const observer = {
-            callback,
-            id: Math.random().toString(36).substr(2, 9),
-            priority: options.priority || 0,
-            once: options.once || false
-        };
-        
-        this.observers.get(eventType).push(observer);
-        
-        // Ordina per priorità
-        this.observers.get(eventType).sort((a, b) => b.priority - a.priority);
-        
-        return observer.id; // Restituisce ID per unsubscribe
-    }
-    
-    /**
-     * Rimuove un observer
-     * @param {string} eventType - Tipo di evento
-     * @param {string} observerId - ID dell'observer da rimuovere
-     */
-    unsubscribe(eventType, observerId) {
-        if (!this.observers.has(eventType)) return false;
-        
-        const observers = this.observers.get(eventType);
-        const index = observers.findIndex(obs => obs.id === observerId);
-        
-        if (index >= 0) {
-            observers.splice(index, 1);
-            return true;
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Notifica tutti gli observer di un evento
-     * @param {string} eventType - Tipo di evento
-     * @param {*} data - Dati da passare agli observer
-     */
-    notify(eventType, data) {
-        if (!this.observers.has(eventType)) return;
-        
-        const observers = this.observers.get(eventType);
-        const toRemove = [];
-        
-        observers.forEach(observer => {
-            try {
-                observer.callback(data, eventType);
-                
-                // Rimuovi observer "once" dopo l'esecuzione
-                if (observer.once) {
-                    toRemove.push(observer.id);
-                }
-            } catch (error) {
-                console.error(`Observer error for event ${eventType}:`, error);
-            }
-        });
-        
-        // Cleanup observer "once"
-        toRemove.forEach(id => this.unsubscribe(eventType, id));
-    }
-    
-    /**
-     * Aggiorna lo stato e notifica gli observer
-     * @param {Object} newState - Nuovo stato
-     */
-    updateState(newState) {
-        const oldState = { ...this.state };
-        this.state = { ...this.state, ...newState, lastUpdate: Date.now() };
-        
-        // Notifica observer del cambio di stato
-        this.notify('stateChanged', { oldState, newState: this.state });
-        
-        // Notifica observer specifici per proprietà cambiate
-        Object.keys(newState).forEach(key => {
-            if (oldState[key] !== this.state[key]) {
-                this.notify(`${key}Changed`, {
-                    property: key,
-                    oldValue: oldState[key],
-                    newValue: this.state[key]
-                });
-            }
-        });
-    }
-    
-    /**
-     * Ottiene lo stato corrente
-     */
-    getState() {
-        return { ...this.state };
-    }
-    
-    /**
-     * Utility: conta marker attuali e aggiorna stato
-     */
-    refreshMarkerCount() {
-        const totalMarkers = document.querySelectorAll('.marker').length;
-        const assignedMarkers = document.querySelectorAll('.marker.assigned').length;
-        
-        this.updateState({
-            totalMarkers,
-            assignedMarkers
-        });
-        
-        return { totalMarkers, assignedMarkers };
-    }
-}
-
-// =====================================================================
-// SEZIONE 5: PERFORMANCE OPTIMIZATIONS - BATCHING E VIRTUAL DOM
-// =====================================================================
-
-/**
- * EDUCATIONAL INSIGHT: Performance Optimization Techniques
- * 
- * Quando si lavora con molti elementi DOM, le performance possono degradare
- * rapidamente. Implementiamo tecniche avanzate come batching delle operazioni
- * DOM e virtual DOM leggero per mantenere l'applicazione fluida.
- */
-class PerformanceOptimizedMarkerManager {
-    constructor(config = MarkerSystemConfig) {
-        this.config = config;
-        this.factory = new MarkerFactory(config);
-        this.validator = new IntelligentValidator();
-        this.stateManager = new MarkerStateManager();
-        
-        // Performance tracking
-        this.operationQueue = [];
-        this.isProcessing = false;
-        this.virtualDOM = new Map(); // Semplice virtual DOM
-        
-        // Setup performance observers
-        this._setupPerformanceObservers();
-    }
-    
-    /**
-     * Crea marker in batch per migliori performance
-     * @param {Array} facilities - Array di facility data
-     * @returns {Promise} Promise che si risolve quando tutti i marker sono creati
-     */
-    async createMarkersInBatch(facilities) {
-        console.log(`Creating ${facilities.length} markers in batches of ${this.config.performance.batchSize}`);
-        
-        const startTime = performance.now();
-        let createdCount = 0;
-        
-        // Processa in batch per evitare di bloccare il main thread
-        for (let i = 0; i < facilities.length; i += this.config.performance.batchSize) {
-            const batch = facilities.slice(i, i + this.config.performance.batchSize);
-            
-            // Crea batch di marker
-            const batchPromises = batch.map(facility => this._createSingleMarker(facility));
-            await Promise.all(batchPromises);
-            
-            createdCount += batch.length;
-            
-            // Yield control al browser per mantenerlo responsivo
-            await this._yieldToMain();
-            
-            // Aggiorna progress se richiesto
-            this.stateManager.notify('batchProgress', {
-                processed: createdCount,
-                total: facilities.length,
-                progress: (createdCount / facilities.length) * 100
-            });
-        }
-        
-        const endTime = performance.now();
-        console.log(`Created ${createdCount} markers in ${(endTime - startTime).toFixed(2)}ms`);
-        
-        // Aggiorna stato finale
-        this.stateManager.refreshMarkerCount();
-        
-        return createdCount;
-    }
-    
-    /**
-     * Crea un singolo marker con caching virtual DOM
-     */
-    async _createSingleMarker(facility) {
-        try {
-            // Controlla virtual DOM cache
-            const cacheKey = this._getMarkerCacheKey(facility);
-            if (this.virtualDOM.has(cacheKey)) {
-                const cachedData = this.virtualDOM.get(cacheKey);
-                // Clone del marker cached per performance
-                const marker = cachedData.element.cloneNode(true);
-                this._insertMarkerIntoDOM(marker, facility);
-                return marker;
-            }
-            
-            // Crea nuovo marker
-            const marker = this.factory.createMarker(facility);
-            
-            // Cache nel virtual DOM
-            this.virtualDOM.set(cacheKey, {
-                element: marker.cloneNode(true),
-                facility: { ...facility },
-                createdAt: Date.now()
-            });
-            
-            // Inserisci nel DOM
-            this._insertMarkerIntoDOM(marker, facility);
-            
-            return marker;
-            
-        } catch (error) {
-            console.error(`Error creating marker for facility:`, facility, error);
-            return null;
-        }
-    }
-    
-    /**
-     * Inserisce marker nel DOM in modo ottimizzato
-     */
-    _insertMarkerIntoDOM(marker, facility) {
-        const mapWrapper = document.getElementById('map-wrapper');
-        if (!mapWrapper) {
-            throw new Error('Map wrapper not found');
-        }
-        
-        // Usa DocumentFragment per operazioni DOM ottimizzate
-        const fragment = document.createDocumentFragment();
-        fragment.appendChild(marker);
-        mapWrapper.appendChild(fragment);
-        
-        // Aggiorna reference facility
-        facility.marker = marker;
-    }
-    
-    /**
-     * Genera chiave cache per marker
-     */
-    _getMarkerCacheKey(facility) {
-        return `${facility.Type}-${facility.Level}-${facility.x}-${facility.y}`;
-    }
-    
-    /**
-     * Yield control al main thread per non bloccare l'UI
-     */
-    _yieldToMain() {
-        return new Promise(resolve => {
-            setTimeout(resolve, this.config.performance.debounceDelay);
-        });
-    }
-    
-    /**
-     * Assegna facility con validazione intelligente e performance ottimizzate
-     */
-    async assignFacilityWithValidation(facility, marker, allianceName) {
-        const startTime = performance.now();
-        
-        try {
-            // Validazione con nuovo sistema pattern-based
-            const validationContext = {
-                facility,
-                marker,
-                targetAlliance: allianceName,
-                excludeFacility: facility,
-                currentAlliances: alliances
-            };
-            
-            const validationResult = await this.validator.validate(validationContext);
-            
-            // Gestisci risultato validazione
-            if (!validationResult.isValid) {
-                this._handleValidationFailure(validationResult);
-                return false;
-            }
-            
-            if (validationResult.requiresUserConfirmation) {
-                const userConfirmed = await this._showValidationWarning(validationResult);
-                if (!userConfirmed) {
-                    return false;
-                }
-            }
-            
-            // Esegui assegnazione
-            const success = await this._executeAssignment(facility, marker, allianceName);
-            
-            if (success) {
-                // Invalida cache validator per prossime validazioni
-                this.validator.invalidateAllCaches();
-                
-                // Aggiorna stato
-                this.stateManager.refreshMarkerCount();
-                
-                // Notifica successo
-                this.stateManager.notify('facilityAssigned', {
-                    facility,
-                    alliance: allianceName,
-                    duration: performance.now() - startTime
-                });
-            }
-            
-            return success;
-            
-        } catch (error) {
-            console.error('Error in facility assignment:', error);
-            this._showError(`Assignment failed: ${error.message}`);
-            return false;
-        }
-    }
-    
-    /**
-     * Gestisce fallimenti di validazione
-     */
-    _handleValidationFailure(validationResult) {
-        const message = validationResult.summary || 'Validation failed';
-        
-        if (typeof showStatus === 'function') {
-            showStatus(`❌ ${message}`, 'error', 5000);
-        } else {
-            console.error('Validation failed:', validationResult);
-        }
-    }
-    
-    /**
-     * Mostra warning di validazione all'utente
-     */
-    async _showValidationWarning(validationResult) {
-        // Se abbiamo una UI di conferma avanzata, usala
-        if (typeof this._showAdvancedConfirmationDialog === 'function') {
-            return await this._showAdvancedConfirmationDialog(validationResult);
-        }
-        
-        // Fallback a confirm nativo
-        const message = `${validationResult.summary}\n\nDo you want to proceed anyway?`;
-        return confirm(message);
-    }
-    
-    /**
-     * Esegue l'assegnazione effettiva
-     */
-    async _executeAssignment(facility, marker, allianceName) {
-        try {
-            // Aggiorna dati facility
-            facility.Alliance = allianceName;
-            
-            // Aggiorna visuale marker
-            this._updateMarkerVisuals(facility, marker);
-            
-            // Sincronizza con sistemi esterni
-            await this._syncWithExternalSystems();
-            
-            // Feedback utente
-            this._provideFeedback(facility, allianceName);
-            
-            return true;
-            
-        } catch (error) {
-            console.error('Error executing assignment:', error);
-            return false;
-        }
-    }
-    
-    /**
-     * Aggiorna visualizzazione marker
-     */
-    _updateMarkerVisuals(facility, marker) {
-        // Aggiorna classe CSS
-        if (facility.Alliance) {
-            marker.classList.add('assigned');
-        } else {
-            marker.classList.remove('assigned');
-        }
-        
-        // Aggiorna icona alleanza
-        if (typeof renderAllianceIconOnMarker === 'function') {
-            renderAllianceIconOnMarker(facility);
-        }
-    }
-    
-    /**
-     * Sincronizza con sistemi esterni
-     */
-    async _syncWithExternalSystems() {
-        // Aggiorna UI components se disponibili
-        const updatePromises = [];
-        
-        if (typeof updateStats === 'function') {
-            updatePromises.push(Promise.resolve(updateStats()));
-        }
-        
-        if (typeof renderAllianceList === 'function') {
-            updatePromises.push(Promise.resolve(renderAllianceList()));
-        }
-        
-        if (typeof renderFacilitySummary === 'function') {
-            updatePromises.push(Promise.resolve(renderFacilitySummary()));
-        }
-        
-        if (typeof renderBuffSummary === 'function') {
-            updatePromises.push(Promise.resolve(renderBuffSummary()));
-        }
-        
-        // Salva dati
-        if (typeof saveData === 'function') {
-            updatePromises.push(Promise.resolve(saveData()));
-        }
-        
-        // Esegui tutti gli aggiornamenti in parallelo
-        await Promise.all(updatePromises);
-    }
-    
-    /**
-     * Fornisce feedback all'utente
-     */
-    _provideFeedback(facility, allianceName) {
-        const t = translations[currentLanguage] || {};
-        let message, type;
-        
-        if (allianceName) {
-            message = `✅ ${facility.Type} ${t.assignedTo || 'assigned to'} ${allianceName}`;
-            type = 'success';
-        } else {
-            message = `🗑️ ${facility.Type} ${t.removed || 'removed'}`;
-            type = 'info';
-        }
-        
-        if (typeof showStatus === 'function') {
-            showStatus(message, type);
-        }
-    }
-    
-    /**
-     * Mostra errore all'utente
-     */
-    _showError(message) {
-        if (typeof showStatus === 'function') {
-            showStatus(message, 'error');
-        } else {
-            console.error(message);
-        }
-    }
-    
-    /**
-     * Setup degli observer per performance monitoring
-     */
-    _setupPerformanceObservers() {
-        // Observer per cambio stato
-        this.stateManager.subscribe('stateChanged', (data) => {
-            console.log('Marker state updated:', data.newState);
-        });
-        
-        // Observer per progress batch
-        this.stateManager.subscribe('batchProgress', (data) => {
-            if (data.progress % 25 === 0) { // Log ogni 25%
-                console.log(`Batch progress: ${data.progress.toFixed(1)}% (${data.processed}/${data.total})`);
-            }
-        });
-        
-        // Monitor performance con Web API se disponibile
-        if ('PerformanceObserver' in window) {
-            try {
-                const observer = new PerformanceObserver((list) => {
-                    const entries = list.getEntries();
-                    entries.forEach(entry => {
-                        if (entry.name.includes('marker') && entry.duration > 16) {
-                            console.warn(`Slow marker operation: ${entry.name} took ${entry.duration}ms`);
-                        }
-                    });
-                });
-                
-                observer.observe({ entryTypes: ['measure'] });
-            } catch (error) {
-                console.log('PerformanceObserver not available:', error.message);
-            }
-        }
-    }
-    
-    /**
-     * Cleanup e ottimizzazione memoria
-     */
-    cleanup() {
-        // Pulisci virtual DOM cache
-        this.virtualDOM.clear();
-        
-        // Pulisci operation queue
-        this.operationQueue = [];
-        
-        // Pulisci observer
-        this.stateManager.observers.clear();
-        
-        console.log('MarkerManager cleanup completed');
-    }
-    
-    /**
-     * Statistiche performance
-     */
-    getPerformanceStats() {
-        return {
-            virtualDOMSize: this.virtualDOM.size,
-            queuedOperations: this.operationQueue.length,
-            observersCount: Array.from(this.stateManager.observers.values()).reduce((sum, arr) => sum + arr.length, 0),
-            factoryStats: this.factory.getStats(),
-            config: this.config
-        };
-    }
-}
-
-// =====================================================================
-// SEZIONE 6: INTEGRAZIONE E COMPATIBILITÀ BACKWARDS
-// =====================================================================
-
-/**
- * EDUCATIONAL INSIGHT: Backward Compatibility
- * 
- * Quando si evolve un sistema esistente, è fondamentale mantenere
- * compatibilità con il codice legacy. Questa sezione mostra come
- * fornire una API che funziona sia con il nuovo sistema che con
- * il codice esistente.
- */
-
-// Istanza globale del nuovo sistema
-let globalMarkerManager = null;
-
-/**
- * Inizializza il nuovo sistema marker
- */
-function initializeAdvancedMarkerSystem(config = MarkerSystemConfig) {
-    console.log('🚀 Initializing advanced marker system...');
-    
-    try {
-        globalMarkerManager = new PerformanceOptimizedMarkerManager(config);
-        
-        // Setup integrazione con sistemi esistenti
-        setupLegacyIntegration();
-        
-        console.log('✅ Advanced marker system initialized successfully');
-        return globalMarkerManager;
-        
-    } catch (error) {
-        console.error('❌ Failed to initialize advanced marker system:', error);
-        return null;
-    }
-}
-
-/**
- * Setup integrazione con funzioni legacy esistenti
- */
-function setupLegacyIntegration() {
-    // Mantieni compatibilità con funzioni esistenti
-    if (typeof window.createMarker === 'undefined') {
-        window.createMarker = function(facility, index) {
-            if (globalMarkerManager) {
-                return globalMarkerManager.factory.createMarker(facility);
-            } else {
-                console.warn('Advanced marker system not initialized, using legacy fallback');
-                return legacyCreateMarker(facility, index);
-            }
-        };
-    }
-    
-    if (typeof window.recreateAllMarkers === 'undefined') {
-        window.recreateAllMarkers = function() {
-            if (globalMarkerManager) {
-                // Rimuovi marker esistenti
-                document.querySelectorAll('.marker').forEach(marker => marker.remove());
-                
-                // Ricrea con nuovo sistema
-                return globalMarkerManager.createMarkersInBatch(facilityData);
-            } else {
-                console.warn('Advanced marker system not initialized, using legacy fallback');
-                return legacyRecreateAllMarkers();
-            }
-        };
-    }
-    
-    if (typeof window.assignFacilityToAllianceWithValidation === 'undefined') {
-        window.assignFacilityToAllianceWithValidation = function(facility, marker, allianceName) {
-            if (globalMarkerManager) {
-                return globalMarkerManager.assignFacilityWithValidation(facility, marker, allianceName);
-            } else {
-                console.warn('Advanced marker system not initialized, using legacy fallback');
-                return legacyAssignFacility(facility, marker, allianceName);
-            }
-        };
-    }
-}
-
-/**
- * Funzioni legacy fallback (implementazioni semplici delle funzioni originali)
- */
-function legacyCreateMarker(facility, index) {
-    const mapWrapper = document.getElementById('map-wrapper');
-    if (!mapWrapper) return null;
-    
-    const marker = document.createElement('div');
-    marker.className = `marker ${facility.Type.toLowerCase()}`;
-    
-    if (typeof applyMapCalibration === 'function') {
-        const pos = applyMapCalibration(facility);
-        marker.style.left = `calc(${pos.x}% - 6px)`;
-        marker.style.top = `calc(${pos.y}% - 6px)`;
-    }
-    
-    const icon = document.createElement('span');
-    icon.className = 'facility-icon';
-    icon.textContent = facilityIcons[facility.Type] || '📍';
-    marker.appendChild(icon);
-    
-    marker.onclick = (e) => {
-        e.stopPropagation();
-        if (typeof handleMarkerClick === 'function') {
-            handleMarkerClick(facility, marker);
-        }
-    };
-    
-    mapWrapper.appendChild(marker);
-    facility.marker = marker;
-    
-    return marker;
-}
-
-function legacyRecreateAllMarkers() {
-    document.querySelectorAll('.marker').forEach(marker => marker.remove());
-    let count = 0;
-    
-    facilityData.forEach((facility, index) => {
-        if (legacyCreateMarker(facility, index)) count++;
-    });
-    
-    return count;
-}
-
-function legacyAssignFacility(facility, marker, allianceName) {
-    facility.Alliance = allianceName;
-    
-    if (allianceName) {
-        marker.classList.add('assigned');
+  // Crea l'elemento marker
+  const marker = document.createElement('div');
+  marker.className = `marker ${facility.Type.toLowerCase()}`;
+  
+  // Applica calibrazione per posizionamento preciso
+  const adjustedPosition = applyMapCalibration(facility);
+  marker.style.left = `calc(${adjustedPosition.x}% - 6px)`;
+  marker.style.top = `calc(${adjustedPosition.y}% - 6px)`;
+  
+  // Configura tooltip informativo
+  const coordinatesText = facility.ingameCoords ? ` (${facility.ingameCoords})` : '';
+  marker.title = `${facility.Type} ${facility.Level}${coordinatesText}`;
+  
+  // Configura evento click per NUOVO sistema barra controllo
+  marker.onclick = (event) => {
+    event.stopPropagation();
+    
+    // Usa il nuovo sistema barra controllo fissa
+    if (typeof handleMarkerClick === 'function') {
+      handleMarkerClick(facility, marker);
     } else {
-        marker.classList.remove('assigned');
+      // Fallback: mostra messaggio se sistema non disponibile
+      console.warn('⚠️ Sistema barra controllo non disponibile');
+      const t = translations[currentLanguage] || {};
+      if (typeof showStatus === 'function') {
+        showStatus(t.addAtLeastOneAlliance || '⚠️ Sistema controllo non pronto', 'warning');
+      }
     }
-    
-    if (typeof renderAllianceIconOnMarker === 'function') {
-        renderAllianceIconOnMarker(facility);
-    }
-    
-    return true;
+  };
+  
+  // Aggiungi icona rappresentativa della facility
+  const facilityIcon = document.createElement('span');
+  facilityIcon.className = 'facility-icon';
+  facilityIcon.textContent = facilityIcons[facility.Type] || '📍';
+  marker.appendChild(facilityIcon);
+  
+  // Inserisci nella mappa
+  mapWrapper.appendChild(marker);
+  facility.marker = marker;
+
+  // Se già assegnata, mostra icona alleanza e stile
+  if (facility.Alliance) {
+    renderAllianceIconOnMarker(facility);
+    marker.classList.add('assigned');
+  }
+  
+  return marker;
+}
+
+/**
+ * Applica le impostazioni di calibrazione alla posizione del marker
+ */
+function applyMapCalibration(facility) {
+  // Applica trasformazioni di calibrazione se disponibili
+  const adjustedX = (facility.x * calibrationSettings.scaleX) + calibrationSettings.offsetX;
+  const adjustedY = (facility.y * calibrationSettings.scaleY) + calibrationSettings.offsetY;
+  
+  return { x: adjustedX, y: adjustedY };
+}
+
+/**
+ * Ricrea tutti i marker sulla mappa
+ * Utile dopo cambiamenti di calibrazione o aggiornamenti di massa
+ */
+function recreateAllMapMarkers() {
+  console.log('🔄 Ricreazione completa marker...');
+  
+  // Rimuovi tutti i marker esistenti
+  document.querySelectorAll('.marker').forEach(marker => marker.remove());
+  
+  // Reset riferimenti nei dati
+  facilityData.forEach(facility => {
+    facility.marker = null;
+  });
+  
+  // Ricrea tutti i marker
+  let successfullyCreated = 0;
+  facilityData.forEach((facility, index) => {
+    const marker = createInteractiveFacilityMarker(facility, index);
+    if (marker) successfullyCreated++;
+  });
+  
+  const t = translations[currentLanguage] || {};
+  const statusMessage = `📍 ${successfullyCreated} ${t.markersUpdated || 'marker aggiornati'}`;
+  
+  // Usa showStatus in modo sicuro
+  if (typeof showStatus === 'function') {
+    showStatus(statusMessage, 'info');
+  } else {
+    console.log(statusMessage);
+  }
+  
+  console.log(`✅ Ricreazione completata: ${successfullyCreated}/${facilityData.length} marker`);
 }
 
 // =====================================================================
-// SEZIONE 7: FUNZIONI DI DEBUG E UTILITÀ AVANZATE
+// SEZIONE 5: ASSEGNAZIONE FACILITY CON VALIDAZIONE INTELLIGENTE
 // =====================================================================
 
 /**
- * Debug avanzato del nuovo sistema marker
+ * Assegna una facility a un'alleanza con validazione completa
+ * 
+ * Questa è la funzione centrale che orchestra tutto il processo:
+ * 1. Valida per prevenire conflitti di buff
+ * 2. Educa l'utente sui problemi rilevati
+ * 3. Rispetta la decisione finale dell'utente
+ * 4. Aggiorna tutti i sistemi correlati
  */
-window.debugAdvancedMarkerSystem = function() {
-    if (!globalMarkerManager) {
-        console.log('❌ Advanced marker system not initialized');
-        return null;
+function assignFacilityToAllianceWithValidation(facility, marker, allianceName) {
+  console.log('🔄 Processo assegnazione facility:', {
+    facility: `${facility.Type} ${facility.Level}`,
+    from: facility.Alliance || 'Non assegnata',
+    to: allianceName || 'RIMOZIONE',
+    coordinates: facility.ingameCoords
+  });
+  
+  const t = translations[currentLanguage] || translations['en'];
+  const previousAlliance = facility.Alliance;
+  
+  // VALIDAZIONE: Controlla facility duplicate solo per nuove assegnazioni
+  if (allianceName) {
+    const duplicateAnalysis = analyzeAllianceFacilityDuplicates(
+      allianceName, 
+      facility.Type, 
+      facility.Level, 
+      facility
+    );
+    
+    if (duplicateAnalysis.hasDuplicate) {
+      console.log('⚠️ Conflitto buff rilevato:', {
+        alliance: allianceName,
+        facility: `${facility.Type} ${facility.Level}`,
+        existingDuplicates: duplicateAnalysis.duplicateCount,
+        totalAfterAssignment: duplicateAnalysis.duplicateCount + 1
+      });
+      
+      // Mostra alert educativo e cattura decisione utente
+      const userConfirmedDespiteWarning = displayEducationalDuplicateAlert(
+        allianceName, 
+        facility.Type, 
+        facility.Level, 
+        duplicateAnalysis
+      );
+      
+      if (!userConfirmedDespiteWarning) {
+        // L'utente ha scelto saggiamente di annullare
+        console.log('✅ Assegnazione annullata dall\'utente per ottimizzazione strategica');
+        const cancelMessage = t.assignmentCancelled || 'Assegnazione annullata per evitare conflitto buff';
+        
+        if (typeof showStatus === 'function') {
+          showStatus(`❌ ${cancelMessage}`, 'warning', 4000);
+        }
+        
+        return; // Exit point: assegnazione annullata
+      } else {
+        // L'utente ha confermato nonostante l'avvertimento
+        console.log('⚠️ Assegnazione confermata nonostante conflitto buff');
+        const warningMessage = t.duplicateAssignmentConfirmed || 'Buff duplicato assegnato (non ottimale)';
+        
+        if (typeof showStatus === 'function') {
+          showStatus(`⚠️ ${warningMessage}`, 'warning', 5000);
+        }
+      }
     }
-    
-    console.log('🔍 === DEBUG ADVANCED MARKER SYSTEM ===');
-    
-    const stats = globalMarkerManager.getPerformanceStats();
-    const state = globalMarkerManager.stateManager.getState();
-    
-    console.log('📊 Performance Stats:', stats);
-    console.log('🎯 Current State:', state);
-    
-    // Test validazione
-    console.log('🧪 Testing validation system...');
-    const testContext = {
-        facility: { Type: 'Construction', Level: 'Lv.1' },
-        targetAlliance: 'TestAlliance',
-        currentAlliances: alliances
-    };
-    
-    globalMarkerManager.validator.validate(testContext).then(result => {
-        console.log('✅ Validation test result:', result);
-    });
-    
-    console.log('=== END DEBUG ===');
-    
-    return {
-        stats,
-        state,
-        manager: globalMarkerManager
-    };
-};
+  }
+  
+  // ESECUZIONE: Procedi con l'assegnazione dopo validazione
+  facility.Alliance = allianceName;
+  
+  // AGGIORNAMENTO VISUALE: Aggiorna immediatamente l'interfaccia
+  updateFacilityMarkerVisuals(facility, marker);
+  
+  // FEEDBACK UTENTE: Mostra messaggio di conferma appropriato
+  provideFeedbackToUser(facility, allianceName, previousAlliance, t);
+  
+  // SINCRONIZZAZIONE: Aggiorna tutti i componenti dell'UI
+  synchronizeAllUIComponents();
+  
+  // PERSISTENZA: Salva lo stato aggiornato
+  persistDataChanges();
+  
+  console.log('✅ Assegnazione completata con successo');
+}
 
 /**
- * Benchmark performance del sistema
+ * Aggiorna la visualizzazione del marker dopo l'assegnazione
  */
-window.benchmarkMarkerSystem = async function(iterations = 100) {
-    if (!globalMarkerManager) {
-        console.log('❌ Advanced marker system not initialized');
-        return;
+function updateFacilityMarkerVisuals(facility, marker) {
+  // Aggiorna icona alleanza
+  renderAllianceIconOnMarker(facility);
+  
+  // Aggiorna classe CSS per stile visuale
+  if (facility.Alliance) {
+    marker.classList.add('assigned');
+  } else {
+    marker.classList.remove('assigned');
+  }
+}
+
+/**
+ * Fornisce feedback appropriato all'utente dopo l'assegnazione
+ */
+function provideFeedbackToUser(facility, allianceName, previousAlliance, t) {
+  let feedbackMessage;
+  let feedbackType;
+  
+  if (allianceName) {
+    // Caso: assegnazione a nuova alleanza
+    const assignedToText = t.assignedTo || 'assegnata a';
+    feedbackMessage = `✅ ${facility.Type} ${assignedToText} ${allianceName}`;
+    feedbackType = 'success';
+  } else {
+    // Caso: rimozione assegnazione
+    const removedText = t.removed || 'rimossa';
+    feedbackMessage = `❌ ${facility.Type} ${removedText}`;
+    feedbackType = 'info';
+  }
+  
+  if (typeof showStatus === 'function') {
+    showStatus(feedbackMessage, feedbackType);
+  } else {
+    console.log(`[${feedbackType.toUpperCase()}] ${feedbackMessage}`);
+  }
+}
+
+/**
+ * Sincronizza tutti i componenti dell'UI dopo modifiche
+ */
+function synchronizeAllUIComponents() {
+  setTimeout(() => {
+    // Aggiorna statistiche header
+    if (typeof updateStats === 'function') {
+      updateStats();
     }
     
-    console.log(`🏃‍♂️ Running marker performance benchmark (${iterations} iterations)...`);
+    // Aggiorna lista alleanze con contatori
+    if (typeof renderAllianceList === 'function') {
+      renderAllianceList();
+    }
     
-    const results = {
-        creation: [],
-        validation: [],
-        assignment: []
+    // Aggiorna riepiloghi facility e buff
+    if (typeof renderFacilitySummary === 'function') {
+      renderFacilitySummary();
+    }
+    
+    if (typeof renderBuffSummary === 'function') {
+      renderBuffSummary();
+    }
+    
+    console.log('🔄 Sincronizzazione UI completata');
+  }, 50);
+}
+
+/**
+ * Salva le modifiche in persistenza locale
+ */
+function persistDataChanges() {
+  if (typeof saveData === 'function') {
+    saveData();
+    console.log('💾 Modifiche salvate in persistenza');
+  } else {
+    console.warn('⚠️ Funzione saveData non disponibile - modifiche non persistenti');
+  }
+}
+
+// =====================================================================
+// SEZIONE 6: GESTIONE ICONE ALLEANZE SUI MARKER
+// =====================================================================
+
+/**
+ * Renderizza l'icona dell'alleanza sul marker della facility
+ * L'icona appare sopra il marker per identificazione rapida
+ */
+function renderAllianceIconOnMarker(facility) {
+  if (!facility.marker) {
+    console.warn('⚠️ Tentativo di renderizzare icona su marker inesistente');
+    return;
+  }
+  
+  // Rimuovi eventuali icone alleanza esistenti
+  facility.marker.querySelectorAll('img').forEach(icon => icon.remove());
+  
+  // Se assegnata a un'alleanza, mostra la sua icona
+  if (facility.Alliance) {
+    const alliance = alliances.find(alliance => alliance.name === facility.Alliance);
+    
+    if (alliance) {
+      const allianceIcon = document.createElement('img');
+      allianceIcon.src = alliance.icon;
+      allianceIcon.alt = `${facility.Alliance} icon`;
+      allianceIcon.style.cssText = `
+        position: absolute;
+        left: 50%;
+        top: 0;
+        width: 20px;
+        height: 20px;
+        transform: translate(-50%, -100%);
+        z-index: 11;
+        pointer-events: none;
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.9);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        background: white;
+      `;
+      
+      facility.marker.appendChild(allianceIcon);
+    } else {
+      console.warn('⚠️ Alleanza non trovata per facility:', facility.Alliance);
+    }
+  }
+}
+
+// =====================================================================
+// SEZIONE 7: ANALISI E OTTIMIZZAZIONE BUFF
+// =====================================================================
+
+/**
+ * Analizza l'efficienza complessiva dei buff per tutte le alleanze
+ * Identifica sprechi e opportunità di ottimizzazione
+ */
+function generateBuffEfficiencyReport() {
+  const report = {
+    analysis: {
+      totalAlliances: alliances.length,
+      alliancesWithIssues: 0,
+      totalWastedBuffs: 0,
+      optimizationOpportunities: 0
+    },
+    allianceDetails: [],
+    recommendations: []
+  };
+  
+  // Analizza ogni alleanza individualmente
+  alliances.forEach(alliance => {
+    const allianceFacilities = facilityData.filter(f => f.Alliance === alliance.name);
+    
+    // Raggruppa facility per tipo|livello per identificare duplicati
+    const facilityTypeGroups = {};
+    allianceFacilities.forEach(facility => {
+      const typeKey = `${facility.Type}|${facility.Level}`;
+      if (!facilityTypeGroups[typeKey]) {
+        facilityTypeGroups[typeKey] = [];
+      }
+      facilityTypeGroups[typeKey].push(facility);
+    });
+    
+    // Identifica gruppi con duplicati (spreco di buff)
+    const duplicateGroups = Object.entries(facilityTypeGroups)
+      .filter(([typeKey, facilities]) => facilities.length > 1);
+    
+    const wastedBuffsCount = duplicateGroups.reduce(
+      (total, [typeKey, facilities]) => total + (facilities.length - 1), 
+      0
+    );
+    
+    // Aggiorna statistiche globali
+    if (duplicateGroups.length > 0) {
+      report.analysis.alliancesWithIssues++;
+      report.analysis.totalWastedBuffs += wastedBuffsCount;
+    }
+    
+    // Dettagli per questa alleanza
+    const allianceAnalysis = {
+      name: alliance.name,
+      totalFacilities: allianceFacilities.length,
+      uniqueBuffTypes: Object.keys(facilityTypeGroups).length,
+      duplicateGroups: duplicateGroups.length,
+      wastedBuffs: wastedBuffsCount,
+      efficiency: allianceFacilities.length > 0 
+        ? Math.round((Object.keys(facilityTypeGroups).length / allianceFacilities.length) * 100)
+        : 0,
+      duplicateDetails: duplicateGroups.map(([typeKey, facilities]) => ({
+        facilityType: typeKey,
+        count: facilities.length,
+        wastedBuffs: facilities.length - 1,
+        buffValue: buffValues[typeKey] || 'Sconosciuto'
+      }))
     };
     
-    // Test creazione marker
-    const testFacility = { Type: 'Construction', Level: 'Lv.1', x: 50, y: 50 };
+    report.allianceDetails.push(allianceAnalysis);
+  });
+  
+  // Genera raccomandazioni basate sull'analisi
+  report.recommendations = generateOptimizationRecommendations(report);
+  
+  return report;
+}
+
+/**
+ * Genera raccomandazioni specifiche per ottimizzare le assegnazioni
+ */
+function generateOptimizationRecommendations(report) {
+  const recommendations = [];
+  
+  // Raccomandazioni per alleanze con problemi gravi
+  report.allianceDetails
+    .filter(alliance => alliance.wastedBuffs > 2)
+    .forEach(alliance => {
+      recommendations.push({
+        priority: 'high',
+        type: 'duplicate_reduction',
+        alliance: alliance.name,
+        message: `Alleanza "${alliance.name}" ha ${alliance.wastedBuffs} buff sprecati. Considera di riassegnare facility duplicate.`,
+        details: alliance.duplicateDetails
+      });
+    });
+  
+  // Raccomandazioni per alleanze inefficienti
+  report.allianceDetails
+    .filter(alliance => alliance.efficiency < 50 && alliance.totalFacilities > 1)
+    .forEach(alliance => {
+      recommendations.push({
+        priority: 'medium',
+        type: 'efficiency_improvement',
+        alliance: alliance.name,
+        message: `Alleanza "${alliance.name}" ha efficienza buff del ${alliance.efficiency}%. Diversifica i tipi di facility.`,
+        currentEfficiency: alliance.efficiency
+      });
+    });
+  
+  // Raccomandazione generale se tutto è ottimale
+  if (report.analysis.totalWastedBuffs === 0) {
+    recommendations.push({
+      priority: 'info',
+      type: 'optimal_configuration',
+      message: '🎉 Configurazione ottimale! Nessun buff sprecato rilevato.',
+      details: 'Tutte le alleanze hanno assegnazioni buff efficienti.'
+    });
+  }
+  
+  return recommendations;
+}
+
+/**
+ * Funzione di utilità per debug: mostra report ottimizzazione in console
+ */
+window.showBuffOptimizationReport = function() {
+  const report = generateBuffEfficiencyReport();
+  
+  console.log('📊 === REPORT OTTIMIZZAZIONE BUFF ===');
+  console.log(`🏰 Alleanze totali: ${report.analysis.totalAlliances}`);
+  console.log(`⚠️ Alleanze con problemi: ${report.analysis.alliancesWithIssues}`);
+  console.log(`💥 Buff sprecati totali: ${report.analysis.totalWastedBuffs}`);
+  console.log('');
+  
+  if (report.analysis.alliancesWithIssues === 0) {
+    console.log('✅ Perfetto! Nessun conflitto di buff rilevato.');
+  } else {
+    console.log('📋 Dettaglio problemi per alleanza:');
     
-    for (let i = 0; i < iterations; i++) {
-        // Test creazione
-        const createStart = performance.now();
-        const marker = globalMarkerManager.factory.createMarker(testFacility);
-        const createEnd = performance.now();
-        results.creation.push(createEnd - createStart);
+    report.allianceDetails
+      .filter(analysis => analysis.duplicateGroups > 0)
+      .forEach(analysis => {
+        console.log(`\n🏰 ${analysis.name}:`);
+        console.log(`  • Facility totali: ${analysis.totalFacilities}`);
+        console.log(`  • Efficienza buff: ${analysis.efficiency}%`);
+        console.log(`  • Buff sprecati: ${analysis.wastedBuffs}`);
+        console.log(`  • Problemi:`);
         
-        // Test validazione
-        const validationStart = performance.now();
-        await globalMarkerManager.validator.validate({
-            facility: testFacility,
-            targetAlliance: 'TestAlliance'
+        analysis.duplicateDetails.forEach(detail => {
+          console.log(`    - ${detail.facilityType}: ${detail.count} copie (${detail.wastedBuffs} sprecate, buff: ${detail.buffValue})`);
         });
-        const validationEnd = performance.now();
-        results.validation.push(validationEnd - validationStart);
-        
-        // Cleanup
-        if (marker && marker.parentNode) {
-            marker.remove();
-        }
-    }
-    
-    // Calcola statistiche
-    const calculateStats = (arr) => ({
-        min: Math.min(...arr),
-        max: Math.max(...arr),
-        avg: arr.reduce((a, b) => a + b, 0) / arr.length,
-        p95: arr.sort((a, b) => a - b)[Math.floor(arr.length * 0.95)]
-    });
-    
-    console.log('📈 Benchmark Results:');
-    console.log('  Marker Creation:', calculateStats(results.creation));
-    console.log('  Validation:', calculateStats(results.validation));
-    
-    return results;
+      });
+  }
+  
+  console.log('\n💡 Raccomandazioni:');
+  report.recommendations.forEach(rec => {
+    const priority = rec.priority.toUpperCase();
+    console.log(`  [${priority}] ${rec.message}`);
+  });
+  
+  console.log('\n=== FINE REPORT ===');
+  return report;
 };
 
 // =====================================================================
-// SEZIONE 8: AUTO-INIZIALIZZAZIONE E SETUP
+// SEZIONE 8: INIZIALIZZAZIONE DEL SISTEMA MARKER
 // =====================================================================
 
 /**
- * Auto-inizializzazione quando il DOM è pronto
+ * Inizializzazione del sistema marker
+ * Questa funzione deve essere chiamata dopo il caricamento dei dati
  */
-document.addEventListener('DOMContentLoaded', function() {
-    // Attesa per assicurarsi che tutti i moduli siano caricati
-    setTimeout(() => {
-        if (typeof facilityData !== 'undefined' && typeof alliances !== 'undefined') {
-            const manager = initializeAdvancedMarkerSystem();
-            
-            if (manager) {
-                console.log('🎯 Advanced marker system auto-initialized successfully');
-                
-                // Setup observers per integrazione con il resto dell'app
-                manager.stateManager.subscribe('facilityAssigned', (data) => {
-                    console.log(`Facility assigned: ${data.facility.Type} -> ${data.alliance}`);
-                });
-                
-                // Crea marker iniziali se abbiamo dati
-                if (facilityData && facilityData.length > 0) {
-                    console.log(`Creating initial ${facilityData.length} markers...`);
-                    manager.createMarkersInBatch(facilityData).then(count => {
-                        console.log(`✅ Created ${count} initial markers successfully`);
-                    });
-                }
-            }
-        } else {
-            console.log('⏳ Waiting for facility data to initialize advanced marker system...');
-            
-            // Retry dopo un po' se i dati non sono ancora disponibili
-            setTimeout(() => {
-                if (typeof facilityData !== 'undefined') {
-                    initializeAdvancedMarkerSystem();
-                }
-            }, 2000);
-        }
-    }, 500);
-});
+function initializeMarkerSystem() {
+  console.log('🚀 Inizializzazione sistema marker...');
+  
+  // Applica ottimizzazioni per il dispositivo corrente
+  applyTouchOptimizations();
+  
+  // Verifica che i dati necessari siano disponibili
+  if (typeof facilityData === 'undefined' || !Array.isArray(facilityData)) {
+    console.error('❌ facilityData non disponibile per inizializzazione marker');
+    return false;
+  }
+  
+  if (typeof alliances === 'undefined' || !Array.isArray(alliances)) {
+    console.warn('⚠️ alliances non ancora disponibili, marker creati senza assegnazioni');
+  }
+  
+  // Crea tutti i marker
+  let successfulCreations = 0;
+  facilityData.forEach((facility, index) => {
+    try {
+      const marker = createInteractiveFacilityMarker(facility, index);
+      if (marker) {
+        successfulCreations++;
+      }
+    } catch (error) {
+      console.error(`❌ Errore creazione marker per facility ${index}:`, error, facility);
+    }
+  });
+  
+  // Report inizializzazione
+  console.log(`✅ Sistema marker inizializzato: ${successfulCreations}/${facilityData.length} marker creati`);
+  
+  return successfulCreations === facilityData.length;
+}
 
 // =====================================================================
-// LOG FINALE E RIEPILOGO ARCHITETTURA
+// SEZIONE 9: FUNZIONI ESPORTATE E UTILITY
 // =====================================================================
 
-console.log(`
-🎯 === MARKERS EVOLVED - PATTERN-DRIVEN ARCHITECTURE LOADED ===
+// Esporta funzioni principali per uso da altri moduli
+window.createMarker = createInteractiveFacilityMarker;
+window.recreateAllMarkers = recreateAllMapMarkers;
+window.renderAllianceIcon = renderAllianceIconOnMarker;
+window.assignFacilityToAllianceWithValidation = assignFacilityToAllianceWithValidation;
 
-🏗️ DESIGN PATTERNS IMPLEMENTATI:
-   • Factory Pattern - Creazione intelligente marker
-   • Strategy Pattern - Sistema validazione modulare  
-   • Observer Pattern - Sincronizzazione stati automatica
-   • Builder Pattern - Costruzione marker specializzati
+// Esporta funzioni di validazione per uso con barra controllo
+window.analyzeAllianceFacilityDuplicates = analyzeAllianceFacilityDuplicates;
+window.generateOptimalFacilitySuggestions = generateOptimalFacilitySuggestions;
 
-🚀 OTTIMIZZAZIONI PERFORMANCE:
-   • Batch processing per operazioni massive
-   • Virtual DOM leggero per caching
-   • Async/await per non bloccare UI
-   • Performance monitoring integrato
+/**
+ * Funzione di debug per il sistema marker
+ */
+window.debugMarkerSystem = function() {
+  const totalFacilities = typeof facilityData !== 'undefined' ? facilityData.length : 0;
+  const markersOnPage = document.querySelectorAll('.marker').length;
+  const assignedFacilities = typeof facilityData !== 'undefined' 
+    ? facilityData.filter(f => f.Alliance).length 
+    : 0;
+  
+  console.log('🔍 === DEBUG SISTEMA MARKER ===');
+  console.log(`📊 Facility totali: ${totalFacilities}`);
+  console.log(`📍 Marker sulla pagina: ${markersOnPage}`);
+  console.log(`🎯 Facility assegnate: ${assignedFacilities}`);
+  console.log(`📱 Dispositivo touch: ${isTouchDeviceWithScrollIssues()}`);
+  console.log('✅ Sistema barra controllo integrato');
+  
+  return {
+    totalFacilities,
+    markersOnPage,
+    assignedFacilities,
+    isTouch: isTouchDeviceWithScrollIssues(),
+    newControlSystem: true
+  };
+};
 
-🔧 MIGLIORAMENTI ARCHITETTURALI:
-   • Responsabilità separate e ben definite
-   • Estensibilità tramite pattern modulari
-   • Testing-friendly con dependency injection
-   • Backward compatibility mantenuta
-
-📚 EDUCATIONAL VALUE:
-   Questo modulo dimostra come evolvere codice procedurale
-   in un'architettura enterprise-grade mantenendo compatibilità
-   e migliorando performance, manutenibilità ed estensibilità.
-
-=== END MARKERS EVOLVED ===
-`);
-
-// Esportazioni per compatibilità
-window.MarkerSystemConfig = MarkerSystemConfig;
-window.IntelligentValidator = IntelligentValidator;
-window.PerformanceOptimizedMarkerManager = PerformanceOptimizedMarkerManager;
+console.log('✅ Sistema marker pulito caricato - Integrato con barra controllo fissa');
