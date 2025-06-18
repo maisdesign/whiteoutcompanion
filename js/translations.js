@@ -1,55 +1,35 @@
 // =====================================================================
-// TRANSLATIONS.JS - SISTEMA COMPLETO MULTILINGUA
+// TRANSLATIONS.JS - SISTEMA MULTILINGUA OTTIMIZZATO
 // =====================================================================
-// Questo file contiene tutte le traduzioni per Whiteout Survival Companion
-// organizzate in modo modulare per facilità di manutenzione e espansione.
+// Sistema traduzioni per Whiteout Survival Companion: 6 lingue complete
+// con struttura modulare per funzionalità dell'app. Ogni lingua contiene
+// le stesse chiavi organizzate per sezioni logiche.
 //
-// STRUTTURA ORGANIZZATIVA:
-// Ogni lingua è divisa in sezioni logiche che corrispondono alle 
-// funzionalità dell'applicazione. Questo approccio modulare permette
-// di aggiungere facilmente nuove funzionalità senza perdere la 
-// coerenza organizzativa.
-//
-// LINGUE SUPPORTATE: 
-// - Italiano (it) - Lingua principale di sviluppo
-// - Inglese (en) - Lingua internazionale di fallback  
-// - Spagnolo (es) - Mercato latino
-// - Francese (fr) - Mercato europeo
-// - Tedesco (de) - Mercato europeo centrale
-// - Portoghese (pt) - Mercato brasiliano/portoghese
+// LINGUE: IT (principale), EN (internazionale), ES, FR, DE, PT
+// SEZIONI: Interfaccia, Alleanze, Import/Export, Multilingua, Colori,
+//          Riepiloghi, Calibrazione, Assegnazioni, Anti-duplicati, Reset
 
-console.log('🌐 Caricamento sistema traduzioni multilingua...');
+console.log('🌐 Caricamento sistema traduzioni ottimizzato...');
 
 // =====================================================================
-// TRADUZIONI COMPLETE PER LINGUA
+// TRADUZIONI COMPLETE - 6 LINGUE
 // =====================================================================
 
 const translations = {
   
-  // ===================================================================
-  // 🇮🇹 ITALIANO - LINGUA PRINCIPALE
-  // ===================================================================
-  // L'italiano è spesso usato come lingua di riferimento per lo sviluppo
-  // dato che il progetto sembra essere di origine italiana
+  // =================================================================
+  // 🇮🇹 ITALIANO
+  // =================================================================
   
   it: {
-    // =================================================================
-    // SEZIONE: INTERFACCIA PRINCIPALE
-    // =================================================================
-    // Elementi base dell'interfaccia utente: titoli, sottotitoli, 
-    // navigazione principale
-    
+    // Interfaccia principale
     title: "🗺️ Whiteout Survival Companion",
     subtitle: "Gestione professionale alleanze con calibrazione mappa",
     interactiveMap: "🗺️ Mappa Interattiva",
     legend: "Legenda",
     legendTitle: "🎨 Legenda Colori e Icone Ufficiali",
     
-    // =================================================================
-    // SEZIONE: GESTIONE ALLEANZE
-    // =================================================================
-    // Tutto ciò che riguarda la creazione, modifica e gestione delle alleanze
-    
+    // Gestione alleanze
     alliances: "Alleanze",
     assigned: "Assegnate",
     allianceManagement: "🏰 Gestione Alleanze",
@@ -64,14 +44,10 @@ const translations = {
     allianceUpdated: "Alleanza aggiornata",
     allianceCreated: "Alleanza creata",
     
-    // =================================================================
-    // SEZIONE: IMPORT/EXPORT E FILE
-    // =================================================================
-    // Funzionalità di importazione, esportazione e gestione file
-    
+    // Import/Export
     exportCSV: "📊 Esporta CSV",
     exportPNG: "🖼️ Esporta PNG",
-    importCSV: "📥 Importa CSV", 
+    importCSV: "📥 Importa CSV",
     csvExported: "📊 CSV esportato con successo!",
     pngExported: "PNG esportato",
     importSuccess: "Importazione completata",
@@ -79,8 +55,6 @@ const translations = {
     importError: "Errore nell'importazione del CSV",
     emptyCsv: "CSV vuoto o non valido",
     pngExportNotAvailable: "Funzione export PNG non disponibile",
-    
-    // Gestione file avanzata
     processing: "Elaborazione...",
     processingImage: "Elaborazione immagine...",
     imageOptimized: "Immagine ottimizzata",
@@ -91,28 +65,18 @@ const translations = {
     imageProcessingFailed: "Errore nell'elaborazione dell'immagine.",
     fileReadFailed: "Errore nella lettura del file.",
     fileTooltip: "JPG, PNG, GIF, WebP - Max 2MB",
-    
-    // Messaggi export PNG
     exportedOn: "Esportato il",
     free: "Libere",
     active: "Attive",
     preparingExport: "Preparazione export...",
     renderingImage: "Rendering immagine...",
     
-    // =================================================================
-    // SEZIONE: SISTEMA MULTILINGUA
-    // =================================================================
-    // Controlli e messaggi per la gestione delle lingue
-    
+    // Sistema multilingua
     language: "🌐 Lingua",
     selectLanguage: "🌐 Seleziona Lingua",
     languageSet: "🌐 Lingua impostata!",
     
-    // =================================================================
-    // SEZIONE: COLORI E TIPI FACILITY
-    // =================================================================
-    // Nomi e descrizioni dei tipi di facility con i loro colori ufficiali
-    
+    // Colori facility
     colorCastle: "Castle (Oro)",
     colorConstruction: "Construction (Blu)",
     colorProduction: "Production (Verde)",
@@ -125,11 +89,7 @@ const translations = {
     colorStronghold: "Stronghold (Marrone)",
     colorFortress: "Fortress (Grigio Scuro)",
     
-    // =================================================================
-    // SEZIONE: RIEPILOGHI E STATISTICHE
-    // =================================================================
-    // Interfacce per visualizzare statistiche e riepiloghi
-    
+    // Riepiloghi
     facilitySummary: "📋 Riepilogo Strutture",
     buffSummary: "⚡ Riepilogo Buff",
     noStructuresLoaded: "Nessuna struttura caricata",
@@ -137,72 +97,45 @@ const translations = {
     noBuffRecognized: "Nessun buff riconosciuto",
     structures: "strutture",
     
-    // =================================================================
-    // SEZIONE: CALIBRAZIONE AVANZATA
-    // =================================================================
-    // Sistema per la calibrazione precisa della mappa
-    
+    // Calibrazione
     advancedCalibration: "🔧 Calibrazione Avanzata",
     calibrationUnlocked: "🔓 Calibrazione sbloccata!",
     wrongPassword: "❌ Password errata!",
     
-    // =================================================================
-    // SEZIONE: ASSEGNAZIONI E DROPDOWN
-    // =================================================================
-    // Interfaccia per assegnare facility alle alleanze
-    
+    // Assegnazioni
     unassigned: "Non assegnata",
     assignedTo: "assegnata a",
-    removed: "rimossa", 
+    removed: "rimossa",
     options: "opzioni",
     scrollToSeeAll: "Scrolla per vedere tutte le alleanze",
     markersUpdated: "marker aggiornati",
     
-    // =================================================================
-    // SEZIONE: VALIDAZIONE E MESSAGGI DI ERRORE
-    // =================================================================
-    // Messaggi per validazioni, errori e avvertimenti
-    
+    // Validazione
     addAtLeastOneAlliance: "⚠️ Aggiungi almeno un'alleanza prima di assegnare.",
     enterAllianceName: "Inserisci un nome per l'alleanza",
     allianceExists: "Alleanza già esistente",
     maxAlliances: "Massimo 50 alleanze",
     
-    // =================================================================
-    // SEZIONE: SISTEMA ANTI-DUPLICATI (NUOVO)
-    // =================================================================
-    // Tutto il sistema educativo per prevenire conflitti di buff
-    
-    // Messaggi principali dell'alert
+    // Sistema anti-duplicati
     assignmentCancelled: "Assegnazione annullata per evitare conflitto buff",
     duplicateAssignmentConfirmed: "Buff duplicato assegnato (non ottimale)",
     duplicateFacilityWarning: "ATTENZIONE: Buff Duplicato Rilevato!",
     duplicateFacilityExplanation: "In Whiteout Survival i buff NON si sommano per facility identiche!",
-    
-    // Calcoli e statistiche buff
     theoreticalBuff: "Buff teorico",
-    actualBuff: "Buff REALE", 
+    actualBuff: "Buff REALE",
     wastedBuffs: "Buff sprecati",
     buffCalculation: "Calcolo Buff",
-    
-    // Strategia e suggerimenti
     betterStrategy: "STRATEGIA MIGLIORE",
     diversifyFacilities: "Diversifica i tipi di facility per massimizzare i buff!",
     moreEffectiveAlternatives: "Alternative più efficaci",
     noAlternativesAvailable: "Nessuna alternativa disponibile al momento",
-    
-    // Interfaccia dell'alert
     continueAnyway: "Vuoi continuare comunque con questa assegnazione?",
     notRecommended: "(Non raccomandata per ottimizzazione strategica)",
     alreadyPresent: "Già presenti",
     situation: "Situazione",
     gameplayProblem: "PROBLEMA DEL GAMEPLAY",
     
-    // =================================================================
-    // SEZIONE: SISTEMA RESET CON UNDO
-    // =================================================================
-    // Funzionalità avanzata di reset con possibilità di annullamento
-    
+    // Sistema reset con undo
     resetAssignments: "Reset Assegnazioni",
     noAssignmentsToReset: "⚠️ Nessuna assegnazione da resettare",
     resetConfirmationTitle: "🗑️ Conferma Reset Totale",
@@ -220,11 +153,7 @@ const translations = {
     undoCompleted: "Annullamento completato",
     assignmentsRestored: "assegnazioni ripristinate",
     
-    // =================================================================
-    // SEZIONE: REPORT E ANALISI
-    // =================================================================
-    // Sistema di reporting per ottimizzazione strategica
-    
+    // Report e analisi
     buffOptimizationReport: "Report Ottimizzazione Buff",
     totalAlliances: "Alleanze totali",
     alliancesWithIssues: "Alleanze con problemi",
@@ -236,35 +165,24 @@ const translations = {
     copies: "copie",
     wasted: "sprecate",
     
-    // =================================================================
-    // SEZIONE: MESSAGGI DI SISTEMA
-    // =================================================================
-    // Messaggi di caricamento, stato e feedback generale
-    
+    // Messaggi sistema
     appLoaded: "🎯 App caricata! {count} strutture con colori ufficiali.",
     appReady: "🚀 App pronta per l'uso"
   },
   
-  // ===================================================================
-  // 🇺🇸 INGLESE - LINGUA INTERNAZIONALE
-  // ===================================================================
-  // L'inglese serve come lingua di fallback e per il mercato internazionale
+  // =================================================================
+  // 🇺🇸 INGLESE
+  // =================================================================
   
   en: {
-    // =================================================================
-    // SEZIONE: INTERFACCIA PRINCIPALE
-    // =================================================================
-    
+    // Interfaccia principale
     title: "🗺️ Whiteout Survival Companion",
     subtitle: "Professional alliance management with map calibration",
     interactiveMap: "🗺️ Interactive Map",
     legend: "Legend",
     legendTitle: "🎨 Official Colors and Icons Legend",
     
-    // =================================================================
-    // SEZIONE: GESTIONE ALLEANZE
-    // =================================================================
-    
+    // Gestione alleanze
     alliances: "Alliances",
     assigned: "Assigned",
     allianceManagement: "🏰 Alliance Management",
@@ -279,10 +197,7 @@ const translations = {
     allianceUpdated: "Alliance updated",
     allianceCreated: "Alliance created",
     
-    // =================================================================
-    // SEZIONE: IMPORT/EXPORT E FILE
-    // =================================================================
-    
+    // Import/Export
     exportCSV: "📊 Export CSV",
     exportPNG: "🖼️ Export PNG",
     importCSV: "📥 Import CSV",
@@ -293,8 +208,6 @@ const translations = {
     importError: "Error importing CSV",
     emptyCsv: "Empty or invalid CSV",
     pngExportNotAvailable: "PNG export function not available",
-    
-    // Gestione file avanzata
     processing: "Processing...",
     processingImage: "Processing image...",
     imageOptimized: "Image optimized",
@@ -305,26 +218,18 @@ const translations = {
     imageProcessingFailed: "Error processing image.",
     fileReadFailed: "Error reading file.",
     fileTooltip: "JPG, PNG, GIF, WebP - Max 2MB",
-    
-    // Messaggi export PNG
     exportedOn: "Exported on",
     free: "Free",
     active: "Active",
     preparingExport: "Preparing export...",
     renderingImage: "Rendering image...",
     
-    // =================================================================
-    // SEZIONE: SISTEMA MULTILINGUA
-    // =================================================================
-    
+    // Sistema multilingua
     language: "🌐 Language",
     selectLanguage: "🌐 Select Language",
     languageSet: "🌐 Language set!",
     
-    // =================================================================
-    // SEZIONE: COLORI E TIPI FACILITY
-    // =================================================================
-    
+    // Colori facility
     colorCastle: "Castle (Gold)",
     colorConstruction: "Construction (Blue)",
     colorProduction: "Production (Green)",
@@ -337,10 +242,7 @@ const translations = {
     colorStronghold: "Stronghold (Brown)",
     colorFortress: "Fortress (Dark Gray)",
     
-    // =================================================================
-    // SEZIONE: RIEPILOGHI E STATISTICHE
-    // =================================================================
-    
+    // Riepiloghi
     facilitySummary: "📋 Facility Summary",
     buffSummary: "⚡ Buff Summary",
     noStructuresLoaded: "No structures loaded",
@@ -348,18 +250,12 @@ const translations = {
     noBuffRecognized: "No buff recognized",
     structures: "structures",
     
-    // =================================================================
-    // SEZIONE: CALIBRAZIONE AVANZATA
-    // =================================================================
-    
+    // Calibrazione
     advancedCalibration: "🔧 Advanced Calibration",
     calibrationUnlocked: "🔓 Calibration unlocked!",
     wrongPassword: "❌ Wrong password!",
     
-    // =================================================================
-    // SEZIONE: ASSEGNAZIONI E DROPDOWN
-    // =================================================================
-    
+    // Assegnazioni
     unassigned: "Unassigned",
     assignedTo: "assigned to",
     removed: "removed",
@@ -367,19 +263,13 @@ const translations = {
     scrollToSeeAll: "Scroll to see all alliances",
     markersUpdated: "markers updated",
     
-    // =================================================================
-    // SEZIONE: VALIDAZIONE E MESSAGGI DI ERRORE
-    // =================================================================
-    
+    // Validazione
     addAtLeastOneAlliance: "⚠️ Add at least one alliance before assigning.",
     enterAllianceName: "Enter an alliance name",
     allianceExists: "Alliance already exists",
     maxAlliances: "Maximum 50 alliances",
     
-    // =================================================================
-    // SEZIONE: SISTEMA ANTI-DUPLICATI
-    // =================================================================
-    
+    // Sistema anti-duplicati
     assignmentCancelled: "Assignment cancelled to avoid buff conflict",
     duplicateAssignmentConfirmed: "Duplicate buff assigned (not optimal)",
     duplicateFacilityWarning: "WARNING: Duplicate Buff Detected!",
@@ -398,10 +288,7 @@ const translations = {
     situation: "Situation",
     gameplayProblem: "GAMEPLAY ISSUE",
     
-    // =================================================================
-    // SEZIONE: SISTEMA RESET CON UNDO
-    // =================================================================
-    
+    // Sistema reset con undo
     resetAssignments: "Reset Assignments",
     noAssignmentsToReset: "⚠️ No assignments to reset",
     resetConfirmationTitle: "🗑️ Confirm Total Reset",
@@ -419,10 +306,7 @@ const translations = {
     undoCompleted: "Undo completed",
     assignmentsRestored: "assignments restored",
     
-    // =================================================================
-    // SEZIONE: REPORT E ANALISI
-    // =================================================================
-    
+    // Report e analisi
     buffOptimizationReport: "Buff Optimization Report",
     totalAlliances: "Total alliances",
     alliancesWithIssues: "Alliances with issues",
@@ -434,34 +318,24 @@ const translations = {
     copies: "copies",
     wasted: "wasted",
     
-    // =================================================================
-    // SEZIONE: MESSAGGI DI SISTEMA
-    // =================================================================
-    
+    // Messaggi sistema
     appLoaded: "🎯 App loaded! {count} structures with official colors.",
     appReady: "🚀 App ready for use"
   },
   
-  // ===================================================================
-  // 🇪🇸 SPAGNOLO - MERCATO LATINO
-  // ===================================================================
-  // Lo spagnolo copre un vasto mercato di giocatori in America Latina e Spagna
+  // =================================================================
+  // 🇪🇸 SPAGNOLO
+  // =================================================================
   
   es: {
-    // =================================================================
-    // SEZIONE: INTERFACCIA PRINCIPALE
-    // =================================================================
-    
+    // Interfaccia principale
     title: "🗺️ Whiteout Survival Companion",
     subtitle: "Gestión profesional de alianzas con calibración de mapa",
     interactiveMap: "🗺️ Mapa Interactivo",
     legend: "Leyenda",
     legendTitle: "🎨 Leyenda Colores e Iconos Oficiales",
     
-    // =================================================================
-    // SEZIONE: GESTIONE ALLEANZE
-    // =================================================================
-    
+    // Gestione alleanze
     alliances: "Alianzas",
     assigned: "Asignadas",
     allianceManagement: "🏰 Gestión de Alianzas",
@@ -476,10 +350,7 @@ const translations = {
     allianceUpdated: "Alianza actualizada",
     allianceCreated: "Alianza creada",
     
-    // =================================================================
-    // SEZIONE: IMPORT/EXPORT E FILE
-    // =================================================================
-    
+    // Import/Export
     exportCSV: "📊 Exportar CSV",
     exportPNG: "🖼️ Exportar PNG",
     importCSV: "📥 Importar CSV",
@@ -490,8 +361,6 @@ const translations = {
     importError: "Error al importar CSV",
     emptyCsv: "CSV vacío o inválido",
     pngExportNotAvailable: "Función de exportación PNG no disponible",
-    
-    // Gestione file avanzata
     processing: "Procesando...",
     processingImage: "Procesando imagen...",
     imageOptimized: "Imagen optimizada",
@@ -502,26 +371,18 @@ const translations = {
     imageProcessingFailed: "Error procesando imagen.",
     fileReadFailed: "Error leyendo archivo.",
     fileTooltip: "JPG, PNG, GIF, WebP - Máx 2MB",
-    
-    // Messaggi export PNG
     exportedOn: "Exportado el",
     free: "Libres",
     active: "Activas",
     preparingExport: "Preparando exportación...",
     renderingImage: "Renderizando imagen...",
     
-    // =================================================================
-    // SEZIONE: SISTEMA MULTILINGUA
-    // =================================================================
-    
+    // Sistema multilingua
     language: "🌐 Idioma",
     selectLanguage: "🌐 Seleccionar Idioma",
     languageSet: "🌐 ¡Idioma establecido!",
     
-    // =================================================================
-    // SEZIONE: COLORI E TIPI FACILITY
-    // =================================================================
-    
+    // Colori facility
     colorCastle: "Castle (Oro)",
     colorConstruction: "Construction (Azul)",
     colorProduction: "Production (Verde)",
@@ -534,10 +395,7 @@ const translations = {
     colorStronghold: "Stronghold (Marrón)",
     colorFortress: "Fortress (Gris Oscuro)",
     
-    // =================================================================
-    // SEZIONE: RIEPILOGHI E STATISTICHE
-    // =================================================================
-    
+    // Riepiloghi
     facilitySummary: "📋 Resumen de Instalaciones",
     buffSummary: "⚡ Resumen de Buff",
     noStructuresLoaded: "No hay estructuras cargadas",
@@ -545,18 +403,12 @@ const translations = {
     noBuffRecognized: "No hay buff reconocido",
     structures: "estructuras",
     
-    // =================================================================
-    // SEZIONE: CALIBRAZIONE AVANZATA
-    // =================================================================
-    
+    // Calibrazione
     advancedCalibration: "🔧 Calibración Avanzada",
     calibrationUnlocked: "🔓 ¡Calibración desbloqueada!",
     wrongPassword: "❌ ¡Contraseña incorrecta!",
     
-    // =================================================================
-    // SEZIONE: ASSEGNAZIONI E DROPDOWN
-    // =================================================================
-    
+    // Assegnazioni
     unassigned: "Sin asignar",
     assignedTo: "asignada a",
     removed: "removida",
@@ -564,19 +416,13 @@ const translations = {
     scrollToSeeAll: "Desplázate para ver todas las alianzas",
     markersUpdated: "marcadores actualizados",
     
-    // =================================================================
-    // SEZIONE: VALIDAZIONE E MESSAGGI DI ERRORE
-    // =================================================================
-    
+    // Validazione
     addAtLeastOneAlliance: "⚠️ Agrega al menos una alianza antes de asignar.",
     enterAllianceName: "Ingresa un nombre de alianza",
     allianceExists: "La alianza ya existe",
     maxAlliances: "Máximo 50 alianzas",
     
-    // =================================================================
-    // SEZIONE: SISTEMA ANTI-DUPLICATI
-    // =================================================================
-    
+    // Sistema anti-duplicati
     assignmentCancelled: "Asignación cancelada para evitar conflicto de buff",
     duplicateAssignmentConfirmed: "Buff duplicado asignado (no óptimo)",
     duplicateFacilityWarning: "¡ATENCIÓN: Buff Duplicado Detectado!",
@@ -595,10 +441,7 @@ const translations = {
     situation: "Situación",
     gameplayProblem: "PROBLEMA DE JUGABILIDAD",
     
-    // =================================================================
-    // SEZIONE: SISTEMA RESET CON UNDO
-    // =================================================================
-    
+    // Sistema reset con undo
     resetAssignments: "Resetear Asignaciones",
     noAssignmentsToReset: "⚠️ No hay asignaciones que resetear",
     resetConfirmationTitle: "🗑️ Confirmar Reset Total",
@@ -616,10 +459,7 @@ const translations = {
     undoCompleted: "Deshacer completado",
     assignmentsRestored: "asignaciones restauradas",
     
-    // =================================================================
-    // SEZIONE: REPORT E ANALISI
-    // =================================================================
-    
+    // Report e analisi
     buffOptimizationReport: "Reporte de Optimización de Buff",
     totalAlliances: "Alianzas totales",
     alliancesWithIssues: "Alianzas con problemas",
@@ -631,34 +471,24 @@ const translations = {
     copies: "copias",
     wasted: "desperdiciadas",
     
-    // =================================================================
-    // SEZIONE: MESSAGGI DI SISTEMA
-    // =================================================================
-    
+    // Messaggi sistema
     appLoaded: "🎯 ¡App cargada! {count} estructuras con colores oficiales.",
     appReady: "🚀 App lista para usar"
   },
   
-  // ===================================================================
-  // 🇫🇷 FRANCESE - MERCATO EUROPEO
-  // ===================================================================
-  // Il francese copre Francia, Belgio, Svizzera francese, Canada francofono
+  // =================================================================
+  // 🇫🇷 FRANCESE
+  // =================================================================
   
   fr: {
-    // =================================================================
-    // SEZIONE: INTERFACCIA PRINCIPALE
-    // =================================================================
-    
+    // Interfaccia principale
     title: "🗺️ Whiteout Survival Companion",
     subtitle: "Gestion professionnelle d'alliances avec calibrage de carte",
     interactiveMap: "🗺️ Carte Interactive",
     legend: "Légende",
     legendTitle: "🎨 Légende Couleurs et Icônes Officielles",
     
-    // =================================================================
-    // SEZIONE: GESTIONE ALLEANZE
-    // =================================================================
-    
+    // Gestione alleanze
     alliances: "Alliances",
     assigned: "Assignées",
     allianceManagement: "🏰 Gestion des Alliances",
@@ -673,10 +503,7 @@ const translations = {
     allianceUpdated: "Alliance mise à jour",
     allianceCreated: "Alliance créée",
     
-    // =================================================================
-    // SEZIONE: IMPORT/EXPORT E FILE
-    // =================================================================
-    
+    // Import/Export
     exportCSV: "📊 Exporter CSV",
     exportPNG: "🖼️ Exporter PNG",
     importCSV: "📥 Importer CSV",
@@ -687,8 +514,6 @@ const translations = {
     importError: "Erreur lors de l'importation CSV",
     emptyCsv: "CSV vide ou invalide",
     pngExportNotAvailable: "Fonction d'export PNG non disponible",
-    
-    // Gestione file avanzata
     processing: "Traitement...",
     processingImage: "Traitement de l'image...",
     imageOptimized: "Image optimisée",
@@ -699,26 +524,18 @@ const translations = {
     imageProcessingFailed: "Erreur de traitement de l'image.",
     fileReadFailed: "Erreur de lecture du fichier.",
     fileTooltip: "JPG, PNG, GIF, WebP - Max 2MB",
-    
-    // Messaggi export PNG
     exportedOn: "Exporté le",
     free: "Libres",
     active: "Actives",
     preparingExport: "Préparation de l'export...",
     renderingImage: "Rendu de l'image...",
     
-    // =================================================================
-    // SEZIONE: SISTEMA MULTILINGUA
-    // =================================================================
-    
+    // Sistema multilingua
     language: "🌐 Langue",
     selectLanguage: "🌐 Sélectionner la Langue",
     languageSet: "🌐 Langue définie !",
     
-    // =================================================================
-    // SEZIONE: COLORI E TIPI FACILITY
-    // =================================================================
-    
+    // Colori facility
     colorCastle: "Castle (Or)",
     colorConstruction: "Construction (Bleu)",
     colorProduction: "Production (Vert)",
@@ -731,10 +548,7 @@ const translations = {
     colorStronghold: "Stronghold (Marron)",
     colorFortress: "Fortress (Gris Foncé)",
     
-    // =================================================================
-    // SEZIONE: RIEPILOGHI E STATISTICHE
-    // =================================================================
-    
+    // Riepiloghi
     facilitySummary: "📋 Résumé des Installations",
     buffSummary: "⚡ Résumé des Buff",
     noStructuresLoaded: "Aucune structure chargée",
@@ -742,18 +556,12 @@ const translations = {
     noBuffRecognized: "Aucun buff reconnu",
     structures: "structures",
     
-    // =================================================================
-    // SEZIONE: CALIBRAZIONE AVANZATA
-    // =================================================================
-    
+    // Calibrazione
     advancedCalibration: "🔧 Calibrage Avancé",
     calibrationUnlocked: "🔓 Calibrage débloqué !",
     wrongPassword: "❌ Mot de passe incorrect !",
     
-    // =================================================================
-    // SEZIONE: ASSEGNAZIONI E DROPDOWN
-    // =================================================================
-    
+    // Assegnazioni
     unassigned: "Non assignée",
     assignedTo: "assignée à",
     removed: "supprimée",
@@ -761,19 +569,13 @@ const translations = {
     scrollToSeeAll: "Faire défiler pour voir toutes les alliances",
     markersUpdated: "marqueurs mis à jour",
     
-    // =================================================================
-    // SEZIONE: VALIDAZIONE E MESSAGGI DI ERRORE
-    // =================================================================
-    
+    // Validazione
     addAtLeastOneAlliance: "⚠️ Ajoutez au moins une alliance avant d'assigner.",
     enterAllianceName: "Entrez un nom d'alliance",
     allianceExists: "L'alliance existe déjà",
     maxAlliances: "Maximum 50 alliances",
     
-    // =================================================================
-    // SEZIONE: SISTEMA ANTI-DUPLICATI
-    // =================================================================
-    
+    // Sistema anti-duplicati
     assignmentCancelled: "Assignation annulée pour éviter un conflit de buff",
     duplicateAssignmentConfirmed: "Buff dupliqué assigné (non optimal)",
     duplicateFacilityWarning: "ATTENTION: Buff Dupliqué Détecté!",
@@ -792,10 +594,7 @@ const translations = {
     situation: "Situation",
     gameplayProblem: "PROBLÈME DE GAMEPLAY",
     
-    // =================================================================
-    // SEZIONE: SISTEMA RESET CON UNDO
-    // =================================================================
-    
+    // Sistema reset con undo
     resetAssignments: "Reset Assignations",
     noAssignmentsToReset: "⚠️ Aucune assignation à remettre à zéro",
     resetConfirmationTitle: "🗑️ Confirmer Reset Total",
@@ -813,10 +612,7 @@ const translations = {
     undoCompleted: "Annulation terminée",
     assignmentsRestored: "assignations restaurées",
     
-    // =================================================================
-    // SEZIONE: REPORT E ANALISI
-    // =================================================================
-    
+    // Report e analisi
     buffOptimizationReport: "Rapport d'Optimisation des Buffs",
     totalAlliances: "Alliances totales",
     alliancesWithIssues: "Alliances avec problèmes",
@@ -828,34 +624,24 @@ const translations = {
     copies: "copies",
     wasted: "gaspillées",
     
-    // =================================================================
-    // SEZIONE: MESSAGGI DI SISTEMA
-    // =================================================================
-    
+    // Messaggi sistema
     appLoaded: "🎯 App chargée ! {count} structures avec couleurs officielles.",
     appReady: "🚀 App prête à utiliser"
   },
   
-  // ===================================================================
-  // 🇩🇪 TEDESCO - MERCATO EUROPA CENTRALE
-  // ===================================================================
-  // Il tedesco copre Germania, Austria, Svizzera tedesca
+  // =================================================================
+  // 🇩🇪 TEDESCO
+  // =================================================================
   
   de: {
-    // =================================================================
-    // SEZIONE: INTERFACCIA PRINCIPALE
-    // =================================================================
-    
+    // Interfaccia principale
     title: "🗺️ Whiteout Survival Companion",
     subtitle: "Professionelle Allianz-Verwaltung mit Kartenkalibrierung",
     interactiveMap: "🗺️ Interaktive Karte",
     legend: "Legende",
     legendTitle: "🎨 Offizielle Farben und Symbole Legende",
     
-    // =================================================================
-    // SEZIONE: GESTIONE ALLEANZE
-    // =================================================================
-    
+    // Gestione alleanze
     alliances: "Allianzen",
     assigned: "Zugewiesen",
     allianceManagement: "🏰 Allianz-Verwaltung",
@@ -870,10 +656,7 @@ const translations = {
     allianceUpdated: "Allianz aktualisiert",
     allianceCreated: "Allianz erstellt",
     
-    // =================================================================
-    // SEZIONE: IMPORT/EXPORT E FILE
-    // =================================================================
-    
+    // Import/Export
     exportCSV: "📊 CSV Exportieren",
     exportPNG: "🖼️ PNG Exportieren",
     importCSV: "📥 CSV Importieren",
@@ -884,8 +667,6 @@ const translations = {
     importError: "Fehler beim CSV-Import",
     emptyCsv: "Leere oder ungültige CSV",
     pngExportNotAvailable: "PNG-Export-Funktion nicht verfügbar",
-    
-    // Gestione file avanzata
     processing: "Verarbeitung...",
     processingImage: "Bild verarbeiten...",
     imageOptimized: "Bild optimiert",
@@ -896,26 +677,18 @@ const translations = {
     imageProcessingFailed: "Fehler bei der Bildverarbeitung.",
     fileReadFailed: "Fehler beim Lesen der Datei.",
     fileTooltip: "JPG, PNG, GIF, WebP - Max 2MB",
-    
-    // Messaggi export PNG
     exportedOn: "Exportiert am",
     free: "Frei",
     active: "Aktiv",
     preparingExport: "Export vorbereiten...",
     renderingImage: "Bild rendern...",
     
-    // =================================================================
-    // SEZIONE: SISTEMA MULTILINGUA
-    // =================================================================
-    
+    // Sistema multilingua
     language: "🌐 Sprache",
     selectLanguage: "🌐 Sprache Auswählen",
     languageSet: "🌐 Sprache eingestellt!",
     
-    // =================================================================
-    // SEZIONE: COLORI E TIPI FACILITY
-    // =================================================================
-    
+    // Colori facility
     colorCastle: "Castle (Gold)",
     colorConstruction: "Construction (Blau)",
     colorProduction: "Production (Grün)",
@@ -928,10 +701,7 @@ const translations = {
     colorStronghold: "Stronghold (Braun)",
     colorFortress: "Fortress (Dunkelgrau)",
     
-    // =================================================================
-    // SEZIONE: RIEPILOGHI E STATISTICHE
-    // =================================================================
-    
+    // Riepiloghi
     facilitySummary: "📋 Anlagen-Zusammenfassung",
     buffSummary: "⚡ Buff-Zusammenfassung",
     noStructuresLoaded: "Keine Strukturen geladen",
@@ -939,18 +709,12 @@ const translations = {
     noBuffRecognized: "Kein Buff erkannt",
     structures: "Strukturen",
     
-    // =================================================================
-    // SEZIONE: CALIBRAZIONE AVANZATA
-    // =================================================================
-    
+    // Calibrazione
     advancedCalibration: "🔧 Erweiterte Kalibrierung",
     calibrationUnlocked: "🔓 Kalibrierung freigeschaltet!",
     wrongPassword: "❌ Falsches Passwort!",
     
-    // =================================================================
-    // SEZIONE: ASSEGNAZIONI E DROPDOWN
-    // =================================================================
-    
+    // Assegnazioni
     unassigned: "Nicht zugewiesen",
     assignedTo: "zugewiesen an",
     removed: "entfernt",
@@ -958,19 +722,13 @@ const translations = {
     scrollToSeeAll: "Scrollen Sie, um alle Allianzen zu sehen",
     markersUpdated: "Markierungen aktualisiert",
     
-    // =================================================================
-    // SEZIONE: VALIDAZIONE E MESSAGGI DI ERRORE
-    // =================================================================
-    
+    // Validazione
     addAtLeastOneAlliance: "⚠️ Fügen Sie mindestens eine Allianz hinzu, bevor Sie zuweisen.",
     enterAllianceName: "Geben Sie einen Allianznamen ein",
     allianceExists: "Allianz existiert bereits",
     maxAlliances: "Maximal 50 Allianzen",
     
-    // =================================================================
-    // SEZIONE: SISTEMA ANTI-DUPLICATI
-    // =================================================================
-    
+    // Sistema anti-duplicati
     assignmentCancelled: "Zuordnung abgebrochen um Buff-Konflikt zu vermeiden",
     duplicateAssignmentConfirmed: "Doppelter Buff zugeordnet (nicht optimal)",
     duplicateFacilityWarning: "WARNUNG: Doppelter Buff Erkannt!",
@@ -989,10 +747,7 @@ const translations = {
     situation: "Situation",
     gameplayProblem: "GAMEPLAY-PROBLEM",
     
-    // =================================================================
-    // SEZIONE: SISTEMA RESET CON UNDO
-    // =================================================================
-    
+    // Sistema reset con undo
     resetAssignments: "Zuweisungen Zurücksetzen",
     noAssignmentsToReset: "⚠️ Keine Zuweisungen zum Zurücksetzen",
     resetConfirmationTitle: "🗑️ Totalen Reset Bestätigen",
@@ -1010,10 +765,7 @@ const translations = {
     undoCompleted: "Rückgängig abgeschlossen",
     assignmentsRestored: "Zuweisungen wiederhergestellt",
     
-    // =================================================================
-    // SEZIONE: REPORT E ANALISI
-    // =================================================================
-    
+    // Report e analisi
     buffOptimizationReport: "Buff-Optimierungs-Bericht",
     totalAlliances: "Allianzen gesamt",
     alliancesWithIssues: "Allianzen mit Problemen",
@@ -1025,34 +777,24 @@ const translations = {
     copies: "Kopien",
     wasted: "verschwendet",
     
-    // =================================================================
-    // SEZIONE: MESSAGGI DI SISTEMA
-    // =================================================================
-    
+    // Messaggi sistema
     appLoaded: "🎯 App geladen! {count} Strukturen mit offiziellen Farben.",
     appReady: "🚀 App bereit für den Einsatz"
   },
   
-  // ===================================================================
-  // 🇵🇹 PORTOGHESE - MERCATO BRASILIANO/PORTOGHESE
-  // ===================================================================
-  // Il portoghese copre Brasile (mercato enorme) e Portogallo
+  // =================================================================
+  // 🇵🇹 PORTOGHESE
+  // =================================================================
   
   pt: {
-    // =================================================================
-    // SEZIONE: INTERFACCIA PRINCIPALE
-    // =================================================================
-    
+    // Interfaccia principale
     title: "🗺️ Whiteout Survival Companion",
     subtitle: "Gestão profissional de alianças com calibração de mapa",
     interactiveMap: "🗺️ Mapa Interativo",
     legend: "Legenda",
     legendTitle: "🎨 Legenda Cores e Ícones Oficiais",
     
-    // =================================================================
-    // SEZIONE: GESTIONE ALLEANZE
-    // =================================================================
-    
+    // Gestione alleanze
     alliances: "Alianças",
     assigned: "Atribuídas",
     allianceManagement: "🏰 Gestão de Alianças",
@@ -1067,10 +809,7 @@ const translations = {
     allianceUpdated: "Aliança atualizada",
     allianceCreated: "Aliança criada",
     
-    // =================================================================
-    // SEZIONE: IMPORT/EXPORT E FILE
-    // =================================================================
-    
+    // Import/Export
     exportCSV: "📊 Exportar CSV",
     exportPNG: "🖼️ Exportar PNG",
     importCSV: "📥 Importar CSV",
@@ -1081,8 +820,6 @@ const translations = {
     importError: "Erro ao importar CSV",
     emptyCsv: "CSV vazio ou inválido",
     pngExportNotAvailable: "Função de exportação PNG não disponível",
-    
-    // Gestione file avanzata
     processing: "Processando...",
     processingImage: "Processando imagem...",
     imageOptimized: "Imagem otimizada",
@@ -1093,26 +830,18 @@ const translations = {
     imageProcessingFailed: "Erro processando imagem.",
     fileReadFailed: "Erro lendo arquivo.",
     fileTooltip: "JPG, PNG, GIF, WebP - Máx 2MB",
-    
-    // Messaggi export PNG
     exportedOn: "Exportado em",
     free: "Livres",
     active: "Ativas",
     preparingExport: "Preparando exportação...",
     renderingImage: "Renderizando imagem...",
     
-    // =================================================================
-    // SEZIONE: SISTEMA MULTILINGUA
-    // =================================================================
-    
+    // Sistema multilingua
     language: "🌐 Idioma",
     selectLanguage: "🌐 Selecionar Idioma",
     languageSet: "🌐 Idioma definido!",
     
-    // =================================================================
-    // SEZIONE: COLORI E TIPI FACILITY
-    // =================================================================
-    
+    // Colori facility
     colorCastle: "Castle (Ouro)",
     colorConstruction: "Construction (Azul)",
     colorProduction: "Production (Verde)",
@@ -1125,10 +854,7 @@ const translations = {
     colorStronghold: "Stronghold (Marrom)",
     colorFortress: "Fortress (Cinza Escuro)",
     
-    // =================================================================
-    // SEZIONE: RIEPILOGHI E STATISTICHE
-    // =================================================================
-    
+    // Riepiloghi
     facilitySummary: "📋 Resumo de Instalações",
     buffSummary: "⚡ Resumo de Buff",
     noStructuresLoaded: "Nenhuma estrutura carregada",
@@ -1136,18 +862,12 @@ const translations = {
     noBuffRecognized: "Nenhum buff reconhecido",
     structures: "estruturas",
     
-    // =================================================================
-    // SEZIONE: CALIBRAZIONE AVANZATA
-    // =================================================================
-    
+    // Calibrazione
     advancedCalibration: "🔧 Calibração Avançada",
     calibrationUnlocked: "🔓 Calibração desbloqueada!",
     wrongPassword: "❌ Senha incorreta!",
     
-    // =================================================================
-    // SEZIONE: ASSEGNAZIONI E DROPDOWN
-    // =================================================================
-    
+    // Assegnazioni
     unassigned: "Não atribuída",
     assignedTo: "atribuída a",
     removed: "removida",
@@ -1155,19 +875,13 @@ const translations = {
     scrollToSeeAll: "Role para ver todas as alianças",
     markersUpdated: "marcadores atualizados",
     
-    // =================================================================
-    // SEZIONE: VALIDAZIONE E MESSAGGI DI ERRORE
-    // =================================================================
-    
+    // Validazione
     addAtLeastOneAlliance: "⚠️ Adicione pelo menos uma aliança antes de atribuir.",
     enterAllianceName: "Digite um nome de aliança",
     allianceExists: "Aliança já existe",
     maxAlliances: "Máximo 50 alianças",
     
-    // =================================================================
-    // SEZIONE: SISTEMA ANTI-DUPLICATI
-    // =================================================================
-    
+    // Sistema anti-duplicati
     assignmentCancelled: "Atribuição cancelada para evitar conflito de buff",
     duplicateAssignmentConfirmed: "Buff duplicado atribuído (não ideal)",
     duplicateFacilityWarning: "ATENÇÃO: Buff Duplicado Detectado!",
@@ -1186,10 +900,7 @@ const translations = {
     situation: "Situação",
     gameplayProblem: "PROBLEMA DE GAMEPLAY",
     
-    // =================================================================
-    // SEZIONE: SISTEMA RESET CON UNDO
-    // =================================================================
-    
+    // Sistema reset con undo
     resetAssignments: "Resetar Atribuições",
     noAssignmentsToReset: "⚠️ Nenhuma atribuição para resetar",
     resetConfirmationTitle: "🗑️ Confirmar Reset Total",
@@ -1207,10 +918,7 @@ const translations = {
     undoCompleted: "Desfazer concluído",
     assignmentsRestored: "atribuições restauradas",
     
-    // =================================================================
-    // SEZIONE: REPORT E ANALISI
-    // =================================================================
-    
+    // Report e analisi
     buffOptimizationReport: "Relatório de Otimização de Buff",
     totalAlliances: "Alianças totais",
     alliancesWithIssues: "Alianças com problemas",
@@ -1222,33 +930,22 @@ const translations = {
     copies: "cópias",
     wasted: "desperdiçadas",
     
-    // =================================================================
-    // SEZIONE: MESSAGGI DI SISTEMA
-    // =================================================================
-    
+    // Messaggi sistema
     appLoaded: "🎯 App carregado! {count} estruturas com cores oficiais.",
     appReady: "🚀 App pronto para usar"
   }
-  
-  // ===================================================================
-  // FINE DEFINIZIONE TRADUZIONI
-  // ===================================================================
 };
 
 // =====================================================================
-// FUNZIONI DI UTILITÀ PER IL SISTEMA TRADUZIONI
+// FUNZIONI UTILITÀ OTTIMIZZATE
 // =====================================================================
 
 /**
- * Verifica la completezza delle traduzioni per tutte le lingue
- * Questa funzione aiuta a identificare traduzioni mancanti durante lo sviluppo
- * 
- * @returns {Object} Report sulla completezza delle traduzioni
+ * Valida completezza traduzioni per tutte le lingue
  */
 function validateTranslationsCompleteness() {
   const languages = Object.keys(translations);
-  const referenceLanguage = 'en'; // Inglese come riferimento
-  const referenceKeys = new Set(Object.keys(translations[referenceLanguage]));
+  const referenceKeys = new Set(Object.keys(translations['en']));
   
   const report = {
     totalLanguages: languages.length,
@@ -1278,16 +975,14 @@ function validateTranslationsCompleteness() {
 }
 
 /**
- * Funzione di debug per verificare la qualità delle traduzioni
- * Accessibile dalla console per troubleshooting
+ * Debug traduzioni semplificato
  */
 window.debugTranslations = function() {
   const report = validateTranslationsCompleteness();
   
   console.log('🌐 === REPORT TRADUZIONI ===');
   console.log(`📊 Lingue supportate: ${report.totalLanguages}`);
-  console.log(`🔑 Chiavi di riferimento (EN): ${report.referenceKeyCount}`);
-  console.log('');
+  console.log(`🔑 Chiavi di riferimento: ${report.referenceKeyCount}`);
   
   Object.entries(report.languageReports).forEach(([lang, data]) => {
     const flag = {
@@ -1295,16 +990,11 @@ window.debugTranslations = function() {
       'fr': '🇫🇷', 'de': '🇩🇪', 'pt': '🇵🇹'
     }[lang] || '🏳️';
     
-    console.log(`${flag} ${lang.toUpperCase()}:`);
-    console.log(`  • Completezza: ${data.completeness}%`);
-    console.log(`  • Chiavi totali: ${data.totalKeys}`);
-    console.log(`  • Chiavi mancanti: ${data.missingCount}`);
-    console.log(`  • Chiavi extra: ${data.extraCount}`);
+    console.log(`${flag} ${lang.toUpperCase()}: ${data.completeness}% (${data.totalKeys} chiavi)`);
     
-    if (report.missingKeys[lang]) {
-      console.log(`  • Mancanti: ${report.missingKeys[lang].slice(0, 3).join(', ')}${report.missingKeys[lang].length > 3 ? '...' : ''}`);
+    if (report.missingKeys[lang]?.length > 0) {
+      console.log(`  ❌ Mancanti: ${report.missingKeys[lang].slice(0, 3).join(', ')}${report.missingKeys[lang].length > 3 ? '...' : ''}`);
     }
-    console.log('');
   });
   
   console.log('=== FINE REPORT ===');
@@ -1312,10 +1002,9 @@ window.debugTranslations = function() {
 };
 
 // =====================================================================
-// INIZIALIZZAZIONE E LOG
+// VERIFICA INTEGRITÀ E LOG FINALE
 // =====================================================================
 
-// Verifica di integrità al caricamento
 const integrityCheck = validateTranslationsCompleteness();
 const hasIssues = Object.values(integrityCheck.languageReports).some(report => report.completeness < 100);
 
@@ -1327,11 +1016,7 @@ if (hasIssues) {
 
 console.log(`🌐 Sistema traduzioni caricato: ${integrityCheck.totalLanguages} lingue, ${integrityCheck.referenceKeyCount} chiavi per lingua`);
 
-// =====================================================================
-// ESPORTAZIONE
-// =====================================================================
-
-// Esporta per compatibilità con sistemi esterni
+// Esporta per compatibilità
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = translations;
 }
