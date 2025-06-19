@@ -648,7 +648,8 @@ function setupEventListeners() {
         if (file && typeof validateImageFile === 'function' && typeof processImageFile === 'function') {
           const validation = validateImageFile(file);
           if (!validation.isValid) {
-            alert('File non valido: ' + validation.errors.join(', '));
+            const t = translations[currentLanguage] || translations['en'];
+            alert(`${t.invalidFile || 'Invalid file'}: ${validation.errors.join(', ')}`);
             return;
           }
           
