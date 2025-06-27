@@ -1,10 +1,15 @@
 {
   "name": "Whiteout Companion",
-  "short_name": "Whiteout",
+  "short_name": "WCompanion",
+  "description": "Support app for Whiteout Survival: map, buildings and alliances.",
   "start_url": "/",
+  "scope": "/",
+  "id": "/index.html",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "theme_color": "#2c3e50",
+  "lang": "en",
   "icons": [
     {
       "src": "icon-192.png",
