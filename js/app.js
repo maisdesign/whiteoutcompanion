@@ -387,10 +387,12 @@ console.log('📄 App.js caricato completamente (versione ottimizzata) - In atte
 // ===================================================================
 // Funzione per mostrare/nascondere la legenda
 function toggleLegend() {
-  const legend = document.getElementById('legend');
-  if (legend) {
-    legend.style.display = (legend.style.display === 'none') ? 'block' : 'none';
-  } else {
-    console.warn("Elemento #legend non trovato.");
-  }
-}
+      const legend = document.getElementById('map-legend');
+      if (legend.classList.contains('hidden')) {
+        legend.classList.remove('hidden');
+        legend.style.animation = 'fadeIn 0.3s ease';
+      } else {
+        legend.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => legend.classList.add('hidden'), 300);
+      }
+    }

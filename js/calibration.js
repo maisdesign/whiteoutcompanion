@@ -109,13 +109,4 @@
       }
     }
 
-    function toggleLegend() {
-      const legend = document.getElementById('map-legend');
-      if (legend.classList.contains('hidden')) {
-        legend.classList.remove('hidden');
-        legend.style.animation = 'fadeIn 0.3s ease';
-      } else {
-        legend.style.animation = 'fadeOut 0.3s ease';
-        setTimeout(() => legend.classList.add('hidden'), 300);
-      }
-    }
+    
