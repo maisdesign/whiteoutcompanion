@@ -381,3 +381,16 @@ window.addEventListener('error', function(event) {
 // ===================================================================
 
 console.log('📄 App.js caricato completamente (versione ottimizzata) - In attesa del DOM...');
+
+// ===================================================================
+// SEZIONE 8: BUGFIX LEGENDA
+// ===================================================================
+// Funzione per mostrare/nascondere la legenda
+function toggleLegend() {
+  const legend = document.getElementById('legend');
+  if (legend) {
+    legend.style.display = (legend.style.display === 'none') ? 'block' : 'none';
+  } else {
+    console.warn("Elemento #legend non trovato.");
+  }
+}
