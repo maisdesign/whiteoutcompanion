@@ -21,5 +21,18 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "categories": [
+    "games",
+    "productivity",
+    "utilities"
+  ],
+  "dir": "ltr",
+  "iarc_rating_id": "e10+",
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "screenshots": [],
+  "launch_handler": {
+    "client_mode": "auto"
+  }
 }
