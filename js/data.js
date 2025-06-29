@@ -719,25 +719,25 @@ const facilityData = [
 const buffValues = {
     // Construction buffs
     "Construction|Lv.1": "+5%",
-    "Construction|Lv.3": "+10%",
+    "Construction|Lv.3": "+8%",
     
     // Production buffs
     "Production|Lv.1": "+5%",
     
     // Defense buffs
     "Defense|Lv.2": "+8%",
-    "Defense|Lv.4": "+10%",
+    "Defense|Lv.4": "+8%",
     
     // Gathering buffs
     "Gathering|Lv.1": "+5%",
     
     // Tech buffs
     "Tech|Lv.1": "+5%",
-    "Tech|Lv.3": "+10%",
+    "Tech|Lv.3": "+8%",
     
     // Weapons buffs
     "Weapons|Lv.2": "+8%",
-    "Weapons|Lv.4": "+10%",
+    "Weapons|Lv.4": "+8%",
     
     // Training buffs
     "Training|Lv.2": "+8%",
