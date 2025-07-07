@@ -1,31 +1,31 @@
 // =====================================================================
-// LANGUAGESYSTEM.JS - SISTEMA LINGUE COMPLETO E ROBUSTO
+// LANGUAGESYSTEM.JS - COMPLETE AND ROBUST LANGUAGE SYSTEM
 // =====================================================================
-// Questo file gestisce tutto il sistema multilingua dell'applicazione,
-// garantendo che ogni stringa dell'interfaccia sia tradotta correttamente
-// in tutte le lingue supportate, senza eccezioni.
+// This file manages the entire multilingual system of the application,
+// ensuring that every interface string is correctly translated into all
+// supported languages without exceptions.
 //
-// FILOSOFIA DEL DESIGN:
-// - Mappatura sistematica di TUTTI gli elementi dell'interfaccia
-// - Validazione automatica delle traduzioni mancanti
-// - Fallback intelligente per stringhe non trovate
-// - Aggiornamento incrementale e verificabile dell'UI
-// - Gestione robusta degli errori di traduzione
+// DESIGN PHILOSOPHY:
+// - Systematic mapping of ALL interface elements
+// - Automatic validation of missing translations
+// - Intelligent fallback for strings not found
+// - Incremental and verifiable UI updates
+// - Robust error handling for translations
 
-console.log('🌐 Caricamento sistema lingue avanzato...');
+console.log('🌐 Loading advanced language system...');
 
 // =====================================================================
-// SEZIONE 1: CONFIGURAZIONE E COSTANTI
+// SECTION 1: CONFIGURATION AND CONSTANTS
 // =====================================================================
 
 /**
- * Mappa completa di tutti gli elementi DOM che richiedono traduzione
- * Ogni elemento è categorizzato per funzionalità per facilitare il debug
- * e la manutenzione del sistema di traduzioni
+ * Complete map of all DOM elements that require translation
+ * Each element is categorized by functionality to facilitate debugging
+ * and maintenance of the translation system
  */
 const UI_TRANSLATION_MAP = {
   // =================================================================
-  // CATEGORIA: HEADER E NAVIGAZIONE PRINCIPALE
+  // CATEGORY: HEADER AND MAIN NAVIGATION
   // =================================================================
   header: {
     'main-title': { 
@@ -41,7 +41,7 @@ const UI_TRANSLATION_MAP = {
   },
 
   // =================================================================
-  // CATEGORIA: STATISTICHE E CONTATORI
+  // CATEGORY: STATISTICS AND COUNTERS
   // =================================================================
   statistics: {
     'alliances-label': { 
@@ -57,7 +57,7 @@ const UI_TRANSLATION_MAP = {
   },
 
   // =================================================================
-  // CATEGORIA: GESTIONE ALLEANZE
+  // CATEGORY: ALLIANCE MANAGEMENT
   // =================================================================
   alliances: {
     'alliance-management-title': { 
@@ -78,7 +78,7 @@ const UI_TRANSLATION_MAP = {
   },
 
   // =================================================================
-  // CATEGORIA: CONTROLLI E PULSANTI PRINCIPALI
+  // CATEGORY: CONTROLS AND MAIN BUTTONS
   // =================================================================
   controls: {
     'export-csv-btn': { 
@@ -109,7 +109,7 @@ const UI_TRANSLATION_MAP = {
   },
 
   // =================================================================
-  // CATEGORIA: SELETTORE LINGUE
+  // CATEGORY: LANGUAGE SELECTOR
   // =================================================================
   languageSelector: {
     'select-language-title': { 
@@ -120,7 +120,7 @@ const UI_TRANSLATION_MAP = {
   },
 
   // =================================================================
-  // CATEGORIA: MAPPA E VISUALIZZAZIONE
+  // CATEGORY: MAP AND VISUALIZATION
   // =================================================================
   map: {
     'map-title': { 
@@ -132,7 +132,7 @@ const UI_TRANSLATION_MAP = {
       property: 'innerHTML', 
       translationKey: 'legend',
       fallback: '🎨 Legend',
-      transform: (text) => `🎨 ${text}` // Aggiunge icona se non presente
+      transform: (text) => `🎨 ${text}` // Add icon if not present
     },
     'legend-title': { 
       property: 'textContent', 
@@ -142,7 +142,7 @@ const UI_TRANSLATION_MAP = {
   },
 
   // =================================================================
-  // CATEGORIA: LEGENDA COLORI E ICONE
+  // CATEGORY: LEGEND COLORS AND ICONS
   // =================================================================
   legend: {
     'color-castle': { 
@@ -203,7 +203,7 @@ const UI_TRANSLATION_MAP = {
   },
 
   // =================================================================
-  // CATEGORIA: RIEPILOGHI E SEZIONI ACCORDION
+  // CATEGORY: SUMMARIES AND ACCORDION SECTIONS
   // =================================================================
   summaries: {
     'facility-summary-title': { 
@@ -225,41 +225,41 @@ const UI_TRANSLATION_MAP = {
 };
 
 /**
- * Configurazione avanzata per il sistema di traduzioni
- * Questi parametri controllano il comportamento del sistema
+ * Advanced configuration for the translation system
+ * These parameters control the behavior of the system
  */
 const LANGUAGE_SYSTEM_CONFIG = {
-  // Abilita logging dettagliato per debug
+  // Enable detailed logging for debug
   enableDetailedLogging: false,
   
-  // Mostra warning per traduzioni mancanti
+  // Show warnings for missing translations
   showMissingTranslationWarnings: true,
   
-  // Usa fallback in inglese se traduzione mancante
+  // Use English fallback if translation missing
   useFallbackTranslations: true,
   
-  // Tempo di attesa per aggiornamenti DOM (ms)
+  // Wait time for DOM updates (ms)
   domUpdateDelay: 50,
   
-  // Validazione automatica traduzioni al cambio lingua
+  // Automatic translation validation on language change
   autoValidateTranslations: true
 };
 
 // =====================================================================
-// SEZIONE 2: FUNZIONI DI UTILITÀ E VALIDAZIONE
+// SECTION 2: UTILITY AND VALIDATION FUNCTIONS
 // =====================================================================
 
 /**
- * Funzione di logging intelligente che si adatta al livello di dettaglio configurato
- * Aiuta a debuggare problemi di traduzione senza inquinare la console
+ * Intelligent logging function that adapts to configured detail level
+ * Helps debug translation issues without polluting the console
  * 
- * @param {string} message - Messaggio da loggare
- * @param {string} level - Livello di log ('info', 'warn', 'error')
- * @param {*} data - Dati aggiuntivi da mostrare
+ * @param {string} message - Message to log
+ * @param {string} level - Log level ('info', 'warn', 'error')
+ * @param {*} data - Additional data to show
  */
 function logLanguageSystem(message, level = 'info', data = null) {
   if (!LANGUAGE_SYSTEM_CONFIG.enableDetailedLogging && level === 'info') {
-    return; // Skippa i log info se non in modalità debug
+    return; // Skip info logs if not in debug mode
   }
   
   const prefix = {
@@ -275,22 +275,22 @@ function logLanguageSystem(message, level = 'info', data = null) {
   }[level] || console.log;
   
   if (data) {
-    logFunction(`${prefix} [Lingue] ${message}`, data);
+    logFunction(`${prefix} [Languages] ${message}`, data);
   } else {
-    logFunction(`${prefix} [Lingue] ${message}`);
+    logFunction(`${prefix} [Languages] ${message}`);
   }
 }
 
 /**
- * Verifica che tutte le chiavi di traduzione necessarie esistano
- * per la lingua corrente, identificando traduzioni mancanti
+ * Verifies that all necessary translation keys exist
+ * for the current language, identifying missing translations
  * 
- * @param {string} languageCode - Codice lingua da verificare (es: 'en', 'it')
- * @returns {Object} Report delle traduzioni mancanti
+ * @param {string} languageCode - Language code to verify (eg: 'en', 'it')
+ * @returns {Object} Report of missing translations
  */
 function validateLanguageTranslations(languageCode) {
   if (!translations[languageCode]) {
-    logLanguageSystem(`Lingua non trovata: ${languageCode}`, 'error');
+    logLanguageSystem(`Language not found: ${languageCode}`, 'error');
     return { isValid: false, missingKeys: [], totalKeys: 0, completeness: 0 };
   }
   
@@ -298,7 +298,7 @@ function validateLanguageTranslations(languageCode) {
   const missingKeys = [];
   let totalKeys = 0;
   
-  // Scansiona tutti gli elementi dell'UI per verificare le traduzioni
+  // Scan all UI elements to verify translations
   Object.entries(UI_TRANSLATION_MAP).forEach(([category, elements]) => {
     Object.entries(elements).forEach(([elementId, config]) => {
       totalKeys++;
@@ -326,35 +326,35 @@ function validateLanguageTranslations(languageCode) {
 }
 
 /**
- * Ottiene il testo tradotto per una chiave specifica, con fallback intelligente
- * Questa funzione è il cuore del sistema di traduzioni sicure
+ * Gets translated text for a specific key, with intelligent fallback
+ * This function is the heart of the secure translation system
  * 
- * @param {string} translationKey - Chiave di traduzione
- * @param {string} fallbackText - Testo di fallback se traduzione non trovata
- * @param {Object} options - Opzioni aggiuntive per la traduzione
- * @returns {string} Testo tradotto o fallback
+ * @param {string} translationKey - Translation key
+ * @param {string} fallbackText - Fallback text if translation not found
+ * @param {Object} options - Additional options for translation
+ * @returns {string} Translated text or fallback
  */
 function getTranslatedText(translationKey, fallbackText, options = {}) {
   const t = translations[currentLanguage];
   
-  // Se le traduzioni non sono disponibili, usa fallback
+  // If translations are not available, use fallback
   if (!t) {
     if (LANGUAGE_SYSTEM_CONFIG.showMissingTranslationWarnings) {
-      logLanguageSystem(`Traduzioni non disponibili per lingua: ${currentLanguage}`, 'warn');
+      logLanguageSystem(`Translations not available for language: ${currentLanguage}`, 'warn');
     }
     return fallbackText;
   }
   
-  // Se la chiave esiste, restituisci la traduzione
+  // If key exists, return the translation
   if (t[translationKey]) {
     let translatedText = t[translationKey];
     
-    // Applica trasformazioni se specificate
+    // Apply transformations if specified
     if (options.transform && typeof options.transform === 'function') {
       translatedText = options.transform(translatedText);
     }
     
-    // Sostituzioni di variabili (es: {count} → valore)
+    // Variable substitutions (eg: {count} → value)
     if (options.variables) {
       Object.entries(options.variables).forEach(([key, value]) => {
         translatedText = translatedText.replace(`{${key}}`, value);
@@ -364,32 +364,32 @@ function getTranslatedText(translationKey, fallbackText, options = {}) {
     return translatedText;
   }
   
-  // Fallback a inglese se configurato
+  // Fallback to English if configured
   if (LANGUAGE_SYSTEM_CONFIG.useFallbackTranslations && currentLanguage !== 'en') {
     const englishTranslations = translations['en'];
     if (englishTranslations && englishTranslations[translationKey]) {
       if (LANGUAGE_SYSTEM_CONFIG.showMissingTranslationWarnings) {
-        logLanguageSystem(`Usando fallback inglese per chiave: ${translationKey}`, 'warn');
+        logLanguageSystem(`Using English fallback for key: ${translationKey}`, 'warn');
       }
       return englishTranslations[translationKey];
     }
   }
   
-  // Ultimo fallback: testo statico
+  // Last fallback: static text
   if (LANGUAGE_SYSTEM_CONFIG.showMissingTranslationWarnings) {
-    logLanguageSystem(`Traduzione mancante per: ${translationKey}, usando fallback: ${fallbackText}`, 'warn');
+    logLanguageSystem(`Missing translation for: ${translationKey}, using fallback: ${fallbackText}`, 'warn');
   }
   
   return fallbackText;
 }
 
 /**
- * Applica una traduzione a un elemento DOM specifico
- * Gestisce diversi tipi di proprietà (textContent, innerHTML, placeholder, etc.)
+ * Applies a translation to a specific DOM element
+ * Handles different property types (textContent, innerHTML, placeholder, etc.)
  * 
- * @param {HTMLElement} element - Elemento DOM da aggiornare
- * @param {Object} config - Configurazione traduzione
- * @returns {boolean} True se la traduzione è stata applicata con successo
+ * @param {HTMLElement} element - DOM element to update
+ * @param {Object} config - Translation configuration
+ * @returns {boolean} True if translation was applied successfully
  */
 function applyTranslationToElement(element, config) {
   if (!element) {
@@ -403,7 +403,7 @@ function applyTranslationToElement(element, config) {
       { transform: config.transform }
     );
     
-    // Applica la traduzione alla proprietà corretta
+    // Apply translation to the correct property
     switch (config.property) {
       case 'textContent':
         element.textContent = translatedText;
@@ -421,41 +421,41 @@ function applyTranslationToElement(element, config) {
         element.alt = translatedText;
         break;
       default:
-        logLanguageSystem(`Proprietà sconosciuta: ${config.property}`, 'warn');
+        logLanguageSystem(`Unknown property: ${config.property}`, 'warn');
         return false;
     }
     
-    logLanguageSystem(`Tradotto elemento: ${element.id || element.className} → ${translatedText}`, 'info');
+    logLanguageSystem(`Translated element: ${element.id || element.className} → ${translatedText}`, 'info');
     return true;
     
   } catch (error) {
-    logLanguageSystem(`Errore applicando traduzione a elemento: ${error.message}`, 'error', { element, config });
+    logLanguageSystem(`Error applying translation to element: ${error.message}`, 'error', { element, config });
     return false;
   }
 }
 
 // =====================================================================
-// SEZIONE 3: AGGIORNAMENTO SISTEMATICO DELL'UI
+// SECTION 3: SYSTEMATIC UI UPDATE
 // =====================================================================
 
 /**
- * Aggiorna sistematicamente tutti gli elementi dell'interfaccia utente
- * Questa è la funzione principale che garantisce che ogni stringa sia tradotta
+ * Systematically updates all user interface elements
+ * This is the main function that ensures every string is translated
  * 
- * @param {boolean} forceUpdate - Forza l'aggiornamento anche se la lingua non è cambiata
- * @returns {Object} Report dell'aggiornamento con statistiche
+ * @param {boolean} forceUpdate - Force update even if language hasn't changed
+ * @returns {Object} Update report with statistics
  */
 function updateUILanguageSystematic(forceUpdate = false) {
-  logLanguageSystem(`Avvio aggiornamento sistematico UI per lingua: ${currentLanguage}`);
+  logLanguageSystem(`Starting systematic UI update for language: ${currentLanguage}`);
   
-  // Verifica che le traduzioni siano disponibili
+  // Verify translations are available
   const t = translations[currentLanguage];
   if (!t) {
-    logLanguageSystem(`Traduzioni non disponibili per: ${currentLanguage}`, 'error');
-    return { success: false, reason: 'Traduzioni non disponibili' };
+    logLanguageSystem(`Translations not available for: ${currentLanguage}`, 'error');
+    return { success: false, reason: 'Translations not available' };
   }
   
-  // Statistiche dell'aggiornamento
+  // Update statistics
   const updateStats = {
     totalElements: 0,
     successfulUpdates: 0,
@@ -465,9 +465,9 @@ function updateUILanguageSystematic(forceUpdate = false) {
     categories: {}
   };
   
-  // Processa ogni categoria di elementi
+  // Process each category of elements
   Object.entries(UI_TRANSLATION_MAP).forEach(([category, elements]) => {
-    logLanguageSystem(`Processando categoria: ${category}`, 'info');
+    logLanguageSystem(`Processing category: ${category}`, 'info');
     
     const categoryStats = {
       total: 0,
@@ -476,7 +476,7 @@ function updateUILanguageSystematic(forceUpdate = false) {
       missing: []
     };
     
-    // Processa ogni elemento della categoria
+    // Process each element in the category
     Object.entries(elements).forEach(([elementId, config]) => {
       updateStats.totalElements++;
       categoryStats.total++;
@@ -484,18 +484,18 @@ function updateUILanguageSystematic(forceUpdate = false) {
       const element = document.getElementById(elementId);
       
       if (!element) {
-        // Elemento non trovato nel DOM
+        // Element not found in DOM
         const missingInfo = { elementId, category, config };
         updateStats.missingElements.push(missingInfo);
         categoryStats.missing.push(missingInfo);
         categoryStats.failed++;
         updateStats.failedUpdates++;
         
-        logLanguageSystem(`Elemento DOM non trovato: #${elementId}`, 'warn');
+        logLanguageSystem(`DOM element not found: #${elementId}`, 'warn');
         return;
       }
       
-      // Applica la traduzione
+      // Apply translation
       const success = applyTranslationToElement(element, config);
       
       if (success) {
@@ -508,17 +508,17 @@ function updateUILanguageSystematic(forceUpdate = false) {
     });
     
     updateStats.categories[category] = categoryStats;
-    logLanguageSystem(`Categoria ${category} completata: ${categoryStats.successful}/${categoryStats.total} successi`);
+    logLanguageSystem(`Category ${category} completed: ${categoryStats.successful}/${categoryStats.total} successes`);
   });
   
-  // Aggiorna componenti dinamici che potrebbero non essere nella mappa statica
+  // Update dynamic components that might not be in the static map
   updateDynamicComponents();
   
-  // Log del report finale
-  logLanguageSystem(`Aggiornamento UI completato: ${updateStats.successfulUpdates}/${updateStats.totalElements} successi`);
+  // Final report log
+  logLanguageSystem(`UI update completed: ${updateStats.successfulUpdates}/${updateStats.totalElements} successes`);
   
   if (updateStats.missingElements.length > 0) {
-    logLanguageSystem(`Elementi mancanti trovati: ${updateStats.missingElements.length}`, 'warn', 
+    logLanguageSystem(`Missing elements found: ${updateStats.missingElements.length}`, 'warn', 
       updateStats.missingElements.map(m => m.elementId));
   }
   
@@ -526,97 +526,97 @@ function updateUILanguageSystematic(forceUpdate = false) {
 }
 
 /**
- * Aggiorna componenti dinamici che potrebbero non essere presenti
- * nella mappa statica, come riepiloghi generati runtime
+ * Updates dynamic components that might not be present
+ * in the static map, like runtime-generated summaries
  */
 function updateDynamicComponents() {
-  logLanguageSystem('Aggiornamento componenti dinamici...');
+  logLanguageSystem('Updating dynamic components...');
   
-  // Aggiorna riepiloghi se le funzioni sono disponibili
+  // Update summaries if functions are available
   if (typeof renderFacilitySummary === 'function') {
     try {
       renderFacilitySummary();
-      logLanguageSystem('Riepilogo strutture aggiornato');
+      logLanguageSystem('Facility summary updated');
     } catch (error) {
-      logLanguageSystem(`Errore aggiornando riepilogo strutture: ${error.message}`, 'error');
+      logLanguageSystem(`Error updating facility summary: ${error.message}`, 'error');
     }
   }
   
   if (typeof renderBuffSummary === 'function') {
     try {
       renderBuffSummary();
-      logLanguageSystem('Riepilogo buff aggiornato');
+      logLanguageSystem('Buff summary updated');
     } catch (error) {
-      logLanguageSystem(`Errore aggiornando riepilogo buff: ${error.message}`, 'error');
+      logLanguageSystem(`Error updating buff summary: ${error.message}`, 'error');
     }
   }
   
-  // Aggiorna lista alleanze se disponibile
+  // Update alliance list if available
   if (typeof renderAllianceList === 'function') {
     try {
       renderAllianceList();
-      logLanguageSystem('Lista alleanze aggiornata');
+      logLanguageSystem('Alliance list updated');
     } catch (error) {
-      logLanguageSystem(`Errore aggiornando lista alleanze: ${error.message}`, 'error');
+      logLanguageSystem(`Error updating alliance list: ${error.message}`, 'error');
     }
   }
 }
 
 /**
- * Versione legacy della funzione updateUILanguage per compatibilità
- * Mantiene l'interfaccia esistente mentre utilizza il nuovo sistema
+ * Legacy version of updateUILanguage function for compatibility
+ * Maintains existing interface while using the new system
  */
 function updateUILanguage() {
   return updateUILanguageSystematic();
 }
 
 // =====================================================================
-// SEZIONE 4: GESTIONE SELETTORE LINGUE E INTERAZIONI
+// SECTION 4: LANGUAGE SELECTOR MANAGEMENT AND INTERACTIONS
 // =====================================================================
 
 /**
- * Mostra/nasconde il selettore di lingue con animazione fluida
- * Aggiorna automaticamente lo stato dei pulsanti lingua
+ * Shows/hides the language selector with smooth animation
+ * Automatically updates language button states
  */
 function toggleLanguageSelector() {
   const selector = document.getElementById('language-selector');
   if (!selector) {
-    logLanguageSystem('Selettore lingua non trovato nel DOM', 'warn');
+    logLanguageSystem('Language selector not found in DOM', 'warn');
     return;
   }
   
   if (selector.classList.contains('hidden')) {
-    // Mostra il selettore
+    // Show selector
     selector.classList.remove('hidden');
     selector.style.animation = 'fadeIn 0.3s ease';
     
-    // Evidenzia la lingua corrente
+    // Highlight current language
     updateLanguageButtons();
     
-    logLanguageSystem('Selettore lingua aperto');
+    logLanguageSystem('Language selector opened');
   } else {
-    // Nascondi il selettore
+    // Hide selector
     selector.style.animation = 'fadeOut 0.3s ease';
     setTimeout(() => {
       selector.classList.add('hidden');
     }, 300);
     
-    logLanguageSystem('Selettore lingua chiuso');
+    logLanguageSystem('Language selector closed');
   }
 }
 
 /**
- * Imposta una nuova lingua scelta dall'utente
- * Gestisce tutto il processo di cambio lingua con feedback appropriato
+ * Sets a new language chosen by the user
+ * Handles the entire language change process with appropriate feedback
  * 
- * @param {string} languageCode - Codice della lingua da impostare
+ * @param {string} languageCode - Language code to set
  */
 function setLanguage(languageCode) {
-  logLanguageSystem(`Richiesta cambio lingua: ${currentLanguage} → ${languageCode}`);
+  logLanguageSystem(`Language change request: ${currentLanguage} → ${languageCode}`);
   
-  // Validazione lingua supportata
+  // Validate supported language
   if (!SUPPORTED_LANGUAGES.includes(languageCode)) {
-    logLanguageSystem(`Lingua non supportata: ${languageCode}`, 'error');
+    logLanguageSystem(`Unsupported language: ${languageCode}`, 'error');
     const t = translations[currentLanguage] || translations['en'];
     if (typeof showStatus === 'function') {
       showStatus(`❌ ${t.languageNotSupported || 'Language not supported'}: ${languageCode}`, 'error');
@@ -624,32 +624,32 @@ function setLanguage(languageCode) {
     return;
   }
   
-  // Validazione traduzioni prima del cambio
+  // Validate translations before change
   if (LANGUAGE_SYSTEM_CONFIG.autoValidateTranslations) {
     const validation = validateLanguageTranslations(languageCode);
     if (!validation.isValid) {
-      logLanguageSystem(`Traduzioni incomplete per ${languageCode}: ${validation.completeness}%`, 'warn', 
-        validation.missingKeys.slice(0, 5)); // Mostra solo prime 5 chiavi mancanti
+      logLanguageSystem(`Incomplete translations for ${languageCode}: ${validation.completeness}%`, 'warn', 
+        validation.missingKeys.slice(0, 5)); // Show only first 5 missing keys
     }
   }
   
-  // Aggiorna lingua globale (usa la funzione da utilities.js)
+  // Update global language (use function from utilities.js)
   if (typeof setAppLanguage === 'function') {
-    setAppLanguage(languageCode, true); // true = scelta utente
+    setAppLanguage(languageCode, true); // true = user choice
   } else {
-    // Fallback se utilities.js non è caricato
+    // Fallback if utilities.js is not loaded
     currentLanguage = languageCode;
     localStorage.setItem('whiteout-language-user-set', languageCode);
   }
   
-  // Aggiorna UI con piccolo ritardo per garantire che currentLanguage sia aggiornato
+  // Update UI with small delay to ensure currentLanguage is updated
   setTimeout(() => {
     const updateResult = updateUILanguageSystematic();
     
-    // Aggiorna pulsanti lingua
+    // Update language buttons
     updateLanguageButtons();
     
-    // Mostra messaggio di conferma
+    // Show confirmation message
     const t = translations[currentLanguage];
     const langName = getLanguageDisplayName(currentLanguage);
     const confirmMessage = `${t.languageSet || '🌐 Language set!'} ${langName}`;
@@ -658,47 +658,47 @@ function setLanguage(languageCode) {
       showStatus(confirmMessage, 'success', 3000);
     }
     
-    // Chiudi il selettore
+    // Close selector
     const selector = document.getElementById('language-selector');
     if (selector) {
       selector.classList.add('hidden');
     }
     
-    // Mostra messaggio di benvenuto se è la prima volta
+    // Show welcome message if first time
     showFirstTimeLanguageMessage();
     
-    logLanguageSystem(`Cambio lingua completato: ${languageCode} (${updateResult.successfulUpdates}/${updateResult.totalElements} elementi aggiornati)`);
+    logLanguageSystem(`Language change completed: ${languageCode} (${updateResult.successfulUpdates}/${updateResult.totalElements} elements updated)`);
     
   }, LANGUAGE_SYSTEM_CONFIG.domUpdateDelay);
 }
 
 /**
- * Aggiorna lo stato visuale dei pulsanti lingua nel selettore
- * Evidenzia la lingua corrente e resetla le altre
+ * Updates visual state of language buttons in the selector
+ * Highlights current language and resets others
  */
 function updateLanguageButtons() {
-  logLanguageSystem('Aggiornamento pulsanti lingua...');
+  logLanguageSystem('Updating language buttons...');
   
-  // Reset di tutti i pulsanti
+  // Reset all buttons
   document.querySelectorAll('[id^="lang-"]').forEach(btn => {
     btn.classList.remove('btn-success');
     btn.classList.add('btn-info');
   });
   
-  // Evidenzia il pulsante della lingua corrente
+  // Highlight current language button
   const currentBtn = document.getElementById(`lang-${currentLanguage}`);
   if (currentBtn) {
     currentBtn.classList.remove('btn-info');
     currentBtn.classList.add('btn-success');
-    logLanguageSystem(`Pulsante evidenziato: lang-${currentLanguage}`);
+    logLanguageSystem(`Button highlighted: lang-${currentLanguage}`);
   } else {
-    logLanguageSystem(`Pulsante non trovato per lingua: lang-${currentLanguage}`, 'warn');
+    logLanguageSystem(`Button not found for language: lang-${currentLanguage}`, 'warn');
   }
 }
 
 /**
- * Mostra messaggio di benvenuto per utenti al primo utilizzo
- * Fornisce informazioni utili sull'uso del sistema multilingua
+ * Shows welcome message for first-time users
+ * Provides useful information about using the multilingual system
  */
 function showFirstTimeLanguageMessage() {
   const isFirstTime = !localStorage.getItem('whiteout-language-user-set-before');
@@ -722,58 +722,58 @@ function showFirstTimeLanguageMessage() {
         showStatus(message, 'info', 6000);
       }
       
-    }, 4000); // Attende che l'utente si orienti dopo il cambio lingua
+    }, 4000); // Wait for user to orient after language change
   }
 }
 
 // =====================================================================
-// SEZIONE 5: INIZIALIZZAZIONE E SETUP DEL SISTEMA
+// SECTION 5: INITIALIZATION AND SYSTEM SETUP
 // =====================================================================
 
 /**
- * Inizializza completamente il sistema multilingua
- * Questa funzione deve essere chiamata dopo che il DOM è completamente caricato
+ * Completely initializes the multilingual system
+ * This function must be called after the DOM is completely loaded
  * 
- * @returns {Object} Report dell'inizializzazione
+ * @returns {Object} Initialization report
  */
 function initializeLanguageSystem() {
-  logLanguageSystem('Inizializzazione sistema lingua avanzato...');
+  logLanguageSystem('Initializing advanced language system...');
   
-  // Verifica prerequisiti
+  // Check prerequisites
   if (typeof translations === 'undefined') {
-    logLanguageSystem('File translations.js non caricato!', 'error');
-    return { success: false, reason: 'Traduzioni non disponibili' };
+    logLanguageSystem('translations.js file not loaded!', 'error');
+    return { success: false, reason: 'Translations not available' };
   }
   
   if (typeof currentLanguage === 'undefined') {
-    logLanguageSystem('currentLanguage non definito, uso default', 'warn');
+    logLanguageSystem('currentLanguage not defined, using default', 'warn');
     currentLanguage = 'en';
   }
   
-  // Validazione lingua corrente
+  // Validate current language
   const validation = validateLanguageTranslations(currentLanguage);
   
   if (!validation.isValid) {
-    logLanguageSystem(`Lingua corrente (${currentLanguage}) ha traduzioni incomplete: ${validation.completeness}%`, 'warn');
+    logLanguageSystem(`Current language (${currentLanguage}) has incomplete translations: ${validation.completeness}%`, 'warn');
     
     if (LANGUAGE_SYSTEM_CONFIG.showMissingTranslationWarnings) {
-      console.table(validation.missingKeys.slice(0, 10)); // Mostra prime 10 chiavi mancanti in tabella
+      console.table(validation.missingKeys.slice(0, 10)); // Show first 10 missing keys in table
     }
   }
   
-  // Aggiorna UI iniziale
+  // Update initial UI
   const updateResult = updateUILanguageSystematic();
   
-  // Aggiorna pulsanti lingua
+  // Update language buttons
   updateLanguageButtons();
   
-  // Mostra messaggio di lingua auto-rilevata se appropriato
+  // Show auto-detected language message if appropriate
   setTimeout(() => {
     showAutoDetectedLanguageMessage();
   }, 1000);
   
-  logLanguageSystem(`Sistema lingua inizializzato: ${currentLanguage} (${getLanguageDisplayName(currentLanguage)})`);
-  logLanguageSystem(`Completezza traduzioni: ${validation.completeness}% (${validation.totalKeys - validation.missingKeys.length}/${validation.totalKeys})`);
+  logLanguageSystem(`Language system initialized: ${currentLanguage} (${getLanguageDisplayName(currentLanguage)})`);
+  logLanguageSystem(`Translation completeness: ${validation.completeness}% (${validation.totalKeys - validation.missingKeys.length}/${validation.totalKeys})`);
   
   return {
     success: true,
@@ -784,11 +784,11 @@ function initializeLanguageSystem() {
 }
 
 /**
- * Mostra messaggio informativo quando la lingua è stata rilevata automaticamente
- * Aiuta l'utente a capire come è stata scelta la lingua
+ * Shows informative message when language was auto-detected
+ * Helps user understand how language was chosen
  */
 function showAutoDetectedLanguageMessage() {
-  // Mostra solo se la lingua è stata rilevata automaticamente (non scelta dall'utente)
+  // Show only if language was auto-detected (not chosen by user)
   const userSetLanguage = localStorage.getItem('whiteout-language-user-set');
   
   if (!userSetLanguage && typeof showWelcomeMessage === 'function') {
@@ -797,30 +797,30 @@ function showAutoDetectedLanguageMessage() {
 }
 
 // =====================================================================
-// SEZIONE 6: FUNZIONI DI DEBUG E DIAGNOSTICA
+// SECTION 6: DEBUG AND DIAGNOSTIC FUNCTIONS
 // =====================================================================
 
 /**
- * Funzione di debug completa per il sistema lingue
- * Fornisce report dettagliato su traduzioni, copertura e problemi
+ * Complete debug function for the language system
+ * Provides detailed report on translations, coverage and issues
  * 
- * @param {boolean} showDetails - Se mostrare dettagli delle traduzioni mancanti
- * @returns {Object} Report completo del sistema
+ * @param {boolean} showDetails - Whether to show details of missing translations
+ * @returns {Object} Complete system report
  */
 function debugLanguageSystem(showDetails = false) {
-  console.log('🔍 === DEBUG SISTEMA LINGUE ===');
+  console.log('🔍 === DEBUG LANGUAGE SYSTEM ===');
   
-  // Informazioni generali
+  // General information
   const currentInfo = getCurrentLanguageInfo();
-  console.log('📊 Stato attuale:', currentInfo);
+  console.log('📊 Current state:', currentInfo);
   
-  // Validazione di tutte le lingue
+  // Validation of all languages
   const languageReports = {};
   SUPPORTED_LANGUAGES.forEach(lang => {
     languageReports[lang] = validateLanguageTranslations(lang);
   });
   
-  console.log('🌍 Report traduzioni per lingua:');
+  console.log('🌍 Translation reports by language:');
   Object.entries(languageReports).forEach(([lang, report]) => {
     const flag = {
       'it': '🇮🇹', 'en': '🇺🇸', 'es': '🇪🇸', 
@@ -830,11 +830,11 @@ function debugLanguageSystem(showDetails = false) {
     console.log(`  ${flag} ${lang.toUpperCase()}: ${report.completeness}% (${report.totalKeys - report.missingKeys.length}/${report.totalKeys})`);
     
     if (showDetails && report.missingKeys.length > 0) {
-      console.log(`    ❌ Mancanti:`, report.missingKeys.map(k => k.translationKey));
+      console.log(`    ❌ Missing:`, report.missingKeys.map(k => k.translationKey));
     }
   });
   
-  // Test elementi DOM
+  // Test DOM elements
   const missingElements = [];
   const foundElements = [];
   
@@ -849,18 +849,18 @@ function debugLanguageSystem(showDetails = false) {
     });
   });
   
-  console.log('🎯 Elementi DOM:');
-  console.log(`  ✅ Trovati: ${foundElements.length}`);
-  console.log(`  ❌ Mancanti: ${missingElements.length}`);
+  console.log('🎯 DOM elements:');
+  console.log(`  ✅ Found: ${foundElements.length}`);
+  console.log(`  ❌ Missing: ${missingElements.length}`);
   
   if (showDetails && missingElements.length > 0) {
-    console.log('  📋 Elementi mancanti:', missingElements);
+    console.log('  📋 Missing elements:', missingElements);
   }
   
-  // Configurazione attuale
-  console.log('⚙️ Configurazione:', LANGUAGE_SYSTEM_CONFIG);
+  // Current configuration
+  console.log('⚙️ Configuration:', LANGUAGE_SYSTEM_CONFIG);
   
-  console.log('=== FINE DEBUG SISTEMA LINGUE ===');
+  console.log('=== END DEBUG LANGUAGE SYSTEM ===');
   
   return {
     currentLanguage: currentInfo,
@@ -871,10 +871,10 @@ function debugLanguageSystem(showDetails = false) {
 }
 
 /**
- * Ottiene informazioni complete sulla lingua corrente
- * Utile per debug e diagnostica
+ * Gets complete information about the current language
+ * Useful for debug and diagnostics
  * 
- * @returns {Object} Informazioni dettagliate sulla lingua
+ * @returns {Object} Detailed language information
  */
 function getCurrentLanguageInfo() {
   return {
@@ -891,19 +891,19 @@ function getCurrentLanguageInfo() {
 }
 
 /**
- * Resetta tutte le impostazioni lingua a rilevamento automatico
- * Utile per testing e ripristino delle impostazioni
+ * Resets all language settings to automatic detection
+ * Useful for testing and restoring settings
  * 
- * @returns {string} Nuova lingua rilevata automaticamente
+ * @returns {string} New automatically detected language
  */
 function resetLanguageToAuto() {
-  logLanguageSystem('Reset lingua a rilevamento automatico...');
+  logLanguageSystem('Resetting language to automatic detection...');
   
-  // Rimuovi preferenze utente
+  // Remove user preferences
   localStorage.removeItem('whiteout-language-user-set');
   localStorage.removeItem('whiteout-language-user-set-before');
   
-  // Re-inizializza lingua automaticamente
+  // Re-initialize language automatically
   let newLang = 'en'; // fallback
   if (typeof initializeAppLanguage === 'function') {
     newLang = initializeAppLanguage();
@@ -912,31 +912,31 @@ function resetLanguageToAuto() {
     currentLanguage = newLang;
   }
   
-  // Aggiorna UI
+  // Update UI
   setTimeout(() => {
     updateUILanguageSystematic();
     updateLanguageButtons();
     
     if (typeof showStatus === 'function') {
-      showStatus(`🌍 Lingua resettata a rilevamento automatico: ${getLanguageDisplayName(newLang)}`, 'info', 4000);
+      showStatus(`🌍 Language reset to automatic detection: ${getLanguageDisplayName(newLang)}`, 'info', 4000);
     }
   }, LANGUAGE_SYSTEM_CONFIG.domUpdateDelay);
   
-  logLanguageSystem(`Lingua resettata: ${newLang}`);
+  logLanguageSystem(`Language reset: ${newLang}`);
   return newLang;
 }
 
 // =====================================================================
-// SEZIONE 7: ESPORTAZIONI GLOBALI E INTEGRAZIONE
+// SECTION 7: GLOBAL EXPORTS AND INTEGRATION
 // =====================================================================
 
-// Esporta funzioni principali per uso da altri moduli
+// Export main functions for use by other modules
 window.toggleLanguageSelector = toggleLanguageSelector;
 window.setLanguage = setLanguage;
 window.updateUILanguage = updateUILanguage;
 window.initializeLanguageSystem = initializeLanguageSystem;
 
-// Funzioni di debug e utilità (accessibili da console)
+// Debug and utility functions (accessible from console)
 window.debugLanguageSystem = debugLanguageSystem;
 window.getCurrentLanguageInfo = getCurrentLanguageInfo;
 window.resetLanguageToAuto = resetLanguageToAuto;
@@ -948,7 +948,7 @@ window.validateAllLanguages = () => {
   return results;
 };
 
-// Integrazione con il debugger globale se disponibile
+// Integration with global debugger if available
 if (typeof window.debugWS !== 'undefined') {
   window.debugWS.language = {
     current: getCurrentLanguageInfo,
@@ -962,42 +962,42 @@ if (typeof window.debugWS !== 'undefined') {
 }
 
 // =====================================================================
-// SEZIONE 8: INIZIALIZZAZIONE AUTOMATICA
+// SECTION 8: AUTOMATIC INITIALIZATION
 // =====================================================================
 
 /**
- * Auto-inizializzazione quando il DOM è pronto
- * Il sistema si avvia automaticamente per massima compatibilità
+ * Auto-initialization when DOM is ready
+ * The system starts automatically for maximum compatibility
  */
 document.addEventListener('DOMContentLoaded', function() {
-  // Attesa breve per assicurarsi che tutti i moduli siano caricati
+  // Brief wait to ensure all modules are loaded
   setTimeout(() => {
     if (typeof currentLanguage !== 'undefined') {
       const initResult = initializeLanguageSystem();
       
       if (initResult.success) {
-        logLanguageSystem(`✅ Sistema lingua avviato automaticamente: ${initResult.language}`);
+        logLanguageSystem(`✅ Language system started automatically: ${initResult.language}`);
       } else {
-        logLanguageSystem(`❌ Errore avvio automatico: ${initResult.reason}`, 'error');
+        logLanguageSystem(`❌ Automatic startup error: ${initResult.reason}`, 'error');
       }
     } else {
-      logLanguageSystem('❌ currentLanguage non definito, sistema lingua non avviato automaticamente', 'error');
+      logLanguageSystem('❌ currentLanguage not defined, language system not started automatically', 'error');
     }
   }, 200);
 });
 
 // =====================================================================
-// LOG FINALE E VERIFICA INTEGRITÀ
+// FINAL LOG AND INTEGRITY CHECK
 // =====================================================================
 
-logLanguageSystem('Sistema lingue completo caricato con successo');
-logLanguageSystem(`Configurazione: ${Object.keys(UI_TRANSLATION_MAP).length} categorie, ${Object.values(UI_TRANSLATION_MAP).reduce((total, cat) => total + Object.keys(cat).length, 0)} elementi totali`);
+logLanguageSystem('Complete language system loaded successfully');
+logLanguageSystem(`Configuration: ${Object.keys(UI_TRANSLATION_MAP).length} categories, ${Object.values(UI_TRANSLATION_MAP).reduce((total, cat) => total + Object.keys(cat).length, 0)} total elements`);
 
-// Verifica integrità al caricamento
+// Integrity check on load
 if (typeof translations !== 'undefined' && typeof currentLanguage !== 'undefined') {
-  logLanguageSystem(`✅ Prerequisiti soddisfatti per lingua: ${currentLanguage}`);
+  logLanguageSystem(`✅ Prerequisites satisfied for language: ${currentLanguage}`);
 } else {
-  logLanguageSystem('⚠️ Alcuni prerequisiti mancanti, sistema lingua potrebbe non funzionare correttamente', 'warn');
+  logLanguageSystem('⚠️ Some prerequisites missing, language system might not work correctly', 'warn');
 }
 
-console.log('🌐 LanguageSystem.js caricato completamente - Pronto per inizializzazione');
+console.log('🌐 LanguageSystem.js loaded completely - Ready for initialization');

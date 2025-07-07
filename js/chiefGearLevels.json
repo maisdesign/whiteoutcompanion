@@ -1,0 +1,162 @@
+[
+  {
+    "tier": "Green",
+    "stars": 0,
+    "hardenedAlloy": 1500,
+    "polishingSolution": 15,
+    "designPlans": 0,
+    "lunarAmber": 0,
+    "statTotal": 9.35,
+    "power": 224400
+  },
+  {
+    "tier": "Green",
+    "stars": 1,
+    "hardenedAlloy": 3800,
+    "polishingSolution": 40,
+    "designPlans": 0,
+    "lunarAmber": 0,
+    "statTotal": 12.75,
+    "power": 306000
+  },
+  {
+    "tier": "Blue",
+    "stars": 0,
+    "hardenedAlloy": 7000,
+    "polishingSolution": 70,
+    "designPlans": 0,
+    "lunarAmber": 0,
+    "statTotal": 17.0,
+    "power": 408000
+  },
+  {
+    "tier": "Blue",
+    "stars": 1,
+    "hardenedAlloy": 9700,
+    "polishingSolution": 95,
+    "designPlans": 0,
+    "lunarAmber": 0,
+    "statTotal": 21.25,
+    "power": 510000
+  },
+  {
+    "tier": "Blue",
+    "stars": 2,
+    "hardenedAlloy": 0,
+    "polishingSolution": 0,
+    "designPlans": 45,
+    "lunarAmber": 0,
+    "statTotal": 25.5,
+    "power": 612000
+  },
+  {
+    "tier": "Blue",
+    "stars": 3,
+    "hardenedAlloy": 0,
+    "polishingSolution": 0,
+    "designPlans": 50,
+    "lunarAmber": 0,
+    "statTotal": 29.75,
+    "power": 714000
+  },
+  {
+    "tier": "Purple",
+    "stars": 0,
+    "hardenedAlloy": 0,
+    "polishingSolution": 0,
+    "designPlans": 60,
+    "lunarAmber": 0,
+    "statTotal": 34.0,
+    "power": 816000
+  },
+  {
+    "tier": "Purple",
+    "stars": 1,
+    "hardenedAlloy": 0,
+    "polishingSolution": 0,
+    "designPlans": 70,
+    "lunarAmber": 0,
+    "statTotal": 36.89,
+    "power": 885360
+  },
+  {
+    "tier": "Purple",
+    "stars": 2,
+    "hardenedAlloy": 6500,
+    "polishingSolution": 65,
+    "designPlans": 40,
+    "lunarAmber": 0,
+    "statTotal": 39.78,
+    "power": 954720
+  },
+  {
+    "tier": "Purple",
+    "stars": 3,
+    "hardenedAlloy": 8000,
+    "polishingSolution": 80,
+    "designPlans": 50,
+    "lunarAmber": 0,
+    "statTotal": 42.67,
+    "power": 1024080
+  },
+  {
+    "tier": "Purple T1",
+    "stars": 0,
+    "hardenedAlloy": 10000,
+    "polishingSolution": 95,
+    "designPlans": 60,
+    "lunarAmber": 0,
+    "statTotal": 45.56,
+    "power": 1093440
+  },
+  {
+    "tier": "Purple T1",
+    "stars": 1,
+    "hardenedAlloy": 11000,
+    "polishingSolution": 110,
+    "designPlans": 70,
+    "lunarAmber": 0,
+    "statTotal": 48.45,
+    "power": 1162800
+  },
+  {
+    "tier": "Purple T1",
+    "stars": 2,
+    "hardenedAlloy": 13000,
+    "polishingSolution": 130,
+    "designPlans": 85,
+    "lunarAmber": 0,
+    "statTotal": 51.34,
+    "power": 1232160
+  },
+  {
+    "tier": "Gold",
+    "stars": 0,
+    "hardenedAlloy": 22000,
+    "polishingSolution": 220,
+    "designPlans": 40,
+    "lunarAmber": 0,
+    "statTotal": 56.78,
+    "power": 1362720
+  },
+  {
+    "tier": "Gold T2",
+    "stars": 3,
+    "hardenedAlloy": 48000,
+    "polishingSolution": 500,
+    "designPlans": 85,
+    "lunarAmber": 0,
+    "statTotal": 85.0,
+    "power": 2040000
+  },
+  {
+    "tier": "Red T3",
+    "stars": 3,
+    "hardenedAlloy": 86000,
+    "polishingSolution": 1070,
+    "designPlans": 180,
+    "lunarAmber": 25,
+    "statTotal": 153.0,
+    "power": 3672000
+  }
+]

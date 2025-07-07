@@ -1,23 +1,25 @@
 // =====================================================================
-// ALLIANCES.JS - GESTIONE ALLEANZE PULITA E OTTIMIZZATA
+// ALLIANCES.JS - CLEAN AND OPTIMIZED ALLIANCE MANAGEMENT - CORRECTED VERSION
 // =====================================================================
-// Versione semplificata che mantiene tutte le funzionalità core:
-// - CRUD alleanze completo
-// - Sistema anti-duplicati educativo
-// - Export/Import CSV ottimizzato
-// - Reset con undo semplificato
-// - UI sync consolidata
+// Simplified version that maintains all core functionalities:
+// - Complete alliance CRUD
+// - Educational anti-duplicate system
+// - Optimized CSV export/import
+// - Reset with simplified undo (NOW WITH ALLIANCE DELETION OPTION)
+// - Consolidated UI sync
 //
-// RIMOSSO: Verbosità eccessiva, funzioni ridondanti, logging dettagliato
+// REMOVED: Excessive verbosity, redundant functions, detailed logging
+// 🔧 FIXED: Buff grouping bug in renderBuffSummary()
+// ✨ NEW: Alliance deletion checkbox option in reset modal
 
-console.log('🏰 Caricamento sistema alleanze ottimizzato...');
+console.log('🏰 Loading optimized alliance system (corrected version)...');
 
 // =====================================================================
-// SEZIONE 1: RENDERING E UI CONSOLIDATA
+// SECTION 1: CONSOLIDATED RENDERING AND UI
 // =====================================================================
 
 /**
- * Renderizza lista alleanze con contatori integrati
+ * Renders alliance list with integrated counters
  */
 function renderAllianceList() {
   const list = document.getElementById('alliance-list');
@@ -45,7 +47,7 @@ function renderAllianceList() {
 }
 
 /**
- * Aggiornamento UI consolidato - SINGOLA funzione per tutto
+ * Consolidated UI update - SINGLE function for everything
  */
 function updateAllUI() {
   // Stats header
@@ -54,19 +56,19 @@ function updateAllUI() {
   if (totalEl) totalEl.textContent = alliances.length;
   if (assignedEl) assignedEl.textContent = facilityData.filter(f => f.Alliance).length;
   
-  // Lista alleanze
+  // Alliance list
   renderAllianceList();
   
-  // Riepiloghi
+  // Summaries
   renderFacilitySummary();
   renderBuffSummary();
   
-  // Auto-apertura accordion se ci sono dati
+  // Auto-open accordion if there's data
   setTimeout(autoOpenAccordions, 100);
 }
 
 /**
- * Riepilogo strutture ottimizzato
+ * Optimized facility summary
  */
 function renderFacilitySummary() {
   const container = document.getElementById('facility-summary');
@@ -117,7 +119,8 @@ function renderFacilitySummary() {
 }
 
 /**
- * Riepilogo buff ottimizzato
+ * 🔧 FIXED: Optimized buff summary - FIXES GROUPING BUG
+ * Now correctly shows each Type + Level separately instead of grouping by buff value
  */
 function renderBuffSummary() {
   const container = document.getElementById('buff-summary');
@@ -141,9 +144,15 @@ function renderBuffSummary() {
     const alliance = alliances.find(a => a.name === allianceName);
     const unique = new Set(facilities.map(f => `${f.Type}|${f.Level}`));
     
+    // 🔧 FIXED: Shows each Type + Level separately instead of grouping by buff value
     const recognizedBuffs = [...unique]
-      .map(key => buffValues[key] ? `${buffValues[key]} ${key.split('|')[0]}` : null)
-      .filter(Boolean);
+      .map(key => {
+        const [type, level] = key.split('|');
+        const buffValue = buffValues[key];
+        return buffValue ? `${type} ${level}: ${buffValue}` : null;
+      })
+      .filter(Boolean)
+      .sort(); // Sort alphabetically for consistency
     
     const buffs = recognizedBuffs.length > 0 ? recognizedBuffs.join(', ') : t.noBuffRecognized || 'No buff recognized';
     
@@ -170,7 +179,7 @@ function renderBuffSummary() {
 }
 
 /**
- * Auto-apertura accordion intelligente
+ * Intelligent accordion auto-opening
  */
 function autoOpenAccordions() {
   const assignedFacilities = facilityData.filter(f => f.Alliance).length;
@@ -209,11 +218,11 @@ function autoOpenAccordions() {
 }
 
 // =====================================================================
-// SEZIONE 2: GESTIONE ALLEANZE CRUD
+// SECTION 2: ALLIANCE CRUD MANAGEMENT
 // =====================================================================
 
 /**
- * Edit alleanza con modal semplificato
+ * Edit alliance with simplified modal
  */
 function editAlliance(index) {
   const alliance = alliances[index];
@@ -265,12 +274,12 @@ function editAlliance(index) {
       alliance.name = newName;
       if (newIcon) alliance.icon = newIcon;
       
-      // Aggiorna nome nelle facility
+      // Update name in facilities
       facilityData.forEach(f => {
         if (f.Alliance === oldName) f.Alliance = newName;
       });
       
-      // Aggiorna marker
+      // Update markers
       facilityData.forEach(f => {
         if (f.Alliance === newName && f.marker && typeof renderAllianceIcon === 'function') {
           renderAllianceIcon(f);
@@ -299,7 +308,7 @@ function editAlliance(index) {
 }
 
 /**
- * Elimina alleanza con conferma
+ * Delete alliance with confirmation
  */
 function deleteAlliance(index) {
   const alliance = alliances[index];
@@ -312,7 +321,7 @@ function deleteAlliance(index) {
   }
   
   if (confirm(confirmMsg)) {
-    // Libera facility assegnate
+    // Free assigned facilities
     facilityData.forEach(f => {
       if (f.Alliance === alliance.name) {
         delete f.Alliance;
@@ -334,11 +343,11 @@ function deleteAlliance(index) {
 }
 
 // =====================================================================
-// SEZIONE 3: PERSISTENZA DATI
+// SECTION 3: DATA PERSISTENCE
 // =====================================================================
 
 /**
- * Salva dati in localStorage
+ * Save data to localStorage
  */
 function saveData() {
   const data = {
@@ -353,12 +362,12 @@ function saveData() {
   try {
     localStorage.setItem('whiteout-companion-data', JSON.stringify(data));
   } catch (error) {
-    console.error('Errore salvataggio:', error);
+    console.error('Save error:', error);
   }
 }
 
 /**
- * Carica dati da localStorage
+ * Load data from localStorage
  */
 function loadData() {
   const saved = localStorage.getItem('whiteout-companion-data');
@@ -393,16 +402,16 @@ function loadData() {
       }
     }
   } catch (error) {
-    console.error('Errore caricamento:', error);
+    console.error('Load error:', error);
   }
 }
 
 // =====================================================================
-// SEZIONE 4: EXPORT/IMPORT OTTIMIZZATO
+// SECTION 4: OPTIMIZED EXPORT/IMPORT
 // =====================================================================
 
 /**
- * Export CSV semplificato
+ * Simplified CSV export
  */
 function exportCSV() {
   const t = translations[currentLanguage] || translations['en'];
@@ -425,7 +434,7 @@ function exportCSV() {
 }
 
 /**
- * Genera icona alleanza automatica
+ * Generate automatic alliance icon
  */
 function generateDefaultIcon(name) {
   const colors = ['#d7263d', '#0074d9', '#2ecc71', '#ff851b', '#7fdbff', '#b10dc9'];
@@ -444,20 +453,20 @@ function generateDefaultIcon(name) {
 }
 
 // =====================================================================
-// SEZIONE 5: SISTEMA RESET CON UNDO SEMPLIFICATO
+// SECTION 5: ENHANCED RESET SYSTEM WITH ALLIANCE DELETION OPTION
 // =====================================================================
 
 let undoState = null;
 let undoTimeout = null;
 
 /**
- * Mostra conferma reset semplificata
+ * Shows reset confirmation with alliance deletion option
  */
 function showResetConfirmation() {
   const t = translations[currentLanguage] || translations['en'];
   const assignedFacilities = facilityData.filter(f => f.Alliance).length;
   
-  if (assignedFacilities === 0) {
+  if (assignedFacilities === 0 && alliances.length === 0) {
     if (typeof showStatus === 'function') {
       showStatus(t.noAssignmentsToReset || '⚠️ No assignments to reset', 'warning');
     }
@@ -469,13 +478,28 @@ function showResetConfirmation() {
   modal.innerHTML = `
     <div class="reset-modal-content">
       <div class="reset-warning">⚠️</div>
-      <h2 style="color: #ff6b6b; margin-bottom: 15px;">🗑️ ${t.resetConfirmationTitle || 'Confirm Total Reset'}</h2>
-      <p style="margin-bottom: 20px;">${t.resetConfirmationMessage || 'This will remove ALL alliance assignments. You can undo for 10 seconds.'}</p>
+      <h2 style="color: #ff6b6b; margin-bottom: 15px;">${t.resetConfirmationTitle || '🗑️ Confirm Total Reset'}</h2>
+      <p style="margin-bottom: 20px;">${t.resetConfirmationMessage || 'This will remove ALL alliance assignments from structures. You can undo for 10 seconds.'}</p>
+      
       <div class="reset-stats" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center;">
         <div style="font-size: 24px; color: #ff6b6b; font-weight: bold;">${assignedFacilities}</div>
         <div style="font-size: 12px;">${t.assignedStructures || 'Assigned Structures'}</div>
       </div>
-      <p style="color: #ff6b6b; font-weight: bold; margin-bottom: 15px;">⚠️ ${t.resetWarning || 'Type "RESET" to confirm:'}</p>
+      
+      <!-- NEW: Alliance deletion option -->
+      <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin: 20px 0;">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+          <input type="checkbox" id="reset-alliances-checkbox" style="transform: scale(1.2);">
+          <span style="color: #ff6b6b; font-weight: bold;">
+            🏰 Also delete all alliances (${alliances.length} total)
+          </span>
+        </label>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 5px; margin-left: 32px;">
+          ⚠️ This will permanently remove all alliance definitions, not just assignments
+        </div>
+      </div>
+      
+      <p style="color: #ff6b6b; font-weight: bold; margin-bottom: 15px;">${t.resetWarning || '⚠️ Type "RESET" to confirm:'}</p>
       <input type="text" class="reset-confirmation-input" id="reset-confirmation-input" placeholder="${t.typeReset || 'Type RESET'}" maxlength="10">
       <div class="reset-buttons">
         <button class="btn btn-danger" id="confirm-reset-btn" disabled style="opacity: 0.5;">🗑️ ${t.confirmReset || 'CONFIRM RESET'}</button>
@@ -506,17 +530,24 @@ function showResetConfirmation() {
 }
 
 /**
- * Conferma reset
+ * Enhanced reset confirmation with alliance deletion option
  */
 function confirmReset() {
   const modal = document.getElementById('reset-modal') || document.querySelector('.reset-modal');
+  const resetAlliancesCheckbox = document.getElementById('reset-alliances-checkbox');
+  const shouldResetAlliances = resetAlliancesCheckbox && resetAlliancesCheckbox.checked;
   
-  // Salva stato per undo
-  undoState = facilityData.map(f => ({
-    Type: f.Type, Level: f.Level, x: f.x, y: f.y, Alliance: f.Alliance
-  })).filter(f => f.Alliance);
+  // Save state for undo (including alliances if they're being reset)
+  undoState = {
+    facilities: facilityData.map(f => ({
+      Type: f.Type, Level: f.Level, x: f.x, y: f.y, Alliance: f.Alliance
+    })).filter(f => f.Alliance),
+    alliances: shouldResetAlliances ? [...alliances] : null
+  };
   
   let resetCount = 0;
+  
+  // Reset facility assignments
   facilityData.forEach(facility => {
     if (facility.Alliance) {
       delete facility.Alliance;
@@ -528,24 +559,36 @@ function confirmReset() {
     }
   });
   
+  // Reset alliances if checkbox was checked
+  let alliancesResetCount = 0;
+  if (shouldResetAlliances) {
+    alliancesResetCount = alliances.length;
+    alliances.length = 0; // Clear the alliances array
+  }
+  
   if (modal) modal.remove();
   updateAllUI();
   saveData();
-  showUndoNotification(resetCount);
+  showUndoNotification(resetCount, alliancesResetCount);
 }
 
 /**
- * Mostra notifica undo
+ * Enhanced undo notification with alliance info
  */
-function showUndoNotification(resetCount) {
+function showUndoNotification(resetCount, alliancesResetCount = 0) {
   const t = translations[currentLanguage] || translations['en'];
+  
+  let message = `${resetCount} ${t.assignmentsRemoved || 'assignments removed'}`;
+  if (alliancesResetCount > 0) {
+    message += `, ${alliancesResetCount} alliances deleted`;
+  }
   
   const notification = document.createElement('div');
   notification.className = 'undo-notification';
   notification.innerHTML = `
     <div style="flex: 1;">
       <div style="font-weight: bold; margin-bottom: 5px;">✅ ${t.resetCompleted || 'Reset Completed'}</div>
-      <div style="font-size: 12px; opacity: 0.9;">${resetCount} ${t.assignmentsRemoved || 'assignments removed'}</div>
+      <div style="font-size: 12px; opacity: 0.9;">${message}</div>
     </div>
     <button class="btn btn-warning" onclick="undoReset()" style="font-size: 12px; padding: 8px 12px;">↩️ ${t.undo || 'Undo'}</button>
     <div class="undo-countdown" id="undo-countdown">10</div>
@@ -575,15 +618,24 @@ function showUndoNotification(resetCount) {
 }
 
 /**
- * Annulla reset
+ * Enhanced undo reset (including alliance restoration if applicable)
  */
 function undoReset() {
   if (!undoState) return;
   
   const t = translations[currentLanguage] || translations['en'];
   let restoredCount = 0;
+  let alliancesRestoredCount = 0;
   
-  undoState.forEach(savedFacility => {
+  // Restore alliances first (if they were reset)
+  if (undoState.alliances) {
+    alliances.length = 0; // Clear current alliances
+    alliances.push(...undoState.alliances); // Restore saved alliances
+    alliancesRestoredCount = undoState.alliances.length;
+  }
+  
+  // Restore facility assignments
+  undoState.facilities.forEach(savedFacility => {
     const facility = facilityData.find(f => 
       f.Type === savedFacility.Type && f.Level === savedFacility.Level && 
       Math.abs(f.x - savedFacility.x) < 0.1 && Math.abs(f.y - savedFacility.y) < 0.1
@@ -599,6 +651,7 @@ function undoReset() {
     }
   });
   
+  // Clean up undo system
   if (undoTimeout) clearInterval(undoTimeout);
   const notification = document.querySelector('.undo-notification');
   if (notification) notification.remove();
@@ -607,20 +660,26 @@ function undoReset() {
   updateAllUI();
   saveData();
   
+  // Show success message
+  let message = `${restoredCount} ${t.assignmentsRestored || 'assignments restored'}`;
+  if (alliancesRestoredCount > 0) {
+    message += `, ${alliancesRestoredCount} alliances restored`;
+  }
+  
   if (typeof showStatus === 'function') {
-    showStatus(`↩️ ${t.undoCompleted || 'Undo completed'}: ${restoredCount} ${t.assignmentsRestored || 'assignments restored'}`, 'success');
+    showStatus(`↩️ ${t.undoCompleted || 'Undo completed'}: ${message}`, 'success');
   }
 }
 
 // =====================================================================
-// SEZIONE 6: EVENT LISTENERS E INIZIALIZZAZIONE
+// SECTION 6: EVENT LISTENERS AND INITIALIZATION
 // =====================================================================
 
 /**
- * Configurazione event listeners
+ * Configure event listeners
  */
 function setupEventListeners() {
-  // Form alleanza
+  // Alliance form
   const allianceForm = document.getElementById('alliance-form');
   if (allianceForm) {
     allianceForm.addEventListener('submit', async (e) => {
@@ -674,9 +733,9 @@ function setupEventListeners() {
           showStatus(`✅ ${t.allianceCreated || 'Alliance created'}: "${name}"`, 'success');
         }
       } catch (error) {
-        console.error('Errore creazione alleanza:', error);
+        console.error('Alliance creation error:', error);
         if (typeof showStatus === 'function') {
-          showStatus(`❌ Errore: ${error.message}`, 'error');
+          showStatus(`❌ Error: ${error.message}`, 'error');
         }
       } finally {
         submitBtn.disabled = false;
@@ -685,7 +744,7 @@ function setupEventListeners() {
     });
   }
   
-  // Import CSV
+  // CSV Import
   const importFile = document.getElementById('import-file');
   if (importFile) {
     importFile.addEventListener('change', (e) => {
@@ -727,14 +786,14 @@ function setupEventListeners() {
             }
           }
           
-          // Crea nuove alleanze
+          // Create new alliances
           newAlliances.forEach(allianceName => {
             if (!alliances.find(a => a.name.toLowerCase() === allianceName.toLowerCase())) {
               alliances.push({ name: allianceName, icon: generateDefaultIcon(allianceName) });
             }
           });
           
-          // Aggiorna marker
+          // Update markers
           facilityData.forEach(f => {
             if (f.marker) {
               if (typeof renderAllianceIcon === 'function') renderAllianceIcon(f);
@@ -765,7 +824,7 @@ function setupEventListeners() {
 }
 
 /**
- * Toggle sezioni accordion
+ * Toggle accordion sections
  */
 function toggleSection(sectionId) {
   const content = document.getElementById(`${sectionId}-content`);
@@ -787,11 +846,11 @@ function toggleSection(sectionId) {
 }
 
 // =====================================================================
-// SEZIONE 7: INIZIALIZZAZIONE
+// SECTION 7: INITIALIZATION
 // =====================================================================
 
 /**
- * Inizializzazione marker con ritardo
+ * Initialize markers with delay
  */
 function initializeMarkersWithDelay() {
   setTimeout(() => {
@@ -801,7 +860,7 @@ function initializeMarkersWithDelay() {
         const marker = typeof createMarker === 'function' ? createMarker(facility, index) : null;
         if (marker) createdCount++;
       } catch (error) {
-        console.error(`Errore marker ${index}:`, error);
+        console.error(`Marker error ${index}:`, error);
       }
     });
     
@@ -816,13 +875,13 @@ function initializeMarkersWithDelay() {
 }
 
 /**
- * Inizializzazione principale
+ * Main initialization
  */
 document.addEventListener('DOMContentLoaded', () => {
   loadData();
   setupEventListeners();
   
-  // Eventi mappa
+  // Map events
   document.addEventListener('mapLoaded', initializeMarkersWithDelay);
   document.addEventListener('mapFallback', initializeMarkersWithDelay);
   
@@ -835,22 +894,19 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // =====================================================================
-// SEZIONE 8: ESPORTAZIONI GLOBALI
+// SECTION 8: GLOBAL EXPORTS
 // =====================================================================
 
-// Funzioni principali
+// Main functions
 window.exportCSVFunction = exportCSV;
-window.importCSVFunction = (file) => {
-  const event = { target: { files: [file] } };
-  document.getElementById('import-file').dispatchEvent(new Event('change'));
-};
+
 window.showResetConfirmation = showResetConfirmation;
 window.undoReset = undoReset;
 window.toggleSection = toggleSection;
 window.editAlliance = editAlliance;
 window.deleteAlliance = deleteAlliance;
 
-// Funzioni rendering
+// Rendering functions
 window.renderAllianceList = renderAllianceList;
 window.renderFacilitySummary = renderFacilitySummary;
 window.renderBuffSummary = renderBuffSummary;
@@ -867,4 +923,74 @@ window.updateSummaries = () => {
 window.updateAllUI = updateAllUI;
 window.saveData = saveData;
 
-console.log('✅ Sistema alleanze ottimizzato caricato - PULITO: da ~1000 → ~500 righe (-50%)');
+console.log('✅ Optimized alliance system loaded (corrected version) - BUFF SUMMARY BUG FIXED');
+
+// ✅ CSV IMPORT with alliancesData reference
+window.importCSVFunction = function(file) {
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    try {
+      const csv = evt.target.result;
+      const lines = csv.split('\n').filter(line => line.trim());
+      const headers = lines[0].split(',').map(h => h.trim());
+      const data = lines.slice(1).map(line => {
+        const values = line.split(',').map(v => v.trim());
+        return Object.fromEntries(headers.map((h, i) => [h, values[i]]));
+      });
+
+      const alliances = {};
+      data.forEach(entry => {
+        const tag = entry.Alliance;
+        if (!alliances[tag]) alliances[tag] = [];
+        alliances[tag].push({
+          x: parseFloat(entry.X),
+          y: parseFloat(entry.Y),
+          type: entry.Type,
+          level: entry.Level
+        });
+      });
+
+      window.alliancesData = alliances;
+      console.log("✅ CSV import completed", alliances);
+      if (typeof updateMapFromImportedData === "function") {
+        updateMapFromImportedData();
+      }
+    } catch (error) {
+      console.error("Import error:", error);
+      alert("CSV import error");
+    }
+  };
+  reader.readAsText(file);
+};
+
+// ✅ CSV EXPORT with alliancesData reference
+window.exportCSVFunction = function() {
+  const data = [];
+  const source = window.alliancesData || {};
+
+  for (const [tag, facilities] of Object.entries(source)) {
+    facilities.forEach(fac => {
+      data.push({
+        Type: fac.type,
+        Level: fac.level,
+        X: parseFloat(fac.x).toFixed(2),
+        Y: parseFloat(fac.y).toFixed(2),
+        Alliance: tag
+      });
+    });
+  }
+
+  const headers = ['Type','Level','X','Y','Alliance'];
+  const csv = [
+    headers.join(','),
+    ...data.map(row => headers.map(h => row[h]).join(','))
+  ].join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute("download", "whiteout_facilities.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};

@@ -1,0 +1,109 @@
+/* chief-gear-upgrade.css */
+
+.gear-calculator {
+  max-width: 1200px;
+  margin: auto;
+  padding: 2rem;
+  font-family: "Segoe UI", sans-serif;
+  color: #f4f4f4;
+}
+
+.gear-calculator h1 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: #ffd866;
+}
+
+.gear-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.gear-card {
+  background: #1e1e2f;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+  border: 1px solid #444;
+}
+
+.gear-card h2 {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  color: #89ddff;
+}
+
+.gear-card label {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.gear-card select {
+  width: 100%;
+  padding: 0.4rem;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+  border-radius: 6px;
+  border: none;
+  background: #2c2c3c;
+  color: #fff;
+}
+
+.button-container {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+#calculateBtn {
+  padding: 0.6rem 1.5rem;
+  background: #ffd866;
+  color: #1e1e2f;
+  border: none;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+#calculateBtn:hover {
+  background: #ffefad;
+}
+
+.result-box {
+  background: #2e2e3e;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #555;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.05);
+}
+
+.result-box h2 {
+  color: #ffd866;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+}
+
+.result-box ul {
+  list-style: none;
+  padding-left: 0;
+  font-size: 0.95rem;
+}
+
+.result-box li {
+  margin-bottom: 0.5rem;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.result-box li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #89ddff;
+}

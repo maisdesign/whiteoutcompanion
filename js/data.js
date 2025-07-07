@@ -41,7 +41,7 @@ const facilityData = [
         "ingameCoords": "X:597 Y:597" 
     },
 
-    // CONSTRUCTION - Strutture di base (Lv.1)
+    // FACILITY CONSTRUCTION - Strutture di base (Lv.1)
     { 
         "Type": "Construction", 
         "Level": "Lv.1", 
@@ -99,7 +99,7 @@ const facilityData = [
         "ingameCoords": "X:138 Y:138" 
     },
 
-    // CONSTRUCTION - Strutture avanzate (Lv.3)
+    // FACILITY CONSTRUCTION - Strutture avanzate (Lv.3)
     { 
         "Type": "Construction", 
         "Level": "Lv.3", 
@@ -129,7 +129,7 @@ const facilityData = [
         "ingameCoords": "X:327 Y:666" 
     },
 
-    // PRODUCTION - Strutture di produzione (Lv.1)
+    // FACILITY PRODUCTION - Strutture di produzione (Lv.1)
     { 
         "Type": "Production", 
         "Level": "Lv.1", 
@@ -187,7 +187,7 @@ const facilityData = [
         "ingameCoords": "X:957 Y:1068" 
     },
 
-    // DEFENSE - Strutture difensive (Lv.2)
+    // FACILITY DEFENSE - Strutture difensive (Lv.2)
     { 
         "Type": "Defense", 
         "Level": "Lv.2", 
@@ -245,7 +245,7 @@ const facilityData = [
         "ingameCoords": "X:957 Y:438" 
     },
 
-    // DEFENSE - Strutture difensive avanzate (Lv.4)
+    // FACILITY DEFENSE - Strutture difensive avanzate (Lv.4)
     { 
         "Type": "Defense", 
         "Level": "Lv.4", 
@@ -268,7 +268,7 @@ const facilityData = [
         "ingameCoords": "X:588 Y:327" 
     },
 
-    // GATHERING - Strutture di raccolta (Lv.1)
+    // FACILITY GATHERING - Strutture di raccolta (Lv.1)
     { 
         "Type": "Gathering", 
         "Level": "Lv.1", 
@@ -326,7 +326,7 @@ const facilityData = [
         "ingameCoords": "X:1068 Y:936" 
     },
 
-    // TECH - Strutture tecnologiche (Lv.1)
+    // FACILITY TECH - Strutture tecnologiche (Lv.1)
     { 
         "Type": "Tech", 
         "Level": "Lv.1", 
@@ -384,7 +384,7 @@ const facilityData = [
         "ingameCoords": "X:957 Y:957" 
     },
 
-    // TECH - Strutture tecnologiche avanzate (Lv.3)
+    // FACILITY TECH - Strutture tecnologiche avanzate (Lv.3)
     { 
         "Type": "Tech", 
         "Level": "Lv.3", 
@@ -414,7 +414,7 @@ const facilityData = [
         "ingameCoords": "X:867 Y:867" 
     },
 
-    // WEAPONS - Strutture per armi (Lv.2)
+    // FACILITY WEAPONS - Strutture per armi (Lv.2)
     { 
         "Type": "Weapons", 
         "Level": "Lv.2", 
@@ -472,7 +472,7 @@ const facilityData = [
         "ingameCoords": "X:867 Y:1068" 
     },
 
-    // WEAPONS - Strutture per armi avanzate (Lv.4)
+    // FACILITY WEAPONS - Strutture per armi avanzate (Lv.4)
     { 
         "Type": "Weapons", 
         "Level": "Lv.4", 
@@ -495,7 +495,7 @@ const facilityData = [
         "ingameCoords": "X:588 Y:867" 
     },
 
-    // TRAINING - Strutture di addestramento (Lv.2)
+    // FACILITY TRAINING - Strutture di addestramento (Lv.2)
     { 
         "Type": "Training", 
         "Level": "Lv.2", 
@@ -553,7 +553,7 @@ const facilityData = [
         "ingameCoords": "X:768 Y:237" 
     },
 
-    // EXPEDITION - Strutture di spedizione (Lv.3)
+    // FACILITY EXPEDITION - Strutture di spedizione (Lv.3)
     { 
         "Type": "Expedition", 
         "Level": "Lv.3", 
@@ -725,7 +725,7 @@ const buffValues = {
     "Production|Lv.1": "+5%",
     
     // Defense buffs
-    "Defense|Lv.2": "+8%",
+    "Defense|Lv.2": "+5%",
     "Defense|Lv.4": "+8%",
     
     // Gathering buffs
@@ -736,7 +736,7 @@ const buffValues = {
     "Tech|Lv.3": "+8%",
     
     // Weapons buffs
-    "Weapons|Lv.2": "+8%",
+    "Weapons|Lv.2": "+5%",
     "Weapons|Lv.4": "+8%",
     
     // Training buffs
