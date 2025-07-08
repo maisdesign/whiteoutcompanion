@@ -559,7 +559,7 @@ const facilityData = [
         "Level": "Lv.3", 
         "x": 67.63, 
         "y": 53.91, 
-        "ingameCoords": "X:768" 
+        "ingameCoords": "X:768  Y:327" 
     },
     { 
         "Type": "Expedition", 
