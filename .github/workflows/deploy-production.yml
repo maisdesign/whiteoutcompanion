@@ -1,0 +1,21 @@
+name: Deploy to Production via SFTP
+on:
+  push:
+    branches: [ main ]  # Si attiva solo quando pushes sul branch main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Deploy to server via SFTP
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+        with:
+          server: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USERNAME }}
+          password: ${{ secrets.SFTP_PASSWORD }}
+          local_path: './*'
+          remote_path: ${{ secrets.SFTP_PATH }}
+          args: '-o ConnectTimeout=5'
