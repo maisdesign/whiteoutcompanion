@@ -1069,3 +1069,52 @@ body {
   color: #1e3c72;
   background-color: #ffffff;
 }
+
+/* =================================================================== */
+/* 19. SEO HOMEPAGE SECTION                                            */
+/* =================================================================== */
+.seo-description {
+  max-width: 900px;
+  margin: 0 auto 30px auto;
+  padding: var(--spacing-md);
+  text-align: left;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-glass);
+  backdrop-filter: blur(20px);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.seo-description h2 {
+  color: var(--text-primary);
+  font-size: 1.8rem;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.seo-description p {
+  margin-bottom: 12px;
+}
+
+.seo-description ul {
+  margin: 12px 0 12px 20px;
+  padding-left: 20px;
+}
+
+.seo-description li {
+  margin-bottom: 8px;
+  list-style-type: disc;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .seo-description {
+    padding: 12px;
+  }
+
+  .seo-description h2 {
+    font-size: 1.4rem;
+  }
+}
